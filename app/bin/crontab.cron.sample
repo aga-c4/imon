@@ -1,0 +1,11 @@
+50  2 * * * /home/analytics/imon/cleartmp.sh
+
+ * * * * *   /home/analytics/imon/cron_m1.sh
+20 * * * *  /home/analytics/imon/cron_h1.sh
+50 3 * * *  /home/analytics/imon/cron_d1.sh
+50 4 * * 1  /home/analytics/imon/cron_w1.sh
+50 5 * * *  /home/analytics/imon/cron_mo1.sh
+
+00 8 * * * /home/analytics/imon/imon.sh newsmaker --granularity d1
+05 8 * * 1 /home/analytics/imon/imon.sh newsmaker --granularity w1
+10 8 1 * * /home/analytics/imon/imon.sh newsmaker --granularity m1

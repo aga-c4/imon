@@ -1,0 +1,103 @@
+Структура БД учета событий:
+
+Реестр событий:
+metrics
+- id int
+- parentid int идентификатор родительской метрики, если она входит в состав чего-то еще (нужно для анализа структуры метрики)
+- metric_active int статус активности
+- metric_monitor int необходимость мониторинга инцидентов
+- accum_items int парамер для поиска инцидентов (1 по умолчанию)
+- metric_source_alias string100 идентификатор источника (нормализованный)
+- metric_alias string100 алиас события (нормализованный)
+- metric_name string255 название метрики
+- metric_api_alias string255 идентификатор события в учетной системе (пример: "ym:s:users")
+- metric_api_filters string255 строка фильтров для API (пример: "deviceCategory=.('desktop')")
+- metric_dp smallint степень числа 10, на что делем value, чтоб хранить все в int
+- metric_type string50 тип метрики (исходная "src" или рассчитываемая "res")
+- metric_modification string255 формула для рассчета метрики, (Пример: 100*m21/m2, где m21 значение метрики с id=21) 
+- metric_ts_types string255 типы временных фрагментаций  (обычно "m1,h1,d1,w1,m1")
+- metric_group_id int идентификатор группы метрик из таблицы metrics_groups
+- metric_project int  идентификатор проекта метрик из таблицы metrics_projects
+- metric_region_alias string50 (алиас/all)
+- metric_device_alias string20 (алиас/all)
+- metric_trafsrc_alias string100 (алиас/all)
+
+События:
+metrics_m1 - по минутам
+metrics_h1 - по часам
+metrics_d1 - по дням
+metrics_w1 - по неделям
+metrics_mo1 - по месяцам
+- id int идентификатор
+- dt datetime это первая секунда временного периода
+- source_id int идентификатор источника
+- source_alias string100 алиас источника (нормализованный)
+- metric_id int идентификатор метрики
+- metric_parentid int идентификатор родительской метрики
+- value int колличественная мера
+- dp int степень числа 10, на что делем value, чтоб хранить все в int
+- value int суммарное значение
+- region_alias string50 (алиас/all)
+- device_alias string20 (алиас/all)
+- trafsrc_alias string100 (алиас/all)
+- metric_group_id int идентификатор группы метрик 
+- metric_project_id int идентификатор проекта метрик
+
+Реестр аномалий:
+anom_m1 - по минутам
+anom_h1 - по часам
+anom_d1 - по дням
+anom_w1 - по неделям
+anom_mo1 - по месяцам
+- id int идентификатор аномалии
+- dt datetime это первая секунда временного периода
+- metric_id int идентификатор метрики
+- metric_parentid int идентификатор родительской метрики
+- metric_value int значение метрики с аномалией без корректировки на dp
+- posted int Маркер опубликованности
+- region_alias string50 (алиас/all)
+- device_alias string50 (алиас/all)
+- trafsrc_alias string100 (алиас/all)
+- direction string10 pos/neg/both
+- metric_group_id int идентификатор группы метрик 
+- metric_project_id int идентификатор проекта метрик
+
+Реестр рупп:
+metric_groups
+- id int
+- metric_group_alias string255 алиас группы
+- metric_group_name string255 название группы
+
+Реестр Проектов:
+metric_projects
+- id int
+- metric_project_alias string255 алиас проекта
+- metric_project_name string255 название проекта
+
+Реестр задач
+tasks
+- id int идентификатор задачи
+- task_active int статус активности задачи
+- task_comment string255 комментарий к задаче
+- task_settings text json массив настроек
+    Примеры: 
+        {"data":{"metric_id":1, "granularity":"h1", "region_alias": "", "device_alias": "","accum_items": 1}, "anoms":{"direction": "both", "max_anoms": 0.2, "alpha": 0.01, "piecewise_median_period_weeks": 2},"message_lvl":"critical"}
+        {"data":{"metric_id":476, "granularity":"h1", "region_alias": "", "device_alias": "","accum_items": 1}, "anoms":{"direction": "both", "max_anoms": 0.2, "alpha": 0.01, "piecewise_median_period_weeks": 2},"message_lvl":"important"}
+- task_robot string255 алиас робота (необходимо для запуска контроллера робота, пример twanom для поиска инцидентов)
+- task_max_execution_sec int максимальное время исполнения скрипта роботом
+Задачи можно создать или добавить автоматически:
+imon.sh create_tasks_for_all_metrics
+
+Реестр выполнения задач по таблице tasks
+jobs
+- id int идентификатор выполняемой работы по задаче
+- dt datetime это первая секунда временного периода
+- task_id int идентификатор задачи
+- job_execution_sec int время исполнения
+- job_max_mem_kb int максимальное использование памяти процесса
+- job_dt_fin datetime время завершения
+- job_status статус завершения str run | fin | error
+- job_comment text коммент по исполнению, возможно лог
+
+База данных в части задач, работы может наполняться автоматически, исходя из 
+имеющихся метрик, подробнее смотри помощь основного скрипта.

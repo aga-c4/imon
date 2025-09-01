@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Укажите полный путь к рабочей папке
+# cd /home/analytics/imon
+
+# Удаляем файлы старше 24 часов:
+# Я.Метрика
+folder_path="./tmp/yamget"
+find $folder_path -type f -mtime +1 -exec rm {} \;
+
+# AppMetrica
+folder_path="./tmp/yamappget"
+find $folder_path -type f -mtime +1 -exec rm {} \;
+
+# mysql1
+folder_path="./tmp/mysql1get"
+find $folder_path -type f -mtime +1 -exec rm {} \;
+
+# Файлы запущенных процессов
+folder_path="./tmp/process"
+find $folder_path -type f -mtime +1 -exec rm {} \;

@@ -1,0 +1,1 @@
+docker run -ti --rm -v %cd%/app/www:/var/www -v %cd%/docker/images/php/conf.d.dev:/usr/local/etc/php/conf.d -v %cd%/docker/images/php/php-fpm.d/zzz-01-add.conf:/usr/local/etc/php-fpm.d/zzz-01-add.conf -v %cd%/docker/images/php/openssl.cnf:/etc/ssl/openssl.cnf -w /var/www agac4/inc_php8.2-fpm-sqlsrv:latest %*
