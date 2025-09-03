@@ -1,6 +1,6 @@
 [mysqld]
-# character_set_server            = utf8mb4
-# collation_server                = utf8mb4_0900_ai_ci
+character_set_server            = utf8mb4
+collation_server                = utf8mb4_general_ci
 
 # Лог ошибок
 # log_error = /var/log/mysql/error.log

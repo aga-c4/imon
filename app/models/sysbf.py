@@ -4,7 +4,7 @@ import datetime
 from dateutil.parser import parse
 import pytz
 import os
-import resource
+import resource # Не работает в Windows
 
 class SysBf:
 
