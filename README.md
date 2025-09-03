@@ -37,7 +37,7 @@ docker-compose down
 docker exec -it <имя контейнера Grafana> grafana-cli admin reset-admin-password <новый пароль>
 ```
 - Смена пароля root Mysql в docker-compose.yml
-
+- Интересная статья по настройке VS Code https://habr.com/ru/companies/ruvds/articles/717110/
 
 
 
