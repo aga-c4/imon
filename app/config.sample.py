@@ -106,7 +106,7 @@ config = {
         }    
     },
     "telegram": {
-        "api_token": "Разместите тут токен",
+        "api_token": "",
         "channels": {
             "log": "",
             "error": "",

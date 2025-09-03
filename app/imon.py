@@ -9,6 +9,7 @@ from pydoc import locate
 import matplotlib.pyplot as plt
 import logging
 
+from models.sysbf import SysBf
 from config import config
 from models.mysqldb import Mysqldb
 from models.message import Message
@@ -30,6 +31,7 @@ def createParser ():
     parser.add_argument ('--log_view', choices=['', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='')
     parser.add_argument ('--task_id', type=int, default=0)
     parser.add_argument ('--job_status', choices=['', 'run', 'fin', 'error'], default='')
+    parser.add_argument ('--robot', type=str, default="")
     parser.add_argument ('--group_id', type=int, default=0)
     parser.add_argument ('--metric_id', type=int, default=0)
     parser.add_argument ('--active', type=int, default=-1)
@@ -67,7 +69,29 @@ if namespace.log_view!='':
 if namespace.action!='':
     print('action: ', namespace.action)
     db = Mysqldb(config['db'])
-if namespace.action == 'yamget':
+
+if namespace.action == 'runrobot':
+    if namespace.robot !='':
+        print('robot: ', namespace.robot)
+        robot_alias = namespace.robot.strip()
+
+        robot_model = SysBf.class_factory("models.robot_"+robot_alias.lower(), "Robot_"+robot_alias, settings={
+            "pid": "nopid", 
+            "fr_api": False, 
+            "source": namespace.source, 
+            "granularity": namespace.granularity, 
+            "group_id": namespace.group_id, 
+            "metric_id": namespace.metric_id,
+            "datetime_to": namespace.datetime_to
+            }, config=config)
+        logging.info("Run robot: {0}".format(namespace.robot))
+        res = SysBf.call_method_fr_obj(robot_model, "run")
+        message_str = f"Run robot {namespace.robot} fin, comment: \n" + res['comment']
+        if 'telemetry' in res:
+            message_str += " \n" + f"exec_sec:{res['telemetry']['job_execution_sec']}, maxmem_kb:{res['telemetry']['job_max_mem_kb']}"
+        Message.send(message_str, lvl='log')
+        print(message_str)
+elif namespace.action == 'yamget':
     if namespace.source in ('metrica', 'app_metrica'):
         robot = Robot_yamget(settings={
             "pid": "nopid", 
@@ -254,6 +278,7 @@ Synopsys:
     python3 imon.py [Command1] [Param1] [Command2] [Param2] ...
         
 Commands:
+    runrobot
     yamget
     yamappeventsget
     mysql1get 
@@ -276,6 +301,7 @@ Params:
     --log_view (DEBUG | INFO | WARNING | ERROR | CRITICAL) - run with log level (WARNING by default)
     --task_id (int) the task number for filtering output or cleaning
     --job_status (run | fin | error) job status for filtering output or clearing
+    --robot (str) the robot alias to run      
     --source ('' | metrica | app_metrica), ('' by default)
     --group_id (int) the group id for filtering or create tasks  
     --metric_id (int) the metric id for filtering        
@@ -290,6 +316,7 @@ Params:
 The incident monitor is configured from the database!       
 
 Examples:
+    imon.sh runrobot --robot getload --granularity h1 --source metrica      
     imon.sh yamget --granularity h1 --source metrica
     imon.sh yamget --granularity h1 --source app_metrica
     imon.sh yamappeventsget --granularity h1

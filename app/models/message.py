@@ -32,15 +32,16 @@ class Message():
             if channels is None:
                 Message.status = False
             
-        if Message.status:    
-            Message.bot = telebot.TeleBot(telegram_api_token)
+        if Message.status:  
+            if telegram_api_token!='':
+                Message.bot = telebot.TeleBot(telegram_api_token)
 
-            self.log_channel = channels.get('log', None)
-            self.err_channel = channels.get('error', None)
-            self.critical_channel = channels.get('critical', None)
-            self.important_channel = channels.get('important', None)
-            self.all_channel = channels.get('all', None)
-            self.news_channel = channels.get('news', None)
+            self.log_channel = channels.get('log', '')
+            self.err_channel = channels.get('error', '')
+            self.critical_channel = channels.get('critical', '')
+            self.important_channel = channels.get('important', '')
+            self.all_channel = channels.get('all', '')
+            self.news_channel = channels.get('news', '')
 
     @staticmethod
     def send(message_str:str, *, lvl:str='all', img_buf=None) -> int:
@@ -55,7 +56,7 @@ class Message():
 
         res = 0
 
-        if lvl=='news' and not message.news_channel is None:
+        if lvl=='news' and message.news_channel!='':
             logging.info(f"Try to send lvl: {lvl}, channel: {message.news_channel}, message: {message_str}")   
             try:
                 if  message_str!='':
@@ -68,7 +69,7 @@ class Message():
                 logging.warning("Messages send problems!")
             return res    
         
-        if lvl=='log' and not message.log_channel is None and message_str!='':
+        if lvl=='log' and message.log_channel!='' and message_str!='':
             logging.info(f"Try to send lvl: {lvl}, channel: {message.log_channel}, message: {message_str}")   
             try:
                 msg_status = message.bot.send_message(message.log_channel, message_str)
@@ -76,7 +77,7 @@ class Message():
             except:
                 logging.warning("Messages send problems!")
 
-        if lvl=='error' and not message.err_channel is None and message_str!='':
+        if lvl=='error' and message.err_channel!='' and message_str!='':
             logging.info(f"Try to send lvl: {lvl}, channel: {message.err_channel}, message: {message_str}")   
             try:
                 msg_status = message.bot.send_message(message.err_channel, message_str)
@@ -84,7 +85,7 @@ class Message():
             except:
                 logging.warning("Messages send problems!")
 
-        if lvl=='critical' and not message.critical_channel is None:
+        if lvl=='critical' and message.critical_channel!='':
             logging.info(f"Try to send lvl: {lvl}, channel: {message.critical_channel}, message: {message_str}")   
             try:
                 if  message_str!='':
@@ -95,7 +96,7 @@ class Message():
             except:
                 logging.warning("Messages send problems!")
 
-        if (lvl=='critical' or lvl=='important') and not message.important_channel is None:
+        if (lvl=='critical' or lvl=='important') and message.important_channel!='':
             logging.info(f"Try to send lvl: {lvl}, channel: {message.important_channel}, message: {message_str}")   
             try:
                 if  message_str!='':
@@ -107,7 +108,7 @@ class Message():
             except:
                 logging.warning("Messages send problems!")
 
-        if lvl!='error' and lvl!='log' and not message.all_channel is None:
+        if lvl!='error' and lvl!='log' and message.all_channel!='':
             logging.info(f"Try to send  lvl: {lvl}, channel: {message.all_channel}, message: {message_str}")   
             try:    
                 if  message_str!='':
