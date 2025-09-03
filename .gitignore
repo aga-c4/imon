@@ -13,3 +13,4 @@ venv/
 
 .vscode
 /docker-compose.yml
+/app/config.py
