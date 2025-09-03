@@ -4,14 +4,12 @@ __pycache__/
 
 # Файлы конфигурации для venv
 venv/
-.env
 
 # Контрольные точки в Jupyter notebook лучше оставить в стороне
 .ipynb_checkpoints
 
 /app/bin/*.sh
 /app/bin/*.bat
-/volumes/
 
 .vscode
 /docker-compose.yml

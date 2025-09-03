@@ -4,26 +4,27 @@
 
 Перед запуском:
 
-1. Инициализируем виртуальное окружение в папке app проекта
-```
-cd app
-python3 -m venv venv
-3. source venv/bin/activate
-4. pip3 install -r requirements.txt
-```
-2. Создайте config.py на базе config.sample.py
-3. Создайте app/bin/imon.sh на базе app/bin/imon.sh.sample
-4. Создайте необходимые cron скрипты на базе примеров из app/bin/
-5. Запустите проект
+1. Запустите ./install.sh, в результате будут созданы:
+- docker-compose.yml на базе docker-compose.sample.yml
+- config.py на базе config.sample.py
+- app/bin/imon.sh на базе app/bin/imon.sh.sample
+Подправьте их под ваши нужды, укажите параметры доступа к БД и другие параметры в config.py
+При наличии указанных выше обязательных файлов, они не пересоздадутся. 
+2. Создайте необходимые cron скрипты на базе примеров из app/bin/
+3. Запустите проект
 ```
 docker-compose up -d
 ```
-6. Зайдите в phpMyAdmin создайте таблицу imon на базе примера из dumps
-7. Остановите проект
+3. Зайдите в phpMyAdmin создайте таблицу imon на базе примера из dumps
+4. Остановите проект
 ```
 docker-compose down
 ```
-После формирования папки volumes/grafana скопируйте в нее файл базы графаны из папки dumps и поменяйте ему пользователя и права как у остальных.срщцт 472Ж
+После формирования папки volumes/grafana скопируйте в нее файл базы графаны из папки dumps и поменяйте ему пользователя
+```
+cp dumps/clear/grafana.db volumes/grafana/grafana.db
+chown 472 volumes/grafana/grafana.db
+```
 
 Для большей безопасности установите в mysql пароли пользователей кроме root, определите им права и работайте под ними
 
@@ -38,9 +39,19 @@ docker exec -it <имя контейнера Grafana> grafana-cli admin reset-ad
 ```
 - Смена пароля root Mysql в docker-compose.yml
 - Интересная статья по настройке VS Code https://habr.com/ru/companies/ruvds/articles/717110/
-
+- Инициализация виртуального окружения в папке app проекта
+```
+cd app
+python3 -m venv venv
+source venv/bin/activate
+pip3 install -r requirements.txt
+```
 
 
 ## TODO:
 1. Управление таймфреймами из конфига.
 2. Управление сообщениями msg_link1 из конфига (робот тваном).
+
+
+Установка
+chown 472:root volumes/grafana

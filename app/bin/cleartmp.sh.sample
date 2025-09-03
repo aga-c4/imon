@@ -1,21 +1,21 @@
 #!/bin/bash
 
-# Укажите полный путь к рабочей папке
-# cd /home/analytics/imon
+# Переход в директорию, где расположен скрипт
+cd "$(dirname "$0")/../"
 
 # Удаляем файлы старше 24 часов:
 # Я.Метрика
 folder_path="./tmp/yamget"
-find $folder_path -type f -mtime +1 -exec rm {} \;
+find $folder_path -type f ! -name ".gitignore" -exec rm -f {} +
 
 # AppMetrica
 folder_path="./tmp/yamappget"
-find $folder_path -type f -mtime +1 -exec rm {} \;
+find $folder_path -type f ! -name ".gitignore" -exec rm -f {} +
 
 # mysql1
 folder_path="./tmp/mysql1get"
-find $folder_path -type f -mtime +1 -exec rm {} \;
+find $folder_path -type f ! -name ".gitignore" -exec rm -f {} +
 
 # Файлы запущенных процессов
 folder_path="./tmp/process"
-find $folder_path -type f -mtime +1 -exec rm {} \;
+find $folder_path -type f ! -name ".gitignore" -exec rm -f {} +
