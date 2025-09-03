@@ -50,9 +50,13 @@ docker build -t imon .
 ```
 далее вы сможете запускать контейнер с Python командой
 ```
-imon.sh [Command1] [Param1] [Command2] [Param2] ...
+./dockerimon.sh [Command1] [Param1] [Command2] [Param2] ...
 ```
 запустите без параметров, для получения справки.
+
+Для очистки tmp выполните из корня проекта
+./dockercleartmp.sh (через запуск контейнера)
+./app/bin/cleartmp.sh (на хостовой машине)
 
 ## Полезно:
 - Для смены пароля админа Grafana 
