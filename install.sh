@@ -11,7 +11,13 @@ if [ ! -d "volumes/grafana" ]; then
   mkdir "volumes/grafana"
   echo "Create volumes/grafana"
 fi
-chown 472 volumes/grafana
+
+if [ -d "volumes/grafana" ]; then
+  chown 472 volumes/grafana
+fi
+if [ -f "volumes/grafana/grafana.db" ]; then
+  chown 472 volumes/grafana/grafana.db
+fi
 
 if [ ! -f "docker-compose.yml" ]; then
   cp "docker-compose.sample.yml" "docker-compose.yml"
