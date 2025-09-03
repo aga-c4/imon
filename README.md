@@ -43,6 +43,17 @@ chown 472 volumes/grafana/grafana.db
 Зайдите в phpMyAdmin или иным способом создайте БД imon с кодировкой utf8mb4_general_ci
 на базе файла dumps/clear/imon_clear.sql
 
+Если необходимо запустить python процесс не с хостовой машины, а под Docker, то
+выполните следующую команду из app проекта:
+```
+docker build -t imon .
+```
+далее вы сможете запускать контейнер с Python командой
+```
+imon.sh [Command1] [Param1] [Command2] [Param2] ...
+```
+запустите без параметров, для получения справки.
+
 ## Полезно:
 - Для смены пароля админа Grafana 
 ```
@@ -57,6 +68,11 @@ python3 -m venv venv
 source venv/bin/activate
 pip3 install -r requirements.txt
 ```
+- Посмотреть доступные сети в Docker можно так
+```
+docker inspect c1 -f "{{json .NetworkSettings.Networks }}"
+```
+
 
 ## TODO:
 1. Управление таймфреймами из конфига.

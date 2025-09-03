@@ -51,7 +51,7 @@ config = {
             "message_dt_lag_sec": 35 * 24 * 60 * 60}, # Отошлем сообщения о последней неповторяющейся аномалии в течении message_dt_lag_sec
     },
     "db": {    
-        "host": "127.0.0.1",
+        "host": "mysql",
         "port": 3306,
         "db": "imon",
         "user": "root",

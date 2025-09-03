@@ -64,7 +64,9 @@ if namespace.log_view!='':
     else:       
         logging.basicConfig(filename=logfile, filemode='a')    
 
-db = Mysqldb(config['db'])
+if namespace.action!='':
+    print('action: ', namespace.action)
+    db = Mysqldb(config['db'])
 if namespace.action == 'yamget':
     if namespace.source in ('metrica', 'app_metrica'):
         robot = Robot_yamget(settings={
@@ -220,7 +222,7 @@ elif namespace.action == 'job_list':
         print(row)
     print(f'Count {len(result)} items')    
 
-elif namespace.action == 'delete_jobs':         
+elif namespace.action == 'delete_jobs':      
     Job.delete_jobs(db=db, status=namespace.job_status, task_id=namespace.task_id)                                           
 
 elif namespace.action == 'truncate_jobs':
