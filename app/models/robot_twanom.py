@@ -166,12 +166,10 @@ class Robot_twanom:
                     msg_anom_pos = config['message_str'].get('msg_anom_pos', "{metric_name}: Превышение нормы!").format(metric_name=metric_name)
                     msg_anom_neg = config['message_str'].get('msg_anom_neg', "{metric_name}: Ниже нормы!").format(metric_name=metric_name)
                     msg_anom_all = config['message_str'].get('msg_anom_all', "{metric_name}: Аномальное значение!").format(metric_name=metric_name)
-                    if self.metric.info['metric_project_id']==1:
-                        msg_link_str = config['message_str'].get('msg_link1', "").format(msg_metric_id=msg_metric_id, msg_granularity=msg_granularity)
-                    if self.metric.info['metric_project_id']==2:
-                        msg_link_str = config['message_str'].get('msg_link2', "").format(msg_metric_id=msg_metric_id, msg_granularity=msg_granularity)
-                    else:
-                        msg_link_str = config['message_str'].get('msg_link', "").format(msg_metric_id=msg_metric_id, msg_granularity=msg_granularity)
+                    msg_link = config['message_str']['msg_link'].get(f"{self.metric.info['metric_project_id']}", "")
+                    if msg_link!="":
+                        msg_link = config['message_str']['msg_link'].get("default", "")    
+                    msg_link_str = msg_link.format(msg_metric_id=msg_metric_id, msg_granularity=msg_granularity)
                     if actual_anom['direction']=='pos':
                         if self.metric.info['neg_reverce']==0:
                             message_str = "\U0001F7E2 " + msg_anom_pos + msg_link_str

@@ -28,7 +28,7 @@ class Metric:
         dt_from = '' # Дата-время в формате 'ГГГГ-ММ-ДД чч-мм-сс'
         """
         assert id > 0, 'Metric.get_data: id is not set'
-        assert granularity in ['mo1', 'h1', 'd1', 'w1', 'm1'], 'Metric.get_data: granularity options: m1 | h1 | d1 | w1 | mo1'
+        assert granularity != '', 'Metric.get_data: granularity options: m1 | h1 | d1 | w1 | mo1 | ...'
 
         self.db = db
         if not region_alias:

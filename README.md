@@ -1,6 +1,6 @@
 ## Инцидент мониторинг
 
-Для запуска потребуется python 3.x, Git, Docker
+Для запуска потребуется python 3.0+, Git, Docker
 
 Перед запуском:
 
@@ -76,9 +76,3 @@ pip3 install -r requirements.txt
 ```
 docker inspect c1 -f "{{json .NetworkSettings.Networks }}"
 ```
-
-
-## TODO:
-1. Управление таймфреймами из конфига.
-2. Управление сообщениями msg_link1 из конфига (робот тваном).
-

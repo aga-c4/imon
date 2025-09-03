@@ -8,7 +8,8 @@ config = {
         "timezone": "Europe/Moscow",
         "proc_path": "tmp/process",
     },
-    "granularity_list": {
+    "granularity_allow": ['m1', 'h1', 'd1', 'w1', 'mo1'], # Допустимые варианты granularity
+    "granularity_list": { # Описание вариантов granularity
         "m1": {
             "api_group": "minute", 
             "sec": 60, # Секунд в таймфрейме
@@ -116,9 +117,11 @@ config = {
         }
     },
     "message_str": {
-        "msg_link":  " <a href='http://.../all-metrics?orgId=1&var-metric_id={msg_metric_id}&var-granularity={msg_granularity}'>Подробнее</a>",
-        "msg_link1": " <a href='http://.../site-metrics?orgId=1&var-metric_id={msg_metric_id}&var-granularity={msg_granularity}'>Подробнее</a>",
-        "msg_link2": " <a href='http://.../app-metrics?orgId=1&var-metric_id={msg_metric_id}&var-granularity={msg_granularity}'>Подробнее</a>",
+        "msg_link": { # Варианты ссылок по проектам, ключ - идентификатор проекта (строка)
+            "default": " <a href='http://.../all-metrics?orgId=1&var-metric_id={msg_metric_id}&var-granularity={msg_granularity}'>Подробнее</a>",
+            "1": " <a href='http://.../site-metrics?orgId=1&var-metric_id={msg_metric_id}&var-granularity={msg_granularity}'>Подробнее</a>",
+            "2": " <a href='http://.../app-metrics?orgId=1&var-metric_id={msg_metric_id}&var-granularity={msg_granularity}'>Подробнее</a>"
+        },
         "msg_anom_pos": "{metric_name}: Превышение нормы!",
         "msg_anom_neg": "{metric_name}: Ниже нормы!",
         "msg_anom_all": "{metric_name}: Аномальное значение!"
