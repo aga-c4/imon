@@ -12,7 +12,7 @@
 При наличии указанных выше обязательных файлов, они не пересоздадутся. 
 Для изменения прав на директории в volumes запустите повторно скрипт под root, при этом выполнится
 ```
-chown 472:root volumes/grafana
+sudo chown 472:root volumes/grafana
 ```
 2. Создайте необходимые cron скрипты на базе примеров из app/bin/
 3. Запустите проект
@@ -27,9 +27,9 @@ docker-compose down
 После формирования папки volumes/grafana скопируйте в нее файл базы графаны из папки dumps и поменяйте ему пользователя
 ```
 cp dumps/clear/grafana.db volumes/grafana/grafana.db
-chown 472 volumes/grafana/grafana.db
+sudo chown 472 volumes/grafana/grafana.db
 ```
-Для изменения прав можете просто запустить под root скрипт ./install.sh
+Для изменения прав можете просто запустить под root скрипт sudo ./install.sh
 
 Для большей безопасности установите в mysql пароли пользователей кроме root, определите им права и работайте под ними
 
