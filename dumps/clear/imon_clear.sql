@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: mysql:3306
--- Время создания: Сен 01 2025 г., 19:41
+-- Время создания: Сен 04 2025 г., 15:05
 -- Версия сервера: 8.3.0
 -- Версия PHP: 8.2.29
 
@@ -33,6 +33,7 @@ CREATE TABLE `anoms_d1` (
   `dt` datetime(6) NOT NULL,
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
+  `metric_tag` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `metric_value` int NOT NULL,
   `posted` int NOT NULL DEFAULT '0',
   `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
@@ -55,6 +56,7 @@ CREATE TABLE `anoms_h1` (
   `dt` datetime(6) NOT NULL,
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
+  `metric_tag` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `metric_value` int NOT NULL,
   `posted` int NOT NULL DEFAULT '0',
   `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
@@ -77,6 +79,7 @@ CREATE TABLE `anoms_m1` (
   `dt` datetime(6) NOT NULL,
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
+  `metric_tag` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `metric_value` int NOT NULL,
   `posted` int NOT NULL DEFAULT '0',
   `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
@@ -99,6 +102,7 @@ CREATE TABLE `anoms_mo1` (
   `dt` datetime(6) NOT NULL,
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
+  `metric_tag` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `metric_value` int NOT NULL,
   `posted` int NOT NULL DEFAULT '0',
   `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
@@ -121,6 +125,7 @@ CREATE TABLE `anoms_w1` (
   `dt` datetime(6) NOT NULL,
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
+  `metric_tag` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `metric_value` int NOT NULL,
   `posted` int NOT NULL DEFAULT '0',
   `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
@@ -194,6 +199,7 @@ CREATE TABLE `metrics_d1` (
   `source_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
+  `metric_tag` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `value` bigint NOT NULL,
   `dp` smallint NOT NULL DEFAULT '0',
   `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
@@ -217,6 +223,7 @@ CREATE TABLE `metrics_h1` (
   `source_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
+  `metric_tag` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `value` bigint NOT NULL,
   `dp` smallint NOT NULL DEFAULT '0',
   `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
@@ -240,6 +247,7 @@ CREATE TABLE `metrics_m1` (
   `source_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
+  `metric_tag` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `value` bigint NOT NULL,
   `dp` smallint NOT NULL DEFAULT '0',
   `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
@@ -263,6 +271,7 @@ CREATE TABLE `metrics_mo1` (
   `source_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
+  `metric_tag` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `value` bigint NOT NULL,
   `dp` smallint NOT NULL DEFAULT '0',
   `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
@@ -286,6 +295,7 @@ CREATE TABLE `metrics_w1` (
   `source_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
+  `metric_tag` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `value` bigint NOT NULL,
   `dp` smallint NOT NULL DEFAULT '0',
   `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
@@ -339,6 +349,19 @@ INSERT INTO `metric_projects` (`id`, `metric_project_alias`, `metric_project_nam
 (1, 'project1', 'Project 1'),
 (2, 'project2', 'Project 2'),
 (3, 'project3', 'Project 3');
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `tags`
+--
+
+DROP TABLE IF EXISTS `tags`;
+CREATE TABLE `tags` (
+  `id` int NOT NULL,
+  `metric_id` int NOT NULL DEFAULT '0',
+  `metric_tag` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT ''
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -458,6 +481,12 @@ ALTER TABLE `metric_projects`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Индексы таблицы `tags`
+--
+ALTER TABLE `tags`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Индексы таблицы `tasks`
 --
 ALTER TABLE `tasks`
@@ -550,6 +579,12 @@ ALTER TABLE `metric_groups`
 --
 ALTER TABLE `metric_projects`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT для таблицы `tags`
+--
+ALTER TABLE `tags`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT для таблицы `tasks`
