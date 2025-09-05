@@ -36,7 +36,7 @@ def createParser ():
     parser.add_argument ('--metric_id', type=int, default=0)
     parser.add_argument ('--active', type=int, default=-1)
     parser.add_argument ('--limit', type=int, default=0)
-    parser.add_argument ('--source', choices=['', 'metrica', 'app_metrica'], default="")
+    parser.add_argument ('--source', choices=config['sources_allow']+[''], default="")
     parser.add_argument ('--fr_api', type=str, default="false")
     parser.add_argument ('--granularity', choices=config['granularity_allow']+[''], default='')
     parser.add_argument ('--datetime_to', type=str, default="")
@@ -307,7 +307,7 @@ Params:
     --metric_id (int) the metric id for filtering        
     --active (int) the activity marker (-1 by default)      
     --limit items limit (10 by default)
-    --fr_api (true | false by default) not from file
+    --fr_api (true | false by default) from file, not from file
     --granularity (m1,h1,d1,w1,mo1...)      
     --datetime_to (str) default="" (ISO format)   
     --group (str) the group alias for filtering news and other

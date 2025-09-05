@@ -7,7 +7,7 @@ import json
 from models.mysqldb import Mysqldb
 from models.metric import Metric
 from models.systimer import SysTimer
-from models.getloadapi import GetLoadAPI
+from models.yamapi import YaMAPI
 from models.sysbf import SysBf
 
 class Robot_getload:
@@ -85,9 +85,9 @@ class Robot_getload:
             self.metrics_pkg_qty = int(config['sources'][self.source_alias].get('metrics_pkg_qty', self.metrics_pkg_qty))
             self.source_get_api_lag_sec = int(config['sources'][self.source_alias].get('source_get_api_lag_sec', self.source_get_api_lag_sec))
             self.tz_str_source = config['sources'][self.source_alias].get('timezone', self.tz_str_source)
-            self.api = GetLoadAPI(token=config['sources'][self.source_alias]['token'], 
-                            api_url=config['sources'][self.source_alias]['api_url'], 
-                            source=self.settings['source'], tmp_path=self.tmp_path)
+            self.api = YaMAPI(token=config['sources'][self.source_alias]['token'], 
+                            counter_ids=config['sources'][self.source_alias]['counter_ids'], 
+                            type=self.settings['source'])
             
         
     def run(self, *, output:bool=False) -> dict:
@@ -131,40 +131,20 @@ class Robot_getload:
 
         ########################[ Робот ]##########################
 
-        granularity = "m1"
-        granularity_settings = self.granularity_list.get(granularity, {})
-        logging.info(f"granularity: {granularity}")
+        for granularity, granularity_settings in self.granularity_list.items():
+            if self.settings['granularity']!='' and self.settings['granularity']!=granularity:
+                continue
+            logging.info(f"granularity: {granularity}")
 
-        # Почистим базу от лишних записей по данному варианту таймфрейма
-        Metric.clear_table(db=self.db, granularity=granularity, date_to=datetime_now - timedelta(days=granularity_settings['dblimit']))
+            # Почистим базу от лишних записей по данному варианту таймфрейма
+            Metric.clear_table(db=self.db, granularity=granularity, date_to=datetime_now - timedelta(days=granularity_settings['dblimit']))
 
-        # Получить дату последних данных в базе
-        max_dt = Metric.get_last_dt(db=db, granularity=granularity, tz_str=self.tz_str_db, source_alias=self.source_alias)
-        max_dt_str = max_dt.strftime("%Y-%m-%dT%H")
-        
-        # Сформируем дату до которой будем искать данные
-        end_dt_str = datetime_to.strftime("%Y-%m-%d")+'T00'
-
-        # Получить список доступных архивов
-        file_list = self.api.get_list()
-        
-        if file_list!=False and len(file_list)>0:
-            for dt_file in file_list:
-                if dt_file>max_dt_str and dt_file<end_dt_str:
-                    logging.info(f'API start get {dt_file}')
-                    # Забрать архивы по одному, при этом делая что ниже
-                    api_timer_sec = 0
-                    api_timer = SysTimer()
-                    unzip_status = self.api.get_files(file=dt_file, fr_api=self.fr_api)
-                    
-                    api_timer_sec = api_timer.get_time()
-                    if api_timer_sec<self.source_get_api_lag_sec: 
-                        # Обеспечение минимального перерыва между запросами TODO - далее брать лаг из базы.
-                        time.sleep(self.source_get_api_lag_sec - api_timer_sec)
-                    logging.info(f'API complite get {dt_file}')
-
-                    # Пройтись по минутам, открыть файлы, записать данные в базу данных с тегами, записать суммарные данные без тега
-                    
+            print("Робот работает!")
+            
+            
+            
+            
+             
 
         ########################[ /Робот ]##########################
 
@@ -178,4 +158,102 @@ class Robot_getload:
                           "job_max_mem_kb": SysBf.get_max_memory_usage()},
                       "count": insert_counter_all + upd_counter_all,
                       "comment": self.comment_str} 
+    
         
+    def add_values(self, *, 
+                   db:Mysqldb,
+                   min_max_dt:datetime, 
+                   datetime_now:datetime, 
+                   datetime_to:datetime,
+                   granularity:str,
+                   granularity_settings:dict,
+                   lastmetric:dict,
+                   metrics:list,
+                   metrics_str:str,
+                   metrics_fstr:str,
+                   source_alias:str,
+                   source_id:int
+                   ):
+        
+        insert_counter_all = 0
+        upd_counter_all = 0
+
+        start_dt = min_max_dt - timedelta(seconds=granularity_settings['update_ts_lag'])
+        min_start_dt = datetime_now - timedelta(seconds=granularity_settings['days_before_max'] * 24 * 60 * 60)
+        real_start_dt = start_dt if start_dt > min_start_dt else min_start_dt 
+        start_dt_str = real_start_dt.strftime("%Y-%m-%d")
+
+        if granularity=='h1':
+            end_date = datetime_to.strftime("%Y-%m-%d")
+            end_date_f = datetime_to.strftime("%Y-%m-%d-%H")
+        else:
+            end_date = (datetime_to - timedelta(days=1)).strftime("%Y-%m-%d")
+            end_date_f = (datetime_to - timedelta(days=1)).strftime("%Y-%m-%d")
+
+        params = {
+            'metrics': metrics_str,
+            'date1': start_dt_str,
+            'group': granularity_settings['api_group'],
+            'filters': lastmetric['metric_api_filters']
+        }
+
+        # Если необходимо, то будем семплировать данные
+        if granularity=='h1' and lastmetric['accuracy']<1:
+            params['accuracy'] = lastmetric['accuracy']
+        else: 
+            params['accuracy'] = 'full'
+
+        # Все кроме часов собираем до вчерашнего дня
+        if granularity!='h1':
+            params['date2'] = end_date
+        
+        filename = self.tmp_path + '/ym_' + source_alias + '_' + granularity + metrics_fstr + '_' + start_dt_str + '_' + end_date_f + '.json'
+
+        api_timer_sec = 0
+        if not self.fr_api and not os.path.exists(filename): # Принудительный забор или еще не забирали и нет файла, то и кладем в файл
+            logging.info(f'API start get to: {filename}')
+            api_timer = SysTimer()
+            response = self.api.get_report(method='/bytime', params=params, fileto=filename)
+            api_timer_sec = api_timer.get_time()
+            if api_timer_sec<self.source_get_api_lag_sec: 
+                # Обеспечение минимального перерыва между запросами TODO - далее брать лаг из базы.
+                time.sleep(self.source_get_api_lag_sec - api_timer_sec)
+            logging.info(f'API complite get to: {filename}')
+
+        if not os.path.exists(filename):
+            logging.error(self.comment(f"Load file Error: {filename} not found!"))
+        else:    
+            logging.info(f'Load metrics from: {filename}')
+            with open(filename, "r") as read_it:
+                result = json.load(read_it)    
+                if not type(result) is dict or not 'data' in result:
+                    logging.error(self.comment(f"{granularity}.m_ids({metrics_str}): API code [{result['code']}] Message: {result['message']}"))
+                    if result.get('errors', False):
+                        logging.error(self.comment(f'{granularity}.m_ids({metrics_str}): API Errors:'))
+                        for error in result['errors']:
+                            logging.error(self.comment(f"{granularity}.m_ids({metrics_str}):error_type: {error['error_type']}; error_message: {error['message']}"))
+                else:
+                    # Обработка файла, формирование записей по метрикам в БД
+                    
+                    # Предупреждение о семплировании в лог, возможно будем вообще останавливать процесс.
+                    if result.get('sampled', False):  
+                        logging.info(self.comment(f"{granularity}.m_ids({metrics_str}): API SAMPLED result. sample_share: {result['sample_share']}"))
+
+                    for metricKey, upd_metric in enumerate(result['query']['metrics']):
+                        res = Metric.add_fr_ym(db=db,
+                                        metrics=metrics, 
+                                        granularity=granularity, granularity_settings=granularity_settings, 
+                                        source_id=source_id, source_alias=source_alias,
+                                        tz_str_source=self.tz_str_source, tz_str_system=self.tz_str_system,
+                                        upd_metric=upd_metric + lastmetric['metric_api_filters'],
+                                        upd_metric_vals=result['data'][0]['metrics'][metricKey], 
+                                        upd_metric_time_intervals=result['time_intervals'],
+                                        mode='prod',
+                                        datetime_to=self.settings['datetime_to'])  
+                        insert_counter_all += res['insert_counter_all']
+                        upd_counter_all += res['upd_counter_all']      
+
+        return {
+            'insert_counter_all': insert_counter_all,
+            'upd_counter_all': upd_counter_all
+        }

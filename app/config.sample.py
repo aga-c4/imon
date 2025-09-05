@@ -59,6 +59,7 @@ config = {
         "passwd": "root",
         "timezone": "Europe/Moscow"
     },
+    "sources_allow": ["sysload"],
     "sources": {
         "metrica": {
             "id": 1,
@@ -103,7 +104,15 @@ config = {
                 "user": "",
                 "passwd": ""
             }
-        }    
+        },
+        "sysload": {
+            "id": 5,
+            "api_url": "https://idemo.samo.ru/b2b/current/.dev/php/getmetrics.php",
+            "timezone": "Europe/Moscow",
+            "token": "testtoken",
+            "source_get_api_lag_sec": 1,
+            "tmp_path": "tmp/srcget"
+        },        
     },
     "telegram": {
         "api_token": "",

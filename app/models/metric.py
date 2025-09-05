@@ -97,11 +97,15 @@ class Metric:
         return result   
 
     @staticmethod
-    def get_last_dt(*, db:Mysqldb, granularity:str='h1', id:int, tz_str:str='') -> datetime:
+    def get_last_dt(*, db:Mysqldb, granularity:str='h1', id:int=0, tz_str:str='', source_alias:str=None) -> datetime:
         if id==0:
-            return SysBf.tzdt(datetime.datetime.fromtimestamp(0), tz_str)
-
-        sql = f"SELECT max(dt) as maxdt from {Metric.data_table}{granularity} where metric_id={id};"
+            if not source_alias is None:
+                # Выдадим время последней зарегистрированной метрики с заданным алиасом источника
+                sql = f"SELECT max(dt) as maxdt from {Metric.data_table}{granularity};"
+            else:
+                return SysBf.tzdt(datetime.datetime.fromtimestamp(0), tz_str)    
+        else:
+            sql = f"SELECT max(dt) as maxdt from {Metric.data_table}{granularity} where metric_id={id};"
         result = db.query(sql) 
         if result:
             if not result[0]['maxdt'] is None:
