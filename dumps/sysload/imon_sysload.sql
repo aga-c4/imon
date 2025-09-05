@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: mysql:3306
--- Время создания: Сен 04 2025 г., 17:29
+-- Время создания: Сен 05 2025 г., 19:30
 -- Версия сервера: 8.3.0
 -- Версия PHP: 8.2.29
 
@@ -20,6 +20,139 @@ SET time_zone = "+00:00";
 --
 -- База данных: `imon`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `anoms_d1`
+--
+
+DROP TABLE IF EXISTS `anoms_d1`;
+CREATE TABLE `anoms_d1` (
+  `id` int NOT NULL,
+  `dt` datetime(6) NOT NULL,
+  `metric_id` int NOT NULL,
+  `metric_parentid` int NOT NULL DEFAULT '0',
+  `metric_tag` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `metric_value` int NOT NULL,
+  `posted` int NOT NULL DEFAULT '0',
+  `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `device_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `trafsrc_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `direction` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `metric_group_id` int NOT NULL DEFAULT '0',
+  `metric_project_id` int NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `anoms_h1`
+--
+
+DROP TABLE IF EXISTS `anoms_h1`;
+CREATE TABLE `anoms_h1` (
+  `id` int NOT NULL,
+  `dt` datetime(6) NOT NULL,
+  `metric_id` int NOT NULL,
+  `metric_parentid` int NOT NULL DEFAULT '0',
+  `metric_tag` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `metric_value` int NOT NULL,
+  `posted` int NOT NULL DEFAULT '0',
+  `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `device_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `trafsrc_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `direction` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `metric_group_id` int NOT NULL DEFAULT '0',
+  `metric_project_id` int NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `anoms_m1`
+--
+
+DROP TABLE IF EXISTS `anoms_m1`;
+CREATE TABLE `anoms_m1` (
+  `id` int NOT NULL,
+  `dt` datetime(6) NOT NULL,
+  `metric_id` int NOT NULL,
+  `metric_parentid` int NOT NULL DEFAULT '0',
+  `metric_tag` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `metric_value` int NOT NULL,
+  `posted` int NOT NULL DEFAULT '0',
+  `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `device_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `trafsrc_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `direction` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `metric_group_id` int NOT NULL DEFAULT '0',
+  `metric_project_id` int NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `anoms_mo1`
+--
+
+DROP TABLE IF EXISTS `anoms_mo1`;
+CREATE TABLE `anoms_mo1` (
+  `id` int NOT NULL,
+  `dt` datetime(6) NOT NULL,
+  `metric_id` int NOT NULL,
+  `metric_parentid` int NOT NULL DEFAULT '0',
+  `metric_tag` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `metric_value` int NOT NULL,
+  `posted` int NOT NULL DEFAULT '0',
+  `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `device_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `trafsrc_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `direction` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `metric_group_id` int NOT NULL DEFAULT '0',
+  `metric_project_id` int NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `anoms_w1`
+--
+
+DROP TABLE IF EXISTS `anoms_w1`;
+CREATE TABLE `anoms_w1` (
+  `id` int NOT NULL,
+  `dt` datetime(6) NOT NULL,
+  `metric_id` int NOT NULL,
+  `metric_parentid` int NOT NULL DEFAULT '0',
+  `metric_tag` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `metric_value` int NOT NULL,
+  `posted` int NOT NULL DEFAULT '0',
+  `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `device_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `trafsrc_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `direction` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `metric_group_id` int NOT NULL DEFAULT '0',
+  `metric_project_id` int NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `jobs`
+--
+
+DROP TABLE IF EXISTS `jobs`;
+CREATE TABLE `jobs` (
+  `id` int NOT NULL,
+  `dt` datetime(6) NOT NULL,
+  `task_id` int NOT NULL,
+  `job_execution_sec` int NOT NULL DEFAULT '0',
+  `job_max_mem_kb` int NOT NULL DEFAULT '0',
+  `job_dt_fin` datetime(6) NOT NULL,
+  `job_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'run',
+  `job_comment` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -64,44 +197,282 @@ INSERT INTO `metrics` (`id`, `parentid`, `metric_active`, `metric_monitor`, `acc
 (101, 0, 1, 1, 1, 'sysload', 'requests_start_by_hit', 'requests_start_by_hit', 1, '', '', 2, 'res', '100*m2/m1', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
 (102, 0, 1, 1, 1, 'sysload', 'requests_finish_success_by_start', 'requests_finish_success_by_start', 1, '', '', 2, 'res', '100*m3/m2', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
 (103, 0, 1, 1, 1, 'sysload', 'requests_finish_exception_by_start', 'requests_finish_exception_by_start', 1, '', '', 2, 'res', '100*m4/m2', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
-(201, 0, 1, 1, 1, 'sysload', 'success_max_memory', 'success_max_memory', 1, 'success_max_memory', '', 0, 'src', '', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
-(202, 0, 1, 1, 1, 'sysload', 'success_execution_time', 'success_execution_time', 1, 'success_execution_time', '', 0, 'src', '', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
+(201, 0, 1, 1, 1, 'sysload', 'success_max_memory', 'success_max_memory', 1, 'success_max_memory', '', 4, 'src', '', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
+(202, 0, 1, 1, 1, 'sysload', 'success_execution_time', 'success_execution_time', 1, 'success_execution_time', '', 4, 'src', '', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
 (203, 0, 1, 1, 1, 'sysload', 'success_db_requests', 'success_db_requests', 1, 'success_db_requests', '', 0, 'src', '', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
-(204, 0, 1, 1, 1, 'sysload', 'success_db_requests_time', 'success_db_requests_time', 1, 'success_db_requests_time', '', 0, 'src', '', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
+(204, 0, 1, 1, 1, 'sysload', 'success_db_requests_time', 'success_db_requests_time', 1, 'success_db_requests_time', '', 4, 'src', '', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
 (205, 0, 1, 1, 1, 'sysload', 'success_api_requests', 'success_api_requests', 1, 'success_api_requests', '', 0, 'src', '', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
-(206, 0, 1, 1, 1, 'sysload', 'success_api_requests_time', 'success_api_requests_time', 1, 'success_api_requests_time', '', 0, 'src', '', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
+(206, 0, 1, 1, 1, 'sysload', 'success_api_requests_time', 'success_api_requests_time', 1, 'success_api_requests_time', '', 4, 'src', '', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
 (207, 0, 1, 1, 1, 'sysload', 'success_db_requests_time_by_request', 'success_db_requests_time_by_request', 1, '', '', 4, 'res', 'm204/m203', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
 (208, 0, 1, 1, 1, 'sysload', 'success_api_requests_time_by_request', 'success_api_requests_time_by_request', 1, '', '', 4, 'res', 'm206/m205', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
-(301, 0, 1, 1, 1, 'sysload', 'exception_max_memory', 'exception_max_memory', 1, 'exception_max_memory', '', 0, 'src', '', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
-(302, 0, 1, 1, 1, 'sysload', 'exception_execution_time', 'exception_execution_time', 1, 'exception_execution_time', '', 0, 'src', '', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
+(301, 0, 1, 1, 1, 'sysload', 'exception_max_memory', 'exception_max_memory', 1, 'exception_max_memory', '', 4, 'src', '', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
+(302, 0, 1, 1, 1, 'sysload', 'exception_execution_time', 'exception_execution_time', 1, 'exception_execution_time', '', 4, 'src', '', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
 (303, 0, 1, 1, 1, 'sysload', 'exception_db_requests', 'exception_db_requests', 1, 'exception_db_requests', '', 0, 'src', '', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
-(304, 0, 1, 1, 1, 'sysload', 'exception_db_requests_time', 'exception_db_requests_time', 1, 'exception_db_requests_time', '', 0, 'src', '', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
+(304, 0, 1, 1, 1, 'sysload', 'exception_db_requests_time', 'exception_db_requests_time', 1, 'exception_db_requests_time', '', 4, 'src', '', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
 (305, 0, 1, 1, 1, 'sysload', 'exception_api_requests', 'exception_api_requests', 1, 'exception_api_requests', '', 0, 'src', '', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
-(306, 0, 1, 1, 1, 'sysload', 'exception_api_requests_time', 'exception_api_requests_time', 1, 'exception_api_requests_time', '', 0, 'src', '', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
+(306, 0, 1, 1, 1, 'sysload', 'exception_api_requests_time', 'exception_api_requests_time', 1, 'exception_api_requests_time', '', 4, 'src', '', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
 (307, 0, 1, 1, 1, 'sysload', 'exception_db_requests_time_by_request', 'exception_db_requests_time_by_request', 1, '', '', 4, 'res', 'm304/m303', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
 (308, 0, 1, 1, 1, 'sysload', 'exception_api_requests_time_by_request', 'exception_api_requests_time_by_request', 1, '', '', 4, 'res', 'm306/m305', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
-(1101, 0, 1, 1, 1, 'sysload', 'max_mmax_memory_by_startemory', 'max_memory_by_start', 1, '', '', 2, 'res', '100*(m201+m301)/m2', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
-(1102, 0, 1, 1, 1, 'sysload', 'execution_time_by_start', 'execution_time_by_start', 1, '', '', 2, 'res', '100*(m202+m302)/m2', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
+(1101, 0, 1, 1, 1, 'sysload', 'max_mmax_memory_by_startemory', 'max_memory_by_start', 1, '', '', 4, 'res', '100*(m201+m301)/m2', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
+(1102, 0, 1, 1, 1, 'sysload', 'execution_time_by_start', 'execution_time_by_start', 1, '', '', 4, 'res', '100*(m202+m302)/m2', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
 (1103, 0, 1, 1, 1, 'sysload', 'db_requests_by_start', 'db_requests_by_start', 1, '', '', 2, 'res', '100*(m203+m303)/m2', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
-(1104, 0, 1, 1, 1, 'sysload', 'db_requests_time_by_start', 'db_requests_time_by_start', 1, '', '', 2, 'res', '100*(m204+m304)/m2', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
+(1104, 0, 1, 1, 1, 'sysload', 'db_requests_time_by_start', 'db_requests_time_by_start', 1, '', '', 4, 'res', '100*(m204+m304)/m2', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
 (1105, 0, 1, 1, 1, 'sysload', 'api_requests_by_start', 'api_requests_by_start', 1, '', '', 2, 'res', '100*(m205+m305)/m2', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
-(1106, 0, 1, 1, 1, 'sysload', 'api_requests_time_by_start', 'api_requests_time_by_start', 1, '', '', 2, 'res', '100*(m206+m306)/m2', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
-(1201, 0, 1, 1, 1, 'sysload', 'success_max_memory_by_start', 'success_max_memory_by_start', 1, '', '', 2, 'res', '100*m201/m3', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
-(1202, 0, 1, 1, 1, 'sysload', 'success_execution_time_by_start', 'success_execution_time_by_start', 1, '', '', 2, 'res', '100*m202/m3', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
+(1106, 0, 1, 1, 1, 'sysload', 'api_requests_time_by_start', 'api_requests_time_by_start', 1, '', '', 4, 'res', '100*(m206+m306)/m2', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
+(1201, 0, 1, 1, 1, 'sysload', 'success_max_memory_by_start', 'success_max_memory_by_start', 1, '', '', 4, 'res', '100*m201/m3', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
+(1202, 0, 1, 1, 1, 'sysload', 'success_execution_time_by_start', 'success_execution_time_by_start', 1, '', '', 4, 'res', '100*m202/m3', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
 (1203, 0, 1, 1, 1, 'sysload', 'success_db_requests_by_start', 'success_db_requests_by_start', 1, '', '', 2, 'res', '100*m203/m3', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
-(1204, 0, 1, 1, 1, 'sysload', 'success_db_requests_time_by_start', 'success_db_requests_time_by_start', 1, '', '', 2, 'res', '100*m204/m3', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
+(1204, 0, 1, 1, 1, 'sysload', 'success_db_requests_time_by_start', 'success_db_requests_time_by_start', 1, '', '', 4, 'res', '100*m204/m3', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
 (1205, 0, 1, 1, 1, 'sysload', 'success_api_requests_by_start', 'success_api_requests_by_start', 1, '', '', 2, 'res', '100*m205/m3', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
-(1206, 0, 1, 1, 1, 'sysload', 'success_api_requests_time_by_start', 'success_api_requests_time_by_start', 1, '', '', 2, 'res', '100*m206/m3', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
-(1301, 0, 1, 1, 1, 'sysload', 'exception_max_memory_by_start', 'exception_max_memory_by_start', 1, '', '', 2, 'res', '100*m301/m4', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
-(1302, 0, 1, 1, 1, 'sysload', 'exception_execution_time_by_start', 'exception_execution_time_by_start', 1, '', '', 2, 'res', '100*m302/m4', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
+(1206, 0, 1, 1, 1, 'sysload', 'success_api_requests_time_by_start', 'success_api_requests_time_by_start', 1, '', '', 4, 'res', '100*m206/m3', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
+(1301, 0, 1, 1, 1, 'sysload', 'exception_max_memory_by_start', 'exception_max_memory_by_start', 1, '', '', 4, 'res', '100*m301/m4', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
+(1302, 0, 1, 1, 1, 'sysload', 'exception_execution_time_by_start', 'exception_execution_time_by_start', 1, '', '', 4, 'res', '100*m302/m4', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
 (1303, 0, 1, 1, 1, 'sysload', 'exception_db_requests_by_start', 'exception_db_requests_by_start', 1, '', '', 2, 'res', '100*m303/m4', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
-(1304, 0, 1, 1, 1, 'sysload', 'exception_db_requests_time_by_start', 'exception_db_requests_time_by_start', 1, '', '', 2, 'res', '100*m304/m4', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
+(1304, 0, 1, 1, 1, 'sysload', 'exception_db_requests_time_by_start', 'exception_db_requests_time_by_start', 1, '', '', 4, 'res', '100*m304/m4', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
 (1305, 0, 1, 1, 1, 'sysload', 'exception_api_requests_by_start', 'exception_api_requests_by_start', 1, '', '', 2, 'res', '100*m305/m4', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all'),
-(1306, 0, 1, 1, 1, 'sysload', 'exception_api_requests_time_by_start', 'exception_api_requests_time_by_start', 1, '', '', 2, 'res', '100*m306/m4', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all');
+(1306, 0, 1, 1, 1, 'sysload', 'exception_api_requests_time_by_start', 'exception_api_requests_time_by_start', 1, '', '', 4, 'res', '100*m306/m4', 'm1,h1,d1,w1,m1', 0, 1, 1, 'all', 'all', 'all');
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `metrics_d1`
+--
+
+DROP TABLE IF EXISTS `metrics_d1`;
+CREATE TABLE `metrics_d1` (
+  `id` int NOT NULL,
+  `dt` datetime(6) NOT NULL,
+  `source_id` int NOT NULL DEFAULT '0',
+  `source_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `metric_id` int NOT NULL,
+  `metric_parentid` int NOT NULL DEFAULT '0',
+  `metric_tag` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `value` bigint NOT NULL,
+  `dp` smallint NOT NULL DEFAULT '0',
+  `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `device_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `trafsrc_alias` varchar(199) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `metric_group_id` int NOT NULL DEFAULT '0',
+  `metric_project_id` int NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `metrics_h1`
+--
+
+DROP TABLE IF EXISTS `metrics_h1`;
+CREATE TABLE `metrics_h1` (
+  `id` int NOT NULL,
+  `dt` datetime(6) NOT NULL,
+  `source_id` int NOT NULL DEFAULT '0',
+  `source_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `metric_id` int NOT NULL,
+  `metric_parentid` int NOT NULL DEFAULT '0',
+  `metric_tag` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `value` bigint NOT NULL,
+  `dp` smallint NOT NULL DEFAULT '0',
+  `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `device_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `trafsrc_alias` varchar(199) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `metric_group_id` int NOT NULL DEFAULT '0',
+  `metric_project_id` int NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `metrics_m1`
+--
+
+DROP TABLE IF EXISTS `metrics_m1`;
+CREATE TABLE `metrics_m1` (
+  `id` int NOT NULL,
+  `dt` datetime(6) NOT NULL,
+  `source_id` int NOT NULL DEFAULT '0',
+  `source_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `metric_id` int NOT NULL,
+  `metric_parentid` int NOT NULL DEFAULT '0',
+  `metric_tag` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `value` bigint NOT NULL,
+  `dp` smallint NOT NULL DEFAULT '0',
+  `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `device_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `trafsrc_alias` varchar(199) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `metric_group_id` int NOT NULL DEFAULT '0',
+  `metric_project_id` int NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `metrics_mo1`
+--
+
+DROP TABLE IF EXISTS `metrics_mo1`;
+CREATE TABLE `metrics_mo1` (
+  `id` int NOT NULL,
+  `dt` datetime(6) NOT NULL,
+  `source_id` int NOT NULL DEFAULT '0',
+  `source_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `metric_id` int NOT NULL,
+  `metric_parentid` int NOT NULL DEFAULT '0',
+  `metric_tag` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `value` bigint NOT NULL,
+  `dp` smallint NOT NULL DEFAULT '0',
+  `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `device_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `trafsrc_alias` varchar(199) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `metric_group_id` int NOT NULL DEFAULT '0',
+  `metric_project_id` int NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `metrics_w1`
+--
+
+DROP TABLE IF EXISTS `metrics_w1`;
+CREATE TABLE `metrics_w1` (
+  `id` int NOT NULL,
+  `dt` datetime(6) NOT NULL,
+  `source_id` int NOT NULL DEFAULT '0',
+  `source_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `metric_id` int NOT NULL,
+  `metric_parentid` int NOT NULL DEFAULT '0',
+  `metric_tag` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `value` bigint NOT NULL,
+  `dp` smallint NOT NULL DEFAULT '0',
+  `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `device_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `trafsrc_alias` varchar(199) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  `metric_group_id` int NOT NULL DEFAULT '0',
+  `metric_project_id` int NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `metric_groups`
+--
+
+DROP TABLE IF EXISTS `metric_groups`;
+CREATE TABLE `metric_groups` (
+  `id` int NOT NULL,
+  `metric_group_alias` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `metric_group_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT ''
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Дамп данных таблицы `metric_groups`
+--
+
+INSERT INTO `metric_groups` (`id`, `metric_group_alias`, `metric_group_name`) VALUES
+(1, 'critical', 'Critical'),
+(2, 'important', 'important'),
+(3, 'all', 'Unimportant'),
+(4, 'little', 'Low');
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `metric_projects`
+--
+
+DROP TABLE IF EXISTS `metric_projects`;
+CREATE TABLE `metric_projects` (
+  `id` int NOT NULL,
+  `metric_project_alias` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `metric_project_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT ''
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Дамп данных таблицы `metric_projects`
+--
+
+INSERT INTO `metric_projects` (`id`, `metric_project_alias`, `metric_project_name`) VALUES
+(1, 'sysmetrics', 'sysMetrics'),
+(2, 'project2', 'Project 2'),
+(3, 'project3', 'Project 3');
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `tags`
+--
+
+DROP TABLE IF EXISTS `tags`;
+CREATE TABLE `tags` (
+  `id` int NOT NULL,
+  `metric_id` int NOT NULL DEFAULT '0',
+  `metric_tag` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT ''
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `tasks`
+--
+
+DROP TABLE IF EXISTS `tasks`;
+CREATE TABLE `tasks` (
+  `id` int NOT NULL,
+  `task_active` int NOT NULL DEFAULT '0',
+  `metric_id` int NOT NULL DEFAULT '0',
+  `granularity` varchar(6) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `message_lvl` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `task_comment` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `task_settings` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `task_robot` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `task_max_execution_sec` int NOT NULL DEFAULT '240'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Индексы сохранённых таблиц
 --
+
+--
+-- Индексы таблицы `anoms_d1`
+--
+ALTER TABLE `anoms_d1`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `dt` (`dt`);
+
+--
+-- Индексы таблицы `anoms_h1`
+--
+ALTER TABLE `anoms_h1`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `dt` (`dt`);
+
+--
+-- Индексы таблицы `anoms_m1`
+--
+ALTER TABLE `anoms_m1`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `dt` (`dt`);
+
+--
+-- Индексы таблицы `anoms_mo1`
+--
+ALTER TABLE `anoms_mo1`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `dt` (`dt`);
+
+--
+-- Индексы таблицы `anoms_w1`
+--
+ALTER TABLE `anoms_w1`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `dt` (`dt`);
+
+--
+-- Индексы таблицы `jobs`
+--
+ALTER TABLE `jobs`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Индексы таблицы `metrics`
@@ -110,14 +481,163 @@ ALTER TABLE `metrics`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Индексы таблицы `metrics_d1`
+--
+ALTER TABLE `metrics_d1`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `dt` (`dt`);
+
+--
+-- Индексы таблицы `metrics_h1`
+--
+ALTER TABLE `metrics_h1`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `dt` (`dt`);
+
+--
+-- Индексы таблицы `metrics_m1`
+--
+ALTER TABLE `metrics_m1`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `dt` (`dt`);
+
+--
+-- Индексы таблицы `metrics_mo1`
+--
+ALTER TABLE `metrics_mo1`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `dt` (`dt`);
+
+--
+-- Индексы таблицы `metrics_w1`
+--
+ALTER TABLE `metrics_w1`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `dt` (`dt`);
+
+--
+-- Индексы таблицы `metric_groups`
+--
+ALTER TABLE `metric_groups`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Индексы таблицы `metric_projects`
+--
+ALTER TABLE `metric_projects`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Индексы таблицы `tags`
+--
+ALTER TABLE `tags`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Индексы таблицы `tasks`
+--
+ALTER TABLE `tasks`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- AUTO_INCREMENT для сохранённых таблиц
 --
+
+--
+-- AUTO_INCREMENT для таблицы `anoms_d1`
+--
+ALTER TABLE `anoms_d1`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT для таблицы `anoms_h1`
+--
+ALTER TABLE `anoms_h1`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT для таблицы `anoms_m1`
+--
+ALTER TABLE `anoms_m1`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT для таблицы `anoms_mo1`
+--
+ALTER TABLE `anoms_mo1`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT для таблицы `anoms_w1`
+--
+ALTER TABLE `anoms_w1`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT для таблицы `jobs`
+--
+ALTER TABLE `jobs`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT для таблицы `metrics`
 --
 ALTER TABLE `metrics`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1307;
+
+--
+-- AUTO_INCREMENT для таблицы `metrics_d1`
+--
+ALTER TABLE `metrics_d1`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT для таблицы `metrics_h1`
+--
+ALTER TABLE `metrics_h1`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT для таблицы `metrics_m1`
+--
+ALTER TABLE `metrics_m1`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT для таблицы `metrics_mo1`
+--
+ALTER TABLE `metrics_mo1`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT для таблицы `metrics_w1`
+--
+ALTER TABLE `metrics_w1`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT для таблицы `metric_groups`
+--
+ALTER TABLE `metric_groups`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT для таблицы `metric_projects`
+--
+ALTER TABLE `metric_projects`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT для таблицы `tags`
+--
+ALTER TABLE `tags`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT для таблицы `tasks`
+--
+ALTER TABLE `tasks`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
