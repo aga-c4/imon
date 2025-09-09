@@ -490,6 +490,7 @@ class Metric:
         if granularity=='':
             return False
         return db.delete(f"TRUNCATE TABLE {Metric.data_table}{granularity};")
+    
         
     @staticmethod
     def add_fr_ym(*, db:Mysqldb,
@@ -499,7 +500,8 @@ class Metric:
                   upd_metric:str, upd_metric_vals:list, upd_metric_time_intervals:list,
                   tz_str_source:str='', tz_str_system:str='',
                   mode:str='prod',
-                  datetime_to:str=''):
+                  datetime_to:str='',
+                  onlyinsert:bool=False):
 
         insert_counter_all = 0
         upd_counter_all = 0
@@ -540,10 +542,11 @@ class Metric:
                 upd_max_dt = metrics[upd_metric]['max_dt']
             start_dt = SysBf.tzdt_fr_str('', tz_str_system)
             start_dt_exist = False
+
             if upd_max_dt.timestamp() > granularity_settings['update_ts_lag']:
                 start_dt = upd_max_dt - datetime.timedelta(seconds=granularity_settings['update_ts_lag'])
                 start_dt_exist = True
-            if start_dt_exist and cur_item_dt > start_dt and cur_item_dt<=upd_max_dt: # Есть что обновлять 
+            if onlyinsert and start_dt_exist and cur_item_dt > start_dt and cur_item_dt<=upd_max_dt: # Есть что обновлять и это разрешено (onlyinsert=True)
                 if mode=="prod": 
                     Metric.stupdateval(db=db, 
                                     granularity=granularity, 

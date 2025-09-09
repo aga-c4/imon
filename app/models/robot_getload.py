@@ -2,7 +2,7 @@ import time
 from datetime import timedelta, datetime
 import logging
 import os.path
-import json
+import csv  
 
 from models.mysqldb import Mysqldb
 from models.metric import Metric
@@ -138,6 +138,20 @@ class Robot_getload:
         # Почистим базу от лишних записей по данному варианту таймфрейма
         Metric.clear_table(db=self.db, granularity=granularity, date_to=datetime_now - timedelta(days=granularity_settings['dblimit']))
 
+        metrics_dict = {}
+        metrics = Metric.get_list(db=db, source_alias=source_alias, metric_type="src")
+        # Дадим метрикам ключи - API алиасы метрик    
+        for mt in metrics:
+            # if not mt['id'] in [10, 11]: # TODO - Отрубить после теста. Для теста пачки или там, где нужны ограничения по метрикам
+            #    continue
+
+            if self.settings['metric_id']>0 and self.settings['metric_id']!=mt['id']:
+                continue
+
+            metrics_dict[mt['metric_api_alias']] = mt
+        metrics = metrics_dict
+        del metrics_dict
+
         # Получить дату последних данных в базе
         max_dt = Metric.get_last_dt(db=db, granularity=granularity, tz_str=self.tz_str_db, source_alias=self.source_alias)
         max_dt_str = max_dt.strftime("%Y-%m-%dT%H")
@@ -155,7 +169,35 @@ class Robot_getload:
                     # Забрать архивы по одному, при этом делая что ниже
                     api_timer_sec = 0
                     api_timer = SysTimer()
-                    unzip_status = self.api.get_files(file=dt_file, fr_api=self.fr_api)
+                    minute_file_list = self.api.get_files(file=dt_file, fr_api=self.fr_api)
+
+                    # Пройтись по минутам, открыть файлы, записать данные в базу данных с тегами, записать суммарные данные без тега  
+                    if minute_file_list!=False and type(minute_file_list) is list:    
+                        for minute_file in minute_file_list:
+                            with open(minute_file, 'r') as file:  
+                                reader = csv.reader(file)  
+                                for row in reader:  
+                                    
+                                    print(type(row), row)
+                                    continue  
+                                    upd_metric="" # API алиас изменяемой метрики
+                                    upd_metric_vals_list = []
+                                    upd_metric_ts_list = []
+
+                                    res = Metric.add_fr_ym(db=db,
+                                                metrics=metrics, # Словарь метрик с их параметрами
+                                                granularity=granularity, granularity_settings=granularity_settings, 
+                                                source_id=source_id, source_alias=source_alias,
+                                                tz_str_source=self.tz_str_source, tz_str_system=self.tz_str_system,
+                                                upd_metric=upd_metric, # API алиас изменяемой метрики
+                                                upd_metric_vals=upd_metric_vals_list, # Список добавляемых значений метрики
+                                                upd_metric_time_intervals=upd_metric_ts_list, # Список интервалов добавляемых элементов
+                                                mode='dev', # prod
+                                                datetime_to=self.settings['datetime_to'],
+                                                onlyinsert=True)  
+                                    insert_counter_all += res['insert_counter_all']
+                                    upd_counter_all += res['upd_counter_all']   
+                                break       
                     
                     api_timer_sec = api_timer.get_time()
                     if api_timer_sec<self.source_get_api_lag_sec: 
@@ -163,8 +205,7 @@ class Robot_getload:
                         time.sleep(self.source_get_api_lag_sec - api_timer_sec)
                     logging.info(f'API complite get {dt_file}')
 
-                    # Пройтись по минутам, открыть файлы, записать данные в базу данных с тегами, записать суммарные данные без тега
-                    
+                    break
 
         ########################[ /Робот ]##########################
 

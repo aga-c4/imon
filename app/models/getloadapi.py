@@ -52,17 +52,24 @@ class GetLoadAPI:
                 if response.status_code == 200: 
                     with open(zipfilename, 'wb') as file:
                         file.write(response.content)
+                        file.close()
                 else:
                     logging.warning(f"GetLoadAPI.get_files: API Error download file {file}")
                     return False
             
             if not os.path.exists(foldername):  
                 os.makedirs(foldername) 
+                with zipfile.ZipFile(zipfilename, mode="r") as archive:  
+                    archive.extractall(foldername+"/") 
 
-            with zipfile.ZipFile(zipfilename, mode="r") as archive:  
-                archive.extractall(foldername+"/") 
+            # Список файлов в папке
+            flist = os.listdir(foldername)
+            flist2 = []
+            for val in flist:
+                foldername+"/"
+                flist2.append(foldername + "/" + str(val))   
+            return flist2  
 
-            return True
         except:
             logging.warning(f"GetLoadAPI.get_files: Error")
             return False

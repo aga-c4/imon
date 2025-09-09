@@ -86,11 +86,12 @@ if namespace.action == 'runrobot':
             }, config=config)
         logging.info("Run robot: {0}".format(namespace.robot))
         res = SysBf.call_method_fr_obj(robot_model, "run")
-        message_str = f"Run robot {namespace.robot} fin, comment: \n" + res['comment']
-        if 'telemetry' in res:
-            message_str += " \n" + f"exec_sec:{res['telemetry']['job_execution_sec']}, maxmem_kb:{res['telemetry']['job_max_mem_kb']}"
-        Message.send(message_str, lvl='log')
-        print(message_str)
+        if type(res) is dict:
+            message_str = f"Run robot {namespace.robot} fin, comment: \n" + res.get('comment',"")
+            if 'telemetry' in res:
+                message_str += " \n" + f"exec_sec:{res['telemetry']['job_execution_sec']}, maxmem_kb:{res['telemetry']['job_max_mem_kb']}"
+            Message.send(message_str, lvl='log')
+            print(message_str)
 elif namespace.action == 'yamget':
     if namespace.source in ('metrica', 'app_metrica'):
         robot = Robot_yamget(settings={
@@ -316,7 +317,7 @@ Params:
 The incident monitor is configured from the database!       
 
 Examples:
-    imon.sh runrobot --robot getload --granularity h1 --source metrica      
+    imon.sh runrobot --log_view INFO --robot getload --source sysload    
     imon.sh yamget --granularity h1 --source metrica
     imon.sh yamget --granularity h1 --source app_metrica
     imon.sh yamappeventsget --granularity h1

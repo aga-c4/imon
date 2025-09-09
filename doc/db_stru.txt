@@ -10,6 +10,7 @@ metrics
 - metric_source_alias string100 идентификатор источника (нормализованный)
 - metric_alias string100 алиас события (нормализованный)
 - metric_name string255 название метрики
+- accuracy int 1 - без семплирования
 - metric_api_alias string255 идентификатор события в учетной системе (пример: "ym:s:users")
 - metric_api_filters string255 строка фильтров для API (пример: "deviceCategory=.('desktop')")
 - metric_dp smallint степень числа 10, на что делем value, чтоб хранить все в int
