@@ -64,11 +64,13 @@ class GetLoadAPI:
 
             # Список файлов в папке
             flist = os.listdir(foldername)
-            flist2 = []
-            for val in flist:
-                foldername+"/"
-                flist2.append(foldername + "/" + str(val))   
-            return flist2  
+            flist.sort()       
+            return {
+                "zip_foldername": zip_foldername,
+                "zipfilename": zipfilename,
+                "foldername": foldername,
+                "flist": flist
+            }  
 
         except:
             logging.warning(f"GetLoadAPI.get_files: Error")

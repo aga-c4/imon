@@ -163,6 +163,7 @@ class Robot_getload:
         file_list = self.api.get_list()
         
         if file_list!=False and len(file_list)>0:
+            upd_metric_h = {} 
             for dt_file in file_list:
                 if dt_file>max_dt_str and dt_file<end_dt_str:
                     logging.info(f'API start get {dt_file}')
@@ -172,32 +173,81 @@ class Robot_getload:
                     minute_file_list = self.api.get_files(file=dt_file, fr_api=self.fr_api)
 
                     # Пройтись по минутам, открыть файлы, записать данные в базу данных с тегами, записать суммарные данные без тега  
-                    if minute_file_list!=False and type(minute_file_list) is list:    
-                        for minute_file in minute_file_list:
+                    if minute_file_list!=False and type(minute_file_list["flist"]) is list:
+                        upd_metric_list_m = {}
+                        cur_val_ts_period_h = ""    
+                        for minute_file in minute_file_list["flist"]:
+                            minute_file = minute_file.lstrip("metrics_")
+                            if cur_val_ts_period_h=="":
+                                cur_val_ts_period_h = [minute_file[:3]+":00:00", minute_file+":59:59"]
+                                print("cur_val_ts_period_h:", cur_val_ts_period_h)
+                            cur_val_ts = minute_file
+                            cur_val_ts_period = [cur_val_ts+":00", cur_val_ts+":59"]
+                            print("cur_val_ts_period:", cur_val_ts_period)
                             with open(minute_file, 'r') as file:  
                                 reader = csv.reader(file)  
+                                upd_metric_all_vals = []
                                 for row in reader:  
-                                    
+                                    if not type(row) is list or len(row)<3:
+                                        continue
                                     print(type(row), row)
-                                    continue  
-                                    upd_metric="" # API алиас изменяемой метрики
-                                    upd_metric_vals_list = []
-                                    upd_metric_ts_list = []
+                                    upd_metric = row[0].strip().lower()
+                                    upd_tag =  row[1].strip()
+                                    upd_value = float(row[2])
 
-                                    res = Metric.add_fr_ym(db=db,
-                                                metrics=metrics, # Словарь метрик с их параметрами
-                                                granularity=granularity, granularity_settings=granularity_settings, 
-                                                source_id=source_id, source_alias=source_alias,
-                                                tz_str_source=self.tz_str_source, tz_str_system=self.tz_str_system,
-                                                upd_metric=upd_metric, # API алиас изменяемой метрики
-                                                upd_metric_vals=upd_metric_vals_list, # Список добавляемых значений метрики
-                                                upd_metric_time_intervals=upd_metric_ts_list, # Список интервалов добавляемых элементов
-                                                mode='dev', # prod
-                                                datetime_to=self.settings['datetime_to'],
-                                                onlyinsert=True)  
-                                    insert_counter_all += res['insert_counter_all']
-                                    upd_counter_all += res['upd_counter_all']   
-                                break       
+                                    if not upd_metric in upd_metric_list_m:
+                                        upd_metric_list_m[upd_metric] = {"all":{"ts":[],"vals":[]}}  
+                                    if not upd_metric in upd_metric_all_vals:
+                                        upd_metric_all_vals[upd_metric] = 0     
+                                    if not upd_metric in upd_metric_h:
+                                        upd_metric_h[upd_metric] = {"all":0}     
+                                    if not upd_tag in upd_metric_h[upd_metric]:
+                                        upd_metric_h[upd_metric][upd_tag] = 0              
+
+                                    upd_metric_list_m[upd_metric][upd_tag]["ts"].append(cur_val_ts_period)
+                                    upd_metric_list_m[upd_metric][upd_tag]["vals"].append(upd_value)
+                                    upd_metric_all_vals[upd_metric] += upd_value 
+                                    upd_metric_h[upd_metric][upd_tag] += upd_value 
+                                    upd_metric_h[upd_metric]["all"] += upd_value 
+                                upd_metric_list_m[upd_metric]["all"]["ts"].append(cur_val_ts_period)
+                                upd_metric_list_m[upd_metric]["all"]["vals"].append(upd_metric_all_vals[upd_metric])
+                            break
+
+                        for upd_metric,metric_data in upd_metric_list_m.items():
+                            for metric_tag, metric_tag_data in metric_data.items():
+                                if metric_tag=="all":
+                                    metric_tag = ""
+                                res = Metric.add_fr_ym(db=db,
+                                            metrics=metrics, # Словарь метрик с их параметрами
+                                            granularity="m1", granularity_settings=granularity_settings, 
+                                            source_id=source_id, source_alias=source_alias,
+                                            tz_str_source=self.tz_str_source, tz_str_system=self.tz_str_system,
+                                            upd_metric=upd_metric, # API алиас изменяемой метрики
+                                            upd_metric_tag=metric_tag,
+                                            upd_metric_vals=metric_tag_data["vals"], # Список добавляемых значений метрики
+                                            upd_metric_time_intervals=metric_tag_data["ts"], # Список интервалов добавляемых элементов
+                                            mode='dev', # prod
+                                            datetime_to=self.settings['datetime_to'],
+                                            onlyinsert=True)  
+                                insert_counter_all += res['insert_counter_all']  
+
+                        for upd_metric,metric_data in upd_metric_h.items():
+                            for metric_tag, metric_tag_val in metric_data.items():
+                                if metric_tag=="all":
+                                    metric_tag = ""
+                                res = Metric.add_fr_ym(db=db,
+                                            metrics=metrics, # Словарь метрик с их параметрами
+                                            granularity="h1", granularity_settings=granularity_settings, 
+                                            source_id=source_id, source_alias=source_alias,
+                                            tz_str_source=self.tz_str_source, tz_str_system=self.tz_str_system,
+                                            upd_metric=upd_metric, # API алиас изменяемой метрики
+                                            upd_metric_tag=metric_tag,
+                                            upd_metric_vals=[metric_tag_val], # Список добавляемых значений метрики
+                                            upd_metric_time_intervals=[cur_val_ts_period_h], # Список интервалов добавляемых элементов
+                                            mode='dev', # prod
+                                            datetime_to=self.settings['datetime_to'],
+                                            onlyinsert=True)  
+                                insert_counter_all += res['insert_counter_all']                  
                     
                     api_timer_sec = api_timer.get_time()
                     if api_timer_sec<self.source_get_api_lag_sec: 
