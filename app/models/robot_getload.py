@@ -32,6 +32,9 @@ class Robot_getload:
     tz_str_source = ''
     tz_str_system = ''
     tz_str_db = ''
+    db_mode = 'prod' # prod - для реальной записи
+    start_init = False
+    add_gran_list = ["h1"]
 
     """
     Используемые параметры:
@@ -43,7 +46,7 @@ class Robot_getload:
     message_dt_lag_sec - отошлем сообщения о последней неповторяющейся аномалии в течении message_dt_lag_sec
     """
     granularity_list = { # Допустимые таймфреймы и их временные периоды в секундах 
-        "m1": {"sec": 60, "dblimit": 30, "days_before_max": 15, "update_ts_lag": 30 * 60, "get_item_lag_sec": 10 * 60, "api_group": "hour"},
+        "m1": {"sec": 60, "dblimit": 7, "days_before_max": 15, "update_ts_lag": 30 * 60, "get_item_lag_sec": 10 * 60, "api_group": "hour"},
         "h1": {"sec": 60 * 60, "dblimit": 3*30, "days_before_max": 83, "update_ts_lag": 6 * 60 * 60, "get_item_lag_sec": 60 * 60, "api_group": "hour"},
         "d1": {"sec": 24 * 60 * 60, "dblimit": 3*12*30, "days_before_max": 1000, "update_ts_lag": 4 * 24 * 60 * 60, "get_item_lag_sec": 4 * 60 * 60, "api_group": "day"},
         "w1": {"sec": 7 * 24 * 60 * 60, "dblimit": 3*12*30, "days_before_max": 1000, "update_ts_lag": 15 * 24 * 60 * 60, "get_item_lag_sec": 5 * 60 * 60, "api_group": "week"},
@@ -73,6 +76,11 @@ class Robot_getload:
 
         self.granularity_list = config['granularity_list']
         self.tz_str_db = config['db'].get('timezone', self.tz_str_db)
+
+        if self.settings[ "start_init"]=="true":
+            # Список таймфреймов, автоматически наполняемый при старте
+            self.add_gran_list = ["h1", "d1", "w1", "mo1"]
+            self.start_init = True
         
         if 'system' in config:
             self.proc_path = config['system'].get('proc_path', self.proc_path)
@@ -88,12 +96,18 @@ class Robot_getload:
             self.api = GetLoadAPI(token=config['sources'][self.source_alias]['token'], 
                             api_url=config['sources'][self.source_alias]['api_url'], 
                             source=self.settings['source'], tmp_path=self.tmp_path)
-            
+    
         
     def run(self, *, output:bool=False) -> dict:
         run_timer = SysTimer() 
         self.comment_str = ''
         insert_counter_all = 0
+        insert_counter = {
+                "m1": 0,
+                "h1": 0,
+                "d1": 0,
+                "w1": 0,
+                "mo1": 0}
         upd_counter_all = 0
 
         db = self.db
@@ -136,7 +150,7 @@ class Robot_getload:
         logging.info(f"granularity: {granularity}")
 
         # Почистим базу от лишних записей по данному варианту таймфрейма
-        Metric.clear_table(db=self.db, granularity=granularity, date_to=datetime_now - timedelta(days=granularity_settings['dblimit']))
+        # Metric.clear_table(db=self.db, granularity=granularity, date_to=datetime_now - timedelta(days=granularity_settings['dblimit']))
 
         metrics_dict = {}
         metrics = Metric.get_list(db=db, source_alias=source_alias, metric_type="src")
@@ -159,11 +173,44 @@ class Robot_getload:
         # Сформируем дату до которой будем искать данные
         end_dt_str = datetime_to.strftime("%Y-%m-%d")+'T00'
 
+        # Ограничения по записи в базу
+        dt_insert_from = {}
+        for gran in ["m1", "h1", "d1", "w1", "mo1"]:
+            granularity_settings = self.granularity_list.get(gran, {})
+            dt_insert_from[gran] = (datetime_now - timedelta(days=granularity_settings["dblimit"])).strftime("%Y-%m-%d")+"T00:00:00"     
+
         # Получить список доступных архивов
         file_list = self.api.get_list()
         
         if file_list!=False and len(file_list)>0:
-            upd_metric_h = {} 
+            upd_metric_list = {
+                "m1": {},
+                "h1": {},
+                "d1": {},
+                "w1": {},
+                "mo1": {},
+            }
+            cur_ts_period = {
+                "m1": ["",""],
+                "h1": ["",""],
+                "d1": ["",""],
+                "w1": ["",""],
+                "mo1": ["",""],
+            }
+            last_ts_period = {
+                "m1": ["",""],
+                "h1": ["",""],
+                "d1": ["",""],
+                "w1": ["",""],
+                "mo1": ["",""],
+            }
+            cur_metric_accum = {
+                "m1": {},
+                "h1": {},
+                "d1": {},
+                "w1": {},
+                "mo1": {},
+            } 
             for dt_file in file_list:
                 if dt_file>max_dt_str and dt_file<end_dt_str:
                     logging.info(f'API start get {dt_file}')
@@ -171,52 +218,113 @@ class Robot_getload:
                     api_timer_sec = 0
                     api_timer = SysTimer()
                     minute_file_list = self.api.get_files(file=dt_file, fr_api=self.fr_api)
+                    dt_cur_hour_day = datetime.strptime(dt_file[:10], '%Y-%m-%d')
+                    dt_cur_hour_day_str = dt_cur_hour_day.strftime("%Y-%m-%d")+"T00:00:00" 
 
                     # Пройтись по минутам, открыть файлы, записать данные в базу данных с тегами, записать суммарные данные без тега  
-                    if minute_file_list!=False and type(minute_file_list["flist"]) is list:
-                        upd_metric_list_m = {}
-                        cur_val_ts_period_h = ""    
+                    if minute_file_list!=False and type(minute_file_list["flist"]) is list:    
+
+                        for gran in self.add_gran_list:
+                            # рассчитаем края периода по текущим данным
+                            item_ts_period = ["",""]
+                            if gran=="h1":
+                                item_ts_period = [dt_file+":00:00", dt_file+":59:59"] 
+                            elif gran=="d1":
+                                base_dt_str = dt_file[:11]
+                                item_ts_period = [base_dt_str+"00:00:00", base_dt_str+"23:59:59"] 
+                            elif gran=="w1":
+                                days_of_week = SysBf.get_days_of_week(dt_cur_hour_day)
+                                item_ts_period = [days_of_week[0].strftime("%Y-%m-%d")+"T00:00:00", days_of_week[1].strftime("%Y-%m-%d")+"T23:59:59"]     
+                            elif gran=="mo1":
+                                days_of_month = SysBf.get_days_of_month(dt_cur_hour_day)
+                                item_ts_period = [days_of_month[0].strftime("%Y-%m-%d")+"T00:00:00", days_of_month[1].strftime("%Y-%m-%d")+"T23:59:59"]         
+
+                            if item_ts_period[0]!=cur_ts_period[gran][0]:
+                                # Запишем данные по прошлому периоду
+                                granularity_settings = self.granularity_list.get(gran, {})    
+                                for upd_metric,metric_data in cur_metric_accum[gran].items():
+                                    for metric_tag, metric_tag_vals in metric_data.items():
+                                        if cur_ts_period[gran][0]>=dt_insert_from[gran]:
+                                            if not upd_metric in upd_metric_list[gran]:
+                                                upd_metric_list[gran][upd_metric] = {}   
+                                            if not metric_tag in upd_metric_list[gran][upd_metric]:
+                                                upd_metric_list[gran][upd_metric][metric_tag] = {"ts":[],"vals":[]}
+                                            upd_metric_list[gran][upd_metric][metric_tag]["ts"].append(cur_ts_period[gran])
+                                            upd_metric_list[gran][upd_metric][metric_tag]["vals"].append(metric_tag_vals)      
+                                # Сменился период в заданном таймфрейме
+                                last_ts_period[gran] = cur_ts_period[gran]
+                                cur_ts_period[gran] = item_ts_period 
+                                # Почистим накопители текущего периода
+                                cur_metric_accum[gran] = {} 
+
+
+                        # При изменении таймфреймов проведем необохдимые действия по сохранению и т.п.
+                        upd_metric_list["m1"] = {}
                         for minute_file in minute_file_list["flist"]:
-                            minute_file = minute_file.lstrip("metrics_")
-                            if cur_val_ts_period_h=="":
-                                cur_val_ts_period_h = [minute_file[:3]+":00:00", minute_file+":59:59"]
-                                print("cur_val_ts_period_h:", cur_val_ts_period_h)
-                            cur_val_ts = minute_file
-                            cur_val_ts_period = [cur_val_ts+":00", cur_val_ts+":59"]
-                            print("cur_val_ts_period:", cur_val_ts_period)
-                            with open(minute_file, 'r') as file:  
-                                reader = csv.reader(file)  
-                                upd_metric_all_vals = []
-                                for row in reader:  
-                                    if not type(row) is list or len(row)<3:
-                                        continue
-                                    print(type(row), row)
-                                    upd_metric = row[0].strip().lower()
-                                    upd_tag =  row[1].strip()
-                                    upd_value = float(row[2])
+                            try:
+                                cur_minute = minute_file[-2:]   
+                                cur_ts_period["m1"] = [dt_file+f":{cur_minute}:00", dt_file+f":{cur_minute}:59"]
+                                minute_file_full = minute_file_list.get("foldername","")+"/"+minute_file
+                                with open(minute_file_full, 'r') as file:  
+                                    reader = csv.reader(file)  
+                                    upd_metric_minte_all_vals = {}
+                                    for row in reader:  
+                                        if not type(row) is list or len(row)<3:
+                                            continue
+                                        upd_metric = row[0].strip().lower()
+                                        # print(type(row), row)
+                                        if not upd_metric in metrics:
+                                            # Обрабатываются только зарегистрированные метрики
+                                            continue
+                                        upd_tag =  row[1].strip()
+                                        if upd_tag=="UNKNOWN":
+                                            upd_tag==""
+                                        upd_value = float(row[2])
 
-                                    if not upd_metric in upd_metric_list_m:
-                                        upd_metric_list_m[upd_metric] = {"all":{"ts":[],"vals":[]}}  
-                                    if not upd_metric in upd_metric_all_vals:
-                                        upd_metric_all_vals[upd_metric] = 0     
-                                    if not upd_metric in upd_metric_h:
-                                        upd_metric_h[upd_metric] = {"all":0}     
-                                    if not upd_tag in upd_metric_h[upd_metric]:
-                                        upd_metric_h[upd_metric][upd_tag] = 0              
+                                        # Добавление старших таймфреймов в списки их сохранения
+                                        for gran in self.add_gran_list:
+                                            if not upd_metric in cur_metric_accum[gran]:
+                                                cur_metric_accum[gran][upd_metric] = {}           
+                                            if not upd_tag in cur_metric_accum[gran][upd_metric]:
+                                                cur_metric_accum[gran][upd_metric][upd_tag] = 0     
+                                            if not "all" in cur_metric_accum[gran][upd_metric]:
+                                                cur_metric_accum[gran][upd_metric]["all"] = 0
+                                            cur_metric_accum[gran][upd_metric][upd_tag] += upd_value 
+                                            cur_metric_accum[gran][upd_metric]["all"] += upd_value   
+                                        
+                                        # Если надо сохранять m1, до добавим в список сохранения
+                                        if dt_cur_hour_day_str<dt_insert_from["m1"]:
+                                            continue
 
-                                    upd_metric_list_m[upd_metric][upd_tag]["ts"].append(cur_val_ts_period)
-                                    upd_metric_list_m[upd_metric][upd_tag]["vals"].append(upd_value)
-                                    upd_metric_all_vals[upd_metric] += upd_value 
-                                    upd_metric_h[upd_metric][upd_tag] += upd_value 
-                                    upd_metric_h[upd_metric]["all"] += upd_value 
-                                upd_metric_list_m[upd_metric]["all"]["ts"].append(cur_val_ts_period)
-                                upd_metric_list_m[upd_metric]["all"]["vals"].append(upd_metric_all_vals[upd_metric])
-                            break
+                                        # Сформируем текущие значения
+                                        if not upd_metric in upd_metric_list["m1"]:
+                                            upd_metric_list["m1"][upd_metric] = {}   
+                                        if not upd_tag in upd_metric_list["m1"][upd_metric]:
+                                            upd_metric_list["m1"][upd_metric][upd_tag] = {"ts":[],"vals":[]}
+                                        upd_metric_list["m1"][upd_metric][upd_tag]["ts"].append(cur_ts_period["m1"])
+                                        upd_metric_list["m1"][upd_metric][upd_tag]["vals"].append(upd_value)
 
-                        for upd_metric,metric_data in upd_metric_list_m.items():
+                                        # Добавим в накопитель по текущей минуте
+                                        if not upd_metric in upd_metric_minte_all_vals:
+                                            upd_metric_minte_all_vals[upd_metric] = 0      
+                                        upd_metric_minte_all_vals[upd_metric] += upd_value
+
+                                    # По всем минутным метрикам сформируем "all" из накопителя по текущей минуте
+                                    for upd_metric,upd_metric_val in  upd_metric_minte_all_vals.items():
+                                        if not "all" in upd_metric_list["m1"][upd_metric]:
+                                            upd_metric_list["m1"][upd_metric]["all"] = {"ts":[],"vals":[]}
+                                        upd_metric_list["m1"][upd_metric]["all"]["ts"].append(cur_ts_period["m1"])
+                                        upd_metric_list["m1"][upd_metric]["all"]["vals"].append(upd_metric_val)        
+     
+                            except Exception as err:  
+                                logging.info(f'Robot_getload:run: Error open {minute_file_full} Unexpected {err=}, {type(err)=}')
+
+
+                        granularity_settings = self.granularity_list.get("m1", {})  
+                        for upd_metric,metric_data in upd_metric_list["m1"].items():
                             for metric_tag, metric_tag_data in metric_data.items():
-                                if metric_tag=="all":
-                                    metric_tag = ""
+                                if metric_tag=="all" or metric_tag=="UNKNOWN":
+                                    metric_tag = ""   
                                 res = Metric.add_fr_ym(db=db,
                                             metrics=metrics, # Словарь метрик с их параметрами
                                             granularity="m1", granularity_settings=granularity_settings, 
@@ -226,43 +334,47 @@ class Robot_getload:
                                             upd_metric_tag=metric_tag,
                                             upd_metric_vals=metric_tag_data["vals"], # Список добавляемых значений метрики
                                             upd_metric_time_intervals=metric_tag_data["ts"], # Список интервалов добавляемых элементов
-                                            mode='dev', # prod
+                                            mode=self.db_mode, # prod
                                             datetime_to=self.settings['datetime_to'],
-                                            onlyinsert=True)  
-                                insert_counter_all += res['insert_counter_all']  
-
-                        for upd_metric,metric_data in upd_metric_h.items():
-                            for metric_tag, metric_tag_val in metric_data.items():
-                                if metric_tag=="all":
-                                    metric_tag = ""
-                                res = Metric.add_fr_ym(db=db,
-                                            metrics=metrics, # Словарь метрик с их параметрами
-                                            granularity="h1", granularity_settings=granularity_settings, 
-                                            source_id=source_id, source_alias=source_alias,
-                                            tz_str_source=self.tz_str_source, tz_str_system=self.tz_str_system,
-                                            upd_metric=upd_metric, # API алиас изменяемой метрики
-                                            upd_metric_tag=metric_tag,
-                                            upd_metric_vals=[metric_tag_val], # Список добавляемых значений метрики
-                                            upd_metric_time_intervals=[cur_val_ts_period_h], # Список интервалов добавляемых элементов
-                                            mode='dev', # prod
-                                            datetime_to=self.settings['datetime_to'],
-                                            onlyinsert=True)  
-                                insert_counter_all += res['insert_counter_all']                  
+                                            onlyinsert=True, first_item_enable=True)  
+                                insert_counter_all += res['insert_counter_all'] 
+                                insert_counter["m1"] += res['insert_counter_all'] 
                     
-                    api_timer_sec = api_timer.get_time()
-                    if api_timer_sec<self.source_get_api_lag_sec: 
-                        # Обеспечение минимального перерыва между запросами TODO - далее брать лаг из базы.
-                        time.sleep(self.source_get_api_lag_sec - api_timer_sec)
+                    # api_timer_sec = api_timer.get_time()
+                    # if api_timer_sec<self.source_get_api_lag_sec: 
+                    #     # Обеспечение минимального перерыва между запросами TODO - далее брать лаг из базы.
+                    #     time.sleep(self.source_get_api_lag_sec - api_timer_sec)
                     logging.info(f'API complite get {dt_file}')
+            
 
-                    break
-
+            for gran in self.add_gran_list:
+                granularity_settings = self.granularity_list.get(gran, {})  
+                for upd_metric,metric_data in upd_metric_list[gran].items():
+                    for metric_tag, metric_tag_data in metric_data.items():
+                        if metric_tag=="all" or metric_tag=="UNKNOWN":
+                            metric_tag = ""   
+                        res = Metric.add_fr_ym(db=db,
+                                    metrics=metrics, # Словарь метрик с их параметрами
+                                    granularity=gran, granularity_settings=granularity_settings, 
+                                    source_id=source_id, source_alias=source_alias,
+                                    tz_str_source=self.tz_str_source, tz_str_system=self.tz_str_system,
+                                    upd_metric=upd_metric, # API алиас изменяемой метрики
+                                    upd_metric_tag=metric_tag,
+                                    upd_metric_vals=metric_tag_data["vals"], # Список добавляемых значений метрики
+                                    upd_metric_time_intervals=metric_tag_data["ts"], # Список интервалов добавляемых элементов
+                                    mode=self.db_mode, # prod
+                                    datetime_to=self.settings['datetime_to'],
+                                    onlyinsert=True, first_item_enable=True)  
+                        insert_counter_all += res['insert_counter_all'] 
+                        insert_counter[gran] += res['insert_counter_all'] 
         ########################[ /Робот ]##########################
 
         # Удалим блокирующий запуск файл
         os.remove(proc_file)
 
-        self.comment(f"Update: {upd_counter_all}; Insert:{insert_counter_all}")
+        self.comment(f"Update: {upd_counter_all}; Insert all:{insert_counter_all}")
+        for gran in ["m1", "h1", "d1", "w1", "mo1"]:
+            self.comment(f"Insert {gran}:{insert_counter[gran]}")
         return {"success": True, 
                       "telemetry": {
                           "job_execution_sec": run_timer.get_time(), 

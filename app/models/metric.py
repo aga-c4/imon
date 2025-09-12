@@ -502,7 +502,8 @@ class Metric:
                   tz_str_source:str='', tz_str_system:str='',
                   mode:str='prod',
                   datetime_to:str='',
-                  onlyinsert:bool=False):
+                  onlyinsert:bool=False,
+                  first_item_enable:bool=False):
 
         insert_counter_all = 0
         upd_counter_all = 0
@@ -529,8 +530,8 @@ class Metric:
         ins_mt = []
         for itemKey, updValue in enumerate(upd_metric_vals):
             mcounter+=1
-            if mcounter==1: 
-                continue; # Первое значение обычно обрезанное, его не учитываем
+            if not first_item_enable and mcounter==1: 
+                continue; # Первое значение обычно обрезанное, по умолчанию его не учитываем
 
             tsStr1 = upd_metric_time_intervals[itemKey][0] # Начальная дата интервала, иногда со временем "2024-09-15 00:00:00"
             real_value = round(updValue*(10**int(metrics[upd_metric]['metric_dp'])))
@@ -553,8 +554,9 @@ class Metric:
                                     granularity=granularity, 
                                     metric_id=metrics[upd_metric]['id'], 
                                     metric_dt = cur_item_dt,
+                                    metric_tag = upd_metric_tag,
                                     params={"value": real_value, "dp": metrics[upd_metric]['metric_dp']})
-                logging.info(f"Update {granularity}.[{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}: [{cur_item_dt_str}] = {real_value}")
+                logging.info(f"Update {granularity}.[{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}.{upd_metric_tag}: [{cur_item_dt_str}] = {real_value}")
                 upd_counter += 1
                 continue
 
@@ -567,22 +569,24 @@ class Metric:
                     "metric_id": metrics[upd_metric]['id'],  
                     "metric_parentid": metrics[upd_metric]['parentid'], 
                     "metric_group_id": metrics[upd_metric]['metric_group_id'],
+                    "metric_project_id": metrics[upd_metric]['metric_project_id'],
+                    "metric_tag": upd_metric_tag,
                     "value": real_value, 
                     "dp": metrics[upd_metric]['metric_dp'], 
                     "region_alias": metrics[upd_metric]['metric_region_alias'], 
                     "device_alias": metrics[upd_metric]['metric_device_alias'],
                     "trafsrc_alias": metrics[upd_metric]['metric_trafsrc_alias']
                 })
-                logging.info(f"Insert {granularity}.[{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}: [{cur_item_dt_str}] = {real_value}")
+                logging.info(f"Insert {granularity}.{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}.{upd_metric_tag}: [{cur_item_dt_str}] = {real_value}")
 
         # Если есть, что добавлять, добавляем
         if len(ins_mt):
             if mode=="prod":
                 Metric.insert_list(db=db, granularity=granularity, params=ins_mt)
-            logging.info(f"Insert {granularity}.[{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}: Complete "+str(len(ins_mt))+" items!")
+            logging.info(f"Insert {granularity}.{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}.{upd_metric_tag}: Complete "+str(len(ins_mt))+" items!")
             insert_counter_all += len(ins_mt)
         if upd_counter>0:
-            logging.info(f"Update {granularity}.[{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}: Complete "+str(upd_counter)+" items!")
+            logging.info(f"Update {granularity}.{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}.{upd_metric_tag}: Complete "+str(upd_counter)+" items!")
             upd_counter_all += upd_counter    
 
         return {'insert_counter_all': insert_counter_all, 'upd_counter_all': upd_counter_all}    

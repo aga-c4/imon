@@ -43,6 +43,7 @@ def createParser ():
     parser.add_argument ('--group', type=str, default="")
     parser.add_argument ('--message_lvl', type=str, default="")
     parser.add_argument ('--news_alias', type=str, default="")
+    parser.add_argument ('--start_init', type=str, default="false")
     return parser 
 
 # Обработка входных данных
@@ -82,7 +83,8 @@ if namespace.action == 'runrobot':
             "granularity": namespace.granularity, 
             "group_id": namespace.group_id, 
             "metric_id": namespace.metric_id,
-            "datetime_to": namespace.datetime_to
+            "datetime_to": namespace.datetime_to,
+            "start_init": namespace.start_init
             }, config=config)
         logging.info("Run robot: {0}".format(namespace.robot))
         res = SysBf.call_method_fr_obj(robot_model, "run")
@@ -327,7 +329,8 @@ Examples:
     imon.sh newsmaker --granularity d1                 
     imon.sh newsmaker --granularity w1                 
     imon.sh newsmaker --granularity m1     
-    imon.sh create_tasks_for_all_metrics             
+    imon.sh create_tasks_for_all_metrics  
+    ./dockerimon.sh runrobot --log_view INFO --robot getload --source sysload --datetime_to 2025-02-01                 
 """)
     
 

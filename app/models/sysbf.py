@@ -66,6 +66,21 @@ class SysBf:
 
         return tzdt
     
+    @staticmethod
+    def get_days_of_month(date:datetime):
+        if date.month == 12:
+            return date.replace(day=31)
+        firstd = date.replace(day=1) 
+        lastd = date.replace(month=date.month+1, day=1) - datetime.timedelta(days=1)     
+        return [firstd, lastd] 
+
+    @staticmethod
+    def get_days_of_week(date:datetime):
+        monday = date - datetime.timedelta(days=date.weekday()) 
+        sunday = monday + datetime.timedelta(days=6)
+        return [monday,sunday]
+    
+    @staticmethod
     def tzdt(dt:datetime, tz_str:str='') -> datetime:
         tzdt = dt
         if tz_str!='':
@@ -77,6 +92,7 @@ class SysBf:
 
         return tzdt
     
+    @staticmethod
     def as_timezone(dt:datetime, tz_to_str:str='') -> datetime:
         tzdt = dt
         if tz_to_str!='':
