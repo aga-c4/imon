@@ -89,7 +89,7 @@ if namespace.action == 'runrobot':
         logging.info("Run robot: {0}".format(namespace.robot))
         res = SysBf.call_method_fr_obj(robot_model, "run")
         if type(res) is dict:
-            message_str = f"Run robot {namespace.robot} fin, comment: \n" + res.get('comment',"")
+            message_str = f"Run robot {namespace.robot} fin, comment: \n" + res.get('comment',"")   
             if 'telemetry' in res:
                 message_str += " \n" + f"exec_sec:{res['telemetry']['job_execution_sec']}, maxmem_kb:{res['telemetry']['job_max_mem_kb']}"
             Message.send(message_str, lvl='log')

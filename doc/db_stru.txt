@@ -19,15 +19,12 @@ metrics
 - metric_ts_types string255 типы временных фрагментаций  (обычно "m1,h1,d1,w1,m1")
 - metric_group_id int идентификатор группы метрик из таблицы metrics_groups
 - metric_project int  идентификатор проекта метрик из таблицы metrics_projects
-- metric_region_alias string50 (алиас/all)
-- metric_device_alias string20 (алиас/all)
-- metric_trafsrc_alias string100 (алиас/all)
 
 Реестр Тегов:
 metric_tags
 - id int идентификатор тега
 - metric_id int идентификатор метрики
-- metric_tag string255 тег метрики
+- project_id int идентификатор проекта метрик
 
 События:
 metrics_m1 - по минутам
@@ -38,18 +35,21 @@ metrics_mo1 - по месяцам
 - id int идентификатор
 - dt datetime это первая секунда временного периода
 - source_id int идентификатор источника
-- source_alias string100 алиас источника (нормализованный)
 - metric_id int идентификатор метрики
 - metric_parentid int идентификатор родительской метрики
-- metric_tag string255 тег метрики (обычно строка алиасов, разделенных ::)
+- metric_tag_id int id тега метрики (обычно строка алиасов, разделенных ::)
 - value int колличественная мера
 - dp int степень числа 10, на что делем value, чтоб хранить все в int
 - value int суммарное значение
-- region_alias string50 (алиас/all)
-- device_alias string20 (алиас/all)
-- trafsrc_alias string100 (алиас/all)
 - metric_group_id int идентификатор группы метрик 
 - metric_project_id int идентификатор проекта метрик
+
+Ключ:
+metric_project_id::metric_tag_id::metric_id
+В теге могут быть варианты:
+- маршруты для нагрузки
+- region_id::device_id::trafsrc_id для екома
+
 
 Реестр аномалий:
 anom_m1 - по минутам
@@ -61,15 +61,15 @@ anom_mo1 - по месяцам
 - dt datetime это первая секунда временного периода
 - metric_id int идентификатор метрики
 - metric_parentid int идентификатор родительской метрики
-- metric_tag string255 тег метрики (обычно строка алиасов, разделенных ::)
+- metric_tag_id int id тега метрики (обычно строка алиасов, разделенных ::)
 - metric_value int значение метрики с аномалией без корректировки на dp
 - posted int Маркер опубликованности
-- region_alias string50 (алиас/all)
-- device_alias string50 (алиас/all)
-- trafsrc_alias string100 (алиас/all)
-- direction string10 pos/neg/both
+- direction int pos/neg/both как 1/-1/0, both - когда не учитываем направление
 - metric_group_id int идентификатор группы метрик 
 - metric_project_id int идентификатор проекта метрик
+
+Ключ:
+metric_project_id::metric_tag_id::metric_id
 
 Реестр рупп:
 metric_groups

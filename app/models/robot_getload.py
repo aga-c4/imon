@@ -153,7 +153,7 @@ class Robot_getload:
         # Metric.clear_table(db=self.db, granularity=granularity, date_to=datetime_now - timedelta(days=granularity_settings['dblimit']))
 
         metrics_dict = {}
-        metrics = Metric.get_list(db=db, source_alias=source_alias, metric_type="src")
+        metrics = Metric.get_list(db=db, source_id=source_id, metric_type="src")
         # Дадим метрикам ключи - API алиасы метрик    
         for mt in metrics:
             # if not mt['id'] in [10, 11]: # TODO - Отрубить после теста. Для теста пачки или там, где нужны ограничения по метрикам
@@ -167,7 +167,7 @@ class Robot_getload:
         del metrics_dict
 
         # Получить дату последних данных в базе
-        max_dt = Metric.get_last_dt(db=db, granularity=granularity, tz_str=self.tz_str_db, source_alias=self.source_alias)
+        max_dt = Metric.get_last_dt(db=db, granularity=granularity, tz_str=self.tz_str_db, source_id=self.source_id)
         max_dt_str = max_dt.strftime("%Y-%m-%dT%H")
         
         # Сформируем дату до которой будем искать данные
@@ -328,7 +328,7 @@ class Robot_getload:
                                 res = Metric.add_fr_ym(db=db,
                                             metrics=metrics, # Словарь метрик с их параметрами
                                             granularity="m1", granularity_settings=granularity_settings, 
-                                            source_id=source_id, source_alias=source_alias,
+                                            source_id=source_id,
                                             tz_str_source=self.tz_str_source, tz_str_system=self.tz_str_system,
                                             upd_metric=upd_metric, # API алиас изменяемой метрики
                                             upd_metric_tag=metric_tag,
@@ -356,7 +356,7 @@ class Robot_getload:
                         res = Metric.add_fr_ym(db=db,
                                     metrics=metrics, # Словарь метрик с их параметрами
                                     granularity=gran, granularity_settings=granularity_settings, 
-                                    source_id=source_id, source_alias=source_alias,
+                                    source_id=source_id,
                                     tz_str_source=self.tz_str_source, tz_str_system=self.tz_str_system,
                                     upd_metric=upd_metric, # API алиас изменяемой метрики
                                     upd_metric_tag=metric_tag,

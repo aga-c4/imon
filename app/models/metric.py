@@ -14,45 +14,44 @@ class Metric:
     groups_table = 'metric_groups'   
     id = None
     granularity = None
-    region_alias = None
-    device_alias = None
-    trafsrc_alias = None
+    metric_tag_id = ""
+    project_id = 0
     info = None
     dp = 0
 
-    def __init__(self, *, db:Mysqldb, id:int, granularity:str='', region_alias:str=''):
+    def __init__(self, *, db:Mysqldb, id:int, granularity:str='', project_id:int=0, metric_tag_id:int=0):
         """
         metric_id=1 # Идентификатор метрики
         granularity='h1' # Отслеживаемые диапазоны m1/h1/d1/w1/mo1
-        region_alias='' # Алиас региона, если не задан, то 'all'
+        project_id=0 # Идентификатор проекта
+        metric_tag_id=0 # Идентификатор тега метрики
         dt_from = '' # Дата-время в формате 'ГГГГ-ММ-ДД чч-мм-сс'
         """
         assert id > 0, 'Metric.get_data: id is not set'
         assert granularity != '', 'Metric.get_data: granularity options: m1 | h1 | d1 | w1 | mo1 | ...'
 
         self.db = db
-        if not region_alias:
-            region_alias = 'all'
         self.id = id
         self.granularity = granularity
-        self.region_alias = region_alias   
+        self.metric_tag_id = metric_tag_id   
+        self.project_id = project_id   
         self.info = self.get_info()
         self.dp = self.info.get('metric_dp', 0)
-        self.parentid = self.info.get('parentid', self.id)
-        self.device_alias = self.info.get('metric_device_alias', 'all')
-        self.trafsrc_alias = self.info.get('metric_trafsrc_alias', 'all')
+        self.parentid = self.info.get('parentid', 0)
+        self.metric_group_id = self.info.get('metric_group_id', 0)
 
     @staticmethod
-    def get_metric(*, db:Mysqldb, id:int, granularity:str='', region_alias:str=''):
+    def get_metric(*, db:Mysqldb, id:int, granularity:str='', project_id:int=0, metric_tag_id:int=0):
         """
         metric_id=1 # Идентификатор метрики
         granularity='h1' # Отслеживаемые диапазоны m1/h1/d1/w1/mo1
-        region_alias='' # Алиас региона, если не задан, то 'all'
+        project_id=0 # Идентификатор проекта
+        metric_tag_id # Идентификатор тега
         dt_from = '' # Дата-время в формате 'ГГГГ-ММ-ДД чч-мм-сс'
         """
         if not id:
             return None
-        metric = Metric(db=db, id=id, granularity=granularity, region_alias=region_alias)
+        metric = Metric(db=db, id=id, granularity=granularity, project_id=project_id, metric_tag_id=metric_tag_id)
         if not metric.info:
             return None
         return metric
@@ -72,12 +71,14 @@ class Metric:
         return result  
 
     @staticmethod
-    def get_list(*, db:Mysqldb, group_id:int=0, source_alias:str='', metric_type:str='', order:str='') -> list:
+    def get_list(*, db:Mysqldb, group_id:int=0, project_id:int=None, source_id:int=None, metric_type:str='', order:str='') -> list:
         sql = f"SELECT * from {Metric.table}  WHERE metric_active = 1"
+        if not project_id is None:
+            sql += f" and metric_project_id={project_id}"
         if group_id>0:
-            sql += f" and metric_group_id={group_id}"
-        if source_alias!='':
-            sql += f" and metric_source_alias='{source_alias}'"   
+            sql += f" and metric_group_id={group_id}"    
+        if not source_id is None:
+            sql += f" and source_id={source_id}"   
         if metric_type!='':
             sql += f" and metric_type='{metric_type}'" 
         if order!='':
@@ -97,15 +98,15 @@ class Metric:
         return result   
 
     @staticmethod
-    def get_last_dt(*, db:Mysqldb, granularity:str='h1', id:int=0, tz_str:str='', source_alias:str=None) -> datetime:
-        if id==0:
-            if not source_alias is None:
-                # Выдадим время последней зарегистрированной метрики с заданным алиасом источника
-                sql = f"SELECT max(dt) as maxdt from {Metric.data_table}{granularity};"
-            else:
-                return SysBf.tzdt(datetime.datetime.fromtimestamp(0), tz_str)    
+    def get_last_dt(*, db:Mysqldb, granularity:str='h1', id:int=0, tz_str:str='', project_id:int=0, metric_tag_id:int=0, source_id:int=None) -> datetime:
+        if not source_id is None:
+            # Выдадим время последней зарегистрированной метрики с заданным алиасом источника
+            sql = f"SELECT max(dt) as maxdt from {Metric.data_table}{granularity};"
+        elif id==0:
+            return SysBf.tzdt(datetime.datetime.fromtimestamp(0), tz_str)    
         else:
-            sql = f"SELECT max(dt) as maxdt from {Metric.data_table}{granularity} where metric_id={id};"
+            if 
+            sql = f"SELECT max(dt) as maxdt from {Metric.data_table}{granularity} where metric_id={id} and metric_project_id={project_id} and metric_tag_id={metric_tag_id};"
         result = db.query(sql) 
         if result:
             if not result[0]['maxdt'] is None:
@@ -113,11 +114,11 @@ class Metric:
         return SysBf.tzdt(datetime.datetime.fromtimestamp(0), tz_str)
     
     @staticmethod
-    def get_minmax_dt(*, db:Mysqldb, granularity:str='' , id:int, tz_str:str='') -> dict:
+    def get_minmax_dt(*, db:Mysqldb, granularity:str='' , id:int, tz_str:str='', project_id:int=0, metric_tag_id:int=0) -> dict:
         if id==0:
             return {"mindt": None, "maxdt": None}
 
-        sql = f"SELECT max(dt) as maxdt, min(dt) as mindt from {Metric.data_table}{granularity} where metric_id={id};"
+        sql = f"SELECT max(dt) as maxdt, min(dt) as mindt from {Metric.data_table}{granularity} where metric_id={id} and metric_project_id={project_id} and metric_tag_id={metric_tag_id};"
         result = db.query(sql) 
         res = {"mindt": None, "maxdt": None}
         if result:
@@ -128,7 +129,7 @@ class Metric:
         return res
     
     @staticmethod
-    def stupdateval(*, db:Mysqldb, granularity:str='', metric_id:int=0, metric_dt:datetime, params:dict={}):
+    def stupdateval(*, db:Mysqldb, granularity:str='', metric_id:int=0, project_id:int=0, metric_tag_id:int=0, metric_dt:datetime, params:dict={}):
         sql = f"UPDATE `{Metric.data_table}{granularity}` SET "
         upd = False
         dt_str = str(metric_dt) # datetime.datetime.strftime(metric_dt, '%Y-%m-%d %H:%M:%S')
@@ -140,13 +141,14 @@ class Metric:
                 upd = True
         
         if upd:   
-            sql += f" WHERE metric_id={metric_id} and dt='{dt_str}';"
+            sql += f" WHERE metric_id={metric_id} and metric_project_id={project_id} and metric_tag_id={metric_tag_id} and dt='{dt_str}';"
             result = db.update(sql)
             return result 
         return 0
 
     def updateval(self, *, metric_dt:datetime, params:dict={}):
         return Metric.stupdateval(db=self.db, granularity=self.granularity, metric_id=self.id, 
+                                  project_id=self.project_id, metric_tag_id=self.metric_tag_id,  
                                   metric_dt=metric_dt, params=params)
 
     @staticmethod
@@ -190,13 +192,7 @@ class Metric:
     def get_sum(*, db:Mysqldb, 
                    granularity:str, 
                    dt_from:str='', dt_to:str='', dt_from_more:str='', dt_to_less:str='', tz_str:str='',
-                   metric_ids:list=None, metric_parentids:list=None, region_alias:str='', trafsrc_alias:str='', device_alias:str='') -> dict:
-        if not region_alias:
-            region_alias = 'all'
-        if not device_alias:
-            device_alias = 'all'  
-        if not trafsrc_alias:
-            trafsrc_alias = 'all'
+                   metric_ids:list=None, metric_parentids:list=None, project_id:int=0, metric_tag_id:int=0) -> dict:
 
         metric_id_str_all = '' 
         gr_by_str = ""
@@ -225,10 +221,7 @@ class Metric:
             res.append(0)    
 
         if metric_id_str_all!="":   
-            trafsrc_alias_str = ""
-            if trafsrc_alias!="all":
-                trafsrc_alias_str = f" and trafsrc_alias='{trafsrc_alias}'"
-            sql = f"SELECT metric_id as metric_id, sum(value/POW( 10, dp )) as value from {Metric.data_table}{granularity} where {metric_id_str_all} and region_alias='{region_alias}' and device_alias='{device_alias}'{trafsrc_alias_str}"
+            sql = f"SELECT metric_id as metric_id, sum(value/POW( 10, dp )) as value from {Metric.data_table}{granularity} where {metric_id_str_all} and metric_project_id={project_id} and metric_tag_id={metric_tag_id}"
             if dt_from!='':
                 sql += f" and dt>='{dt_from}'"
             if dt_to!='':
@@ -251,13 +244,7 @@ class Metric:
     def get_values(*, db:Mysqldb, 
                    granularity:str, 
                    dt_from:str='', dt_to:str='', dt_from_more:str='', dt_to_less:str='', tz_str:str='', orderby:str='',
-                   metric_id:int=0, metric_parentid:int=0, region_alias:str='', trafsrc_alias:str='', device_alias:str='') -> dict:
-        if not region_alias:
-            region_alias = 'all'
-        if not device_alias:
-            device_alias = 'all'  
-        if not trafsrc_alias:
-            trafsrc_alias = 'all'  
+                   metric_id:int=0, metric_parentid:int=0, project_id:int=0, metric_tag_id:int=0) -> dict: 
         if metric_id>0:
             metric_id_str = 'metric_id'   
             metric_id_val = metric_id   
@@ -268,10 +255,7 @@ class Metric:
             metric_id_val = 0     
         res = {} 
         if metric_id_val>0:  
-            trafsrc_alias_str = ""
-            if trafsrc_alias!="all":
-                trafsrc_alias_str = f" and trafsrc_alias='{trafsrc_alias}'"   
-            sql = f"SELECT dt, value, dp from {Metric.data_table}{granularity} where {metric_id_str}={metric_id_val} and region_alias='{region_alias}' and device_alias='{device_alias}'{trafsrc_alias_str}"
+            sql = f"SELECT dt, value, dp from {Metric.data_table}{granularity} where {metric_id_str}={metric_id_val} and metric_project_id={project_id} and metric_tag_id={metric_tag_id}"
             if dt_from!='':
                 sql += f" and dt>='{dt_from}'"
             if dt_to!='':
@@ -303,7 +287,7 @@ class Metric:
         last_items = 0 # Если больше нуля, то берется это количество элементов с конца после даты начала 
         '''
 
-        sql = f"SELECT dt, value, dp from {self.data_table}{self.granularity} where metric_id={self.id} and region_alias='{self.region_alias}'"
+        sql = f"SELECT dt, value, dp from {self.data_table}{self.granularity} where metric_id={self.id} and metric_project_id={self.project_id} and metric_tag_id={self.metric_tag_id}"
         
         if dt_from!='':
             sql += f" and dt>='{dt_from}'"
@@ -352,16 +336,11 @@ class Metric:
 
         return reliance
 
-    def get_last_anom_dt(self, * , direction:str='', tz_str:str='') -> dict:
-        if not direction in ['pos', 'neg']:
-            direction = ''
+    def get_last_anom_dt(self, * , direction:int=0, tz_str:str='') -> dict:
         sql = f"SELECT dt, metric_value from {self.anoms_table}{self.granularity} where \
-                metric_id={self.id} \
-                and region_alias='{self.region_alias}' \
-                and device_alias='{self.device_alias}' \
-                and trafsrc_alias='{self.trafsrc_alias}' "
-        if direction != '':
-            sql += f" and direction='{direction}'"    
+                metric_id={self.id} and metric_project_id={self.project_id} and metric_tag_id={self.metric_tag_id}"
+        if direction != 0:
+            sql += f" and direction=direction"    
         sql += " ORDER BY dt DESC LIMIT 0,1;"
         result = self.db.query(sql) 
         if result:
@@ -370,19 +349,22 @@ class Metric:
 
     def add_anoms(self, *, 
                   anoms:pd.Series=pd.Series(), 
-                  direction:str='', 
-                  metric_group_id:int=0, 
-                  metric_project_id:int=0,
+                  direction:str='',  
                   tz_str_to:str='') -> int:
         'Метки времени ожидаются в timezone базы данных без маркировки таймозны'
 
-        if not direction in ['pos', 'neg']:
-            direction = ''
-        sql = f"INSERT INTO {self.anoms_table}{self.granularity} (dt, metric_id, metric_parentid, metric_value, region_alias, device_alias, trafsrc_alias, direction, metric_group_id, metric_project_id) VALUES "
+        if direction='pos':
+            direction_val = 1
+        if direction='neg:
+            direction_val = -1
+        else:       
+            direction_val = 0
+        sql = f"INSERT INTO {self.anoms_table}{self.granularity} (dt, metric_id, metric_parentid, metric_value, region_alias, device_alias, trafsrc_alias, direction, metric_group_id, metric_project_id, metric_tag_id) VALUES "
+        project_id=self.project_id, metric_tag_id=self.metric_tag_id, 
         anoms = anoms.to_dict()
         counter_all = 0
         counter = 0
-        last_anom_dt = self.get_last_anom_dt(direction=direction, tz_str=tz_str_to)
+        last_anom_dt = self.get_last_anom_dt(direction=direction_val, tz_str=tz_str_to)
         for key, value in anoms.items():
             key_wtz = SysBf.tzdt(key, tz_str_to)
             if last_anom_dt is None or key_wtz > last_anom_dt:
@@ -393,7 +375,7 @@ class Metric:
                     value = 2140000000
                 if counter>0:
                     sql += ','
-                sql += f"('{formatted_dt}', {self.id}, {self.parentid}, {value}, '{self.region_alias}', '{self.device_alias}', '{self.trafsrc_alias}', '{direction}', {metric_group_id}, {metric_project_id})"
+                sql += f"('{formatted_dt}', {self.id}, {self.parentid}, {value}, '{self.region_alias}', '{self.device_alias}', '{self.trafsrc_alias}', {direction_val}, {self.metric_group_id}, {self.project_id}, {self.metric_tag_id})"
                 counter += 1
             counter_all += 1    
         sql += ';'
@@ -407,14 +389,16 @@ class Metric:
 
     def get_anoms(self, *, dt_from:str='', last_items:int=0, direction:str='', tz_str:str='') -> pd.Series:
         sql = f"SELECT dt, metric_value, posted from {self.anoms_table}{self.granularity} where \
-                metric_id={self.id} \
-                and region_alias='{self.region_alias}' \
-                and device_alias='{self.device_alias}' \
-                and trafsrc_alias='{self.trafsrc_alias}' \
-                "
+                metric_id={self.id} and metric_project_id={self.project_id} and metric_tag_id={self.metric_tag_id}"
         if dt_from:
             sql += f" and dt>='{dt_from}'"
-        if direction!='':
+        if direction='pos':
+            direction_val = 1
+        if direction='neg:
+            direction_val = -1
+        else:       
+            direction_val = 0    
+        if direction!=0:
             sql += f" and direction='{direction}'"    
         if last_items:
             if dt_from:
@@ -441,10 +425,7 @@ class Metric:
         formatted_dt_start = str(dt_start)
         sql = f"SELECT id, dt, metric_value, direction, posted from {self.anoms_table}{self.granularity} where \
                 dt>'{formatted_dt_start}' \
-                and metric_id={self.id} \
-                and region_alias='{self.region_alias}' \
-                and device_alias='{self.device_alias}' \
-                and trafsrc_alias='{self.trafsrc_alias}' \
+                and metric_id={self.id}  and metric_project_id={self.project_id} and metric_tag_id={self.metric_tag_id} \
                 and posted > 0 \
                 ORDER BY dt LIMIT 0,1;"
         
@@ -456,10 +437,7 @@ class Metric:
         formatted_dt_start2 = str(dt_start2)
         sql = f"SELECT id, dt, metric_value, direction, posted from {self.anoms_table}{self.granularity} where \
                 dt>'{formatted_dt_start2}' \
-                and metric_id={self.id} \
-                and region_alias='{self.region_alias}' \
-                and device_alias='{self.device_alias}' \
-                and trafsrc_alias='{self.trafsrc_alias}' \
+                and metric_id={self.id} and metric_project_id={self.project_id} and metric_tag_id={self.metric_tag_id} \
                 and posted = 0 \
                 ORDER BY dt DESC;"
         
@@ -497,7 +475,7 @@ class Metric:
                   metrics:dict, 
                   granularity:str, granularity_settings:dict, 
                   source_id:int, source_alias:str, 
-                  upd_metric:str, upd_metric_tag:str="", 
+                  upd_metric:str, 
                   upd_metric_vals:list, upd_metric_time_intervals:list,
                   tz_str_source:str='', tz_str_system:str='',
                   mode:str='prod',
@@ -554,9 +532,9 @@ class Metric:
                                     granularity=granularity, 
                                     metric_id=metrics[upd_metric]['id'], 
                                     metric_dt = cur_item_dt,
-                                    metric_tag = upd_metric_tag,
+                                    project_id=self.project_id, metric_tag_id=self.metric_tag_id, 
                                     params={"value": real_value, "dp": metrics[upd_metric]['metric_dp']})
-                logging.info(f"Update {granularity}.[{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}.{upd_metric_tag}: [{cur_item_dt_str}] = {real_value}")
+                logging.info(f"Update {granularity}.[{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}.{self.project_id}.{self.metric_tag_id}: [{cur_item_dt_str}] = {real_value}")
                 upd_counter += 1
                 continue
 
@@ -568,25 +546,22 @@ class Metric:
                     "source_alias": source_alias, 
                     "metric_id": metrics[upd_metric]['id'],  
                     "metric_parentid": metrics[upd_metric]['parentid'], 
-                    "metric_group_id": metrics[upd_metric]['metric_group_id'],
-                    "metric_project_id": metrics[upd_metric]['metric_project_id'],
-                    "metric_tag": upd_metric_tag,
+                    "metric_group_id": self.metric_group_id,
+                    "metric_project_id": self.project_id,
+                    "metric_tag_id": self.metric_tag_id,
                     "value": real_value, 
-                    "dp": metrics[upd_metric]['metric_dp'], 
-                    "region_alias": metrics[upd_metric]['metric_region_alias'], 
-                    "device_alias": metrics[upd_metric]['metric_device_alias'],
-                    "trafsrc_alias": metrics[upd_metric]['metric_trafsrc_alias']
+                    "dp": metrics[upd_metric]['metric_dp']
                 })
-                logging.info(f"Insert {granularity}.{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}.{upd_metric_tag}: [{cur_item_dt_str}] = {real_value}")
+                logging.info(f"Insert {granularity}.{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}.{self.project_id}.{self.metric_tag_id}: [{cur_item_dt_str}] = {real_value}")
 
         # Если есть, что добавлять, добавляем
         if len(ins_mt):
             if mode=="prod":
                 Metric.insert_list(db=db, granularity=granularity, params=ins_mt)
-            logging.info(f"Insert {granularity}.{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}.{upd_metric_tag}: Complete "+str(len(ins_mt))+" items!")
+            logging.info(f"Insert {granularity}.{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}.{self.project_id}.{self.metric_tag_id}: Complete "+str(len(ins_mt))+" items!")
             insert_counter_all += len(ins_mt)
         if upd_counter>0:
-            logging.info(f"Update {granularity}.{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}.{upd_metric_tag}: Complete "+str(upd_counter)+" items!")
+            logging.info(f"Update {granularity}.{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}..{self.project_id}.{self.metric_tag_id}: Complete "+str(upd_counter)+" items!")
             upd_counter_all += upd_counter    
 
         return {'insert_counter_all': insert_counter_all, 'upd_counter_all': upd_counter_all}    

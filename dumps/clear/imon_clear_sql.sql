@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: mysql:3306
--- Время создания: Сен 04 2025 г., 15:05
+-- Время создания: Сен 15 2025 г., 21:15
 -- Версия сервера: 8.3.0
 -- Версия PHP: 8.2.29
 
@@ -33,13 +33,10 @@ CREATE TABLE `anoms_d1` (
   `dt` datetime(6) NOT NULL,
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
-  `metric_tag` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `metric_tag_id` int NOT NULL DEFAULT '0',
   `metric_value` int NOT NULL,
-  `posted` int NOT NULL DEFAULT '0',
-  `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `device_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `trafsrc_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `direction` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `posted` tinyint NOT NULL DEFAULT '0',
+  `direction` tinyint NOT NULL DEFAULT '0',
   `metric_group_id` int NOT NULL DEFAULT '0',
   `metric_project_id` int NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -56,13 +53,10 @@ CREATE TABLE `anoms_h1` (
   `dt` datetime(6) NOT NULL,
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
-  `metric_tag` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `metric_tag_id` int NOT NULL DEFAULT '0',
   `metric_value` int NOT NULL,
-  `posted` int NOT NULL DEFAULT '0',
-  `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `device_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `trafsrc_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `direction` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `posted` tinyint NOT NULL DEFAULT '0',
+  `direction` tinyint NOT NULL DEFAULT '0',
   `metric_group_id` int NOT NULL DEFAULT '0',
   `metric_project_id` int NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -79,13 +73,10 @@ CREATE TABLE `anoms_m1` (
   `dt` datetime(6) NOT NULL,
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
-  `metric_tag` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `metric_tag_id` int NOT NULL DEFAULT '0',
   `metric_value` int NOT NULL,
-  `posted` int NOT NULL DEFAULT '0',
-  `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `device_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `trafsrc_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `direction` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `posted` tinyint NOT NULL DEFAULT '0',
+  `direction` tinyint NOT NULL DEFAULT '0',
   `metric_group_id` int NOT NULL DEFAULT '0',
   `metric_project_id` int NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -102,13 +93,10 @@ CREATE TABLE `anoms_mo1` (
   `dt` datetime(6) NOT NULL,
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
-  `metric_tag` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `metric_tag_id` int NOT NULL DEFAULT '0',
   `metric_value` int NOT NULL,
-  `posted` int NOT NULL DEFAULT '0',
-  `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `device_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `trafsrc_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `direction` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `posted` tinyint NOT NULL DEFAULT '0',
+  `direction` tinyint NOT NULL DEFAULT '0',
   `metric_group_id` int NOT NULL DEFAULT '0',
   `metric_project_id` int NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -125,13 +113,10 @@ CREATE TABLE `anoms_w1` (
   `dt` datetime(6) NOT NULL,
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
-  `metric_tag` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `metric_tag_id` int NOT NULL DEFAULT '0',
   `metric_value` int NOT NULL,
-  `posted` int NOT NULL DEFAULT '0',
-  `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `device_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `trafsrc_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `direction` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `posted` tinyint NOT NULL DEFAULT '0',
+  `direction` tinyint NOT NULL DEFAULT '0',
   `metric_group_id` int NOT NULL DEFAULT '0',
   `metric_project_id` int NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -196,15 +181,11 @@ CREATE TABLE `metrics_d1` (
   `id` int NOT NULL,
   `dt` datetime(6) NOT NULL,
   `source_id` int NOT NULL DEFAULT '0',
-  `source_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
-  `metric_tag` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `metric_tag_id` int NOT NULL DEFAULT '0',
   `value` bigint NOT NULL,
   `dp` smallint NOT NULL DEFAULT '0',
-  `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `device_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `trafsrc_alias` varchar(199) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
   `metric_group_id` int NOT NULL DEFAULT '0',
   `metric_project_id` int NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -220,15 +201,11 @@ CREATE TABLE `metrics_h1` (
   `id` int NOT NULL,
   `dt` datetime(6) NOT NULL,
   `source_id` int NOT NULL DEFAULT '0',
-  `source_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
-  `metric_tag` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `metric_tag_id` int NOT NULL DEFAULT '0',
   `value` bigint NOT NULL,
   `dp` smallint NOT NULL DEFAULT '0',
-  `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `device_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `trafsrc_alias` varchar(199) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
   `metric_group_id` int NOT NULL DEFAULT '0',
   `metric_project_id` int NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -244,15 +221,11 @@ CREATE TABLE `metrics_m1` (
   `id` int NOT NULL,
   `dt` datetime(6) NOT NULL,
   `source_id` int NOT NULL DEFAULT '0',
-  `source_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
-  `metric_tag` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `metric_tag_id` int NOT NULL DEFAULT '0',
   `value` bigint NOT NULL,
   `dp` smallint NOT NULL DEFAULT '0',
-  `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `device_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `trafsrc_alias` varchar(199) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
   `metric_group_id` int NOT NULL DEFAULT '0',
   `metric_project_id` int NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -268,15 +241,11 @@ CREATE TABLE `metrics_mo1` (
   `id` int NOT NULL,
   `dt` datetime(6) NOT NULL,
   `source_id` int NOT NULL DEFAULT '0',
-  `source_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
-  `metric_tag` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `metric_tag_id` int NOT NULL DEFAULT '0',
   `value` bigint NOT NULL,
   `dp` smallint NOT NULL DEFAULT '0',
-  `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `device_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `trafsrc_alias` varchar(199) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
   `metric_group_id` int NOT NULL DEFAULT '0',
   `metric_project_id` int NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -292,15 +261,11 @@ CREATE TABLE `metrics_w1` (
   `id` int NOT NULL,
   `dt` datetime(6) NOT NULL,
   `source_id` int NOT NULL DEFAULT '0',
-  `source_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
-  `metric_tag` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `metric_tag_id` int NOT NULL DEFAULT '0',
   `value` bigint NOT NULL,
   `dp` smallint NOT NULL DEFAULT '0',
-  `region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `device_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `trafsrc_alias` varchar(199) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
   `metric_group_id` int NOT NULL DEFAULT '0',
   `metric_project_id` int NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -360,7 +325,7 @@ DROP TABLE IF EXISTS `tags`;
 CREATE TABLE `tags` (
   `id` int NOT NULL,
   `metric_id` int NOT NULL DEFAULT '0',
-  `metric_tag` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT ''
+  `metric_tag` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
