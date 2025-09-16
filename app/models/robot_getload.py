@@ -345,7 +345,7 @@ class Robot_getload:
                                             tz_str_source=self.tz_str_source, tz_str_system=self.tz_str_system,
                                             upd_metric=upd_metric, # API алиас изменяемой метрики
                                             project_id=self.project_id,
-                                            upd_metric_tag=metric_tag_id,
+                                            metric_tag_id=metric_tag_id,
                                             upd_metric_vals=metric_tag_data["vals"], # Список добавляемых значений метрики
                                             upd_metric_time_intervals=metric_tag_data["ts"], # Список интервалов добавляемых элементов
                                             mode=self.db_mode, # prod
@@ -354,10 +354,10 @@ class Robot_getload:
                                 insert_counter_all += res['insert_counter_all'] 
                                 insert_counter["m1"] += res['insert_counter_all'] 
                     
-                    # api_timer_sec = api_timer.get_time()
-                    # if api_timer_sec<self.source_get_api_lag_sec: 
-                    #     # Обеспечение минимального перерыва между запросами TODO - далее брать лаг из базы.
-                    #     time.sleep(self.source_get_api_lag_sec - api_timer_sec)
+                    api_timer_sec = api_timer.get_time()
+                    if api_timer_sec<self.source_get_api_lag_sec: 
+                        # Обеспечение минимального перерыва между запросами TODO - далее брать лаг из базы.
+                        time.sleep(self.source_get_api_lag_sec - api_timer_sec)
                     logging.info(f'API complite get {dt_file}')
             
 
@@ -382,7 +382,7 @@ class Robot_getload:
                                     tz_str_source=self.tz_str_source, tz_str_system=self.tz_str_system,
                                     upd_metric=upd_metric, # API алиас изменяемой метрики
                                     project_id=self.project_id,
-                                    upd_metric_tag=metric_tag_id,
+                                    metric_tag_id=metric_tag_id,
                                     upd_metric_vals=metric_tag_data["vals"], # Список добавляемых значений метрики
                                     upd_metric_time_intervals=metric_tag_data["ts"], # Список интервалов добавляемых элементов
                                     mode=self.db_mode, # prod

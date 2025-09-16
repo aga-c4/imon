@@ -79,7 +79,7 @@ class Metric:
     
     @staticmethod
     def add_tag(*, db:Mysqldb, project_id:int=0, metric_tag:str="") -> list:
-        sql = f"INSERT INTO {Metric.tags_table} (project_id, tag) VALUES ({project_id}, {metric_tag});"
+        sql = f"INSERT INTO {Metric.tags_table} (project_id, tag) VALUES ({project_id}, '{metric_tag}');"
         logging.info(f'Add tag {metric_tag} to project_id project_id')
         return db.insert(sql) 
 
@@ -484,7 +484,7 @@ class Metric:
     def add_fr_ym(*, db:Mysqldb,
                   metrics:dict, 
                   granularity:str, granularity_settings:dict, 
-                  source_id:int, source_alias:str, 
+                  source_id:int,
                   upd_metric:str, 
                   project_id:int=0, 
                   metric_tag_id:int=0, 
@@ -555,7 +555,6 @@ class Metric:
                 ins_mt.append({
                     "dt": cur_item_dt_str, 
                     "source_id": source_id, 
-                    "source_alias": source_alias, 
                     "metric_id": metrics[upd_metric]['id'],  
                     "metric_parentid": metrics[upd_metric]['parentid'], 
                     "metric_project_id": project_id,
