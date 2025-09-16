@@ -23,8 +23,8 @@ metrics
 Реестр Тегов:
 metric_tags
 - id int идентификатор тега
-- metric_id int идентификатор метрики
 - project_id int идентификатор проекта метрик
+- tag str255 строка тега
 
 События:
 metrics_m1 - по минутам

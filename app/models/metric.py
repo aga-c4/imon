@@ -12,6 +12,7 @@ class Metric:
     data_table = 'metrics_' 
     anoms_table = 'anoms_' 
     groups_table = 'metric_groups'   
+    tags_table = 'tags'
     id = None
     granularity = None
     metric_tag_id = ""
@@ -69,12 +70,22 @@ class Metric:
         sql = f"SELECT * from {Metric.groups_table};"     
         result = db.query(sql)
         return result  
+    
+    @staticmethod
+    def get_tags(*, db:Mysqldb, project_id:int=0) -> list:
+        sql = f"SELECT id,tag from {Metric.tags_table} where project_id={project_id};"     
+        result = db.query(sql)
+        return result 
+    
+    @staticmethod
+    def add_tag(*, db:Mysqldb, project_id:int=0, metric_tag:str="") -> list:
+        sql = f"INSERT INTO {Metric.tags_table} (project_id, tag) VALUES ({project_id}, {metric_tag});"
+        logging.info(f'Add tag {metric_tag} to project_id project_id')
+        return db.insert(sql) 
 
     @staticmethod
-    def get_list(*, db:Mysqldb, group_id:int=0, project_id:int=None, source_id:int=None, metric_type:str='', order:str='') -> list:
+    def get_list(*, db:Mysqldb, group_id:int=0, source_id:int=None, metric_type:str='', order:str='') -> list:
         sql = f"SELECT * from {Metric.table}  WHERE metric_active = 1"
-        if not project_id is None:
-            sql += f" and metric_project_id={project_id}"
         if group_id>0:
             sql += f" and metric_group_id={group_id}"    
         if not source_id is None:
@@ -98,15 +109,14 @@ class Metric:
         return result   
 
     @staticmethod
-    def get_last_dt(*, db:Mysqldb, granularity:str='h1', id:int=0, tz_str:str='', project_id:int=0, metric_tag_id:int=0, source_id:int=None) -> datetime:
+    def get_last_dt(*, db:Mysqldb, granularity:str='h1', id:int=0, tz_str:str='', project_id:int=0, source_id:int=None) -> datetime:
         if not source_id is None:
-            # Выдадим время последней зарегистрированной метрики с заданным алиасом источника
-            sql = f"SELECT max(dt) as maxdt from {Metric.data_table}{granularity};"
+            # Выдадим время последней зарегистрированной метрики с заданным алиасом источника по заданному проекту
+            sql = f"SELECT max(dt) as maxdt from {Metric.data_table}{granularity} where metric_id={id} and metric_project_id={project_id} and metric_source_id={source_id};"
         elif id==0:
             return SysBf.tzdt(datetime.datetime.fromtimestamp(0), tz_str)    
-        else:
-            if 
-            sql = f"SELECT max(dt) as maxdt from {Metric.data_table}{granularity} where metric_id={id} and metric_project_id={project_id} and metric_tag_id={metric_tag_id};"
+        else: 
+            sql = f"SELECT max(dt) as maxdt from {Metric.data_table}{granularity} where metric_id={id} and metric_project_id={project_id};"
         result = db.query(sql) 
         if result:
             if not result[0]['maxdt'] is None:
@@ -114,11 +124,11 @@ class Metric:
         return SysBf.tzdt(datetime.datetime.fromtimestamp(0), tz_str)
     
     @staticmethod
-    def get_minmax_dt(*, db:Mysqldb, granularity:str='' , id:int, tz_str:str='', project_id:int=0, metric_tag_id:int=0) -> dict:
+    def get_minmax_dt(*, db:Mysqldb, granularity:str='' , id:int, tz_str:str='', project_id:int=0) -> dict:
         if id==0:
             return {"mindt": None, "maxdt": None}
 
-        sql = f"SELECT max(dt) as maxdt, min(dt) as mindt from {Metric.data_table}{granularity} where metric_id={id} and metric_project_id={project_id} and metric_tag_id={metric_tag_id};"
+        sql = f"SELECT max(dt) as maxdt, min(dt) as mindt from {Metric.data_table}{granularity} where metric_id={id} and metric_project_id={project_id};"
         result = db.query(sql) 
         res = {"mindt": None, "maxdt": None}
         if result:
@@ -353,14 +363,14 @@ class Metric:
                   tz_str_to:str='') -> int:
         'Метки времени ожидаются в timezone базы данных без маркировки таймозны'
 
-        if direction='pos':
+        if direction=='pos':
             direction_val = 1
-        if direction='neg:
+        if direction=='neg':
             direction_val = -1
         else:       
             direction_val = 0
-        sql = f"INSERT INTO {self.anoms_table}{self.granularity} (dt, metric_id, metric_parentid, metric_value, region_alias, device_alias, trafsrc_alias, direction, metric_group_id, metric_project_id, metric_tag_id) VALUES "
-        project_id=self.project_id, metric_tag_id=self.metric_tag_id, 
+        sql = f"INSERT INTO {self.anoms_table}{self.granularity} (dt, metric_id, metric_parentid, metric_value, region_alias, device_alias, trafsrc_alias, direction, metric_project_id, metric_tag_id) VALUES "
+
         anoms = anoms.to_dict()
         counter_all = 0
         counter = 0
@@ -375,7 +385,7 @@ class Metric:
                     value = 2140000000
                 if counter>0:
                     sql += ','
-                sql += f"('{formatted_dt}', {self.id}, {self.parentid}, {value}, '{self.region_alias}', '{self.device_alias}', '{self.trafsrc_alias}', {direction_val}, {self.metric_group_id}, {self.project_id}, {self.metric_tag_id})"
+                sql += f"('{formatted_dt}', {self.id}, {self.parentid}, {value}, '{self.region_alias}', '{self.device_alias}', '{self.trafsrc_alias}', {direction_val}, {self.project_id}, {self.metric_tag_id})"
                 counter += 1
             counter_all += 1    
         sql += ';'
@@ -392,9 +402,9 @@ class Metric:
                 metric_id={self.id} and metric_project_id={self.project_id} and metric_tag_id={self.metric_tag_id}"
         if dt_from:
             sql += f" and dt>='{dt_from}'"
-        if direction='pos':
+        if direction=='pos':
             direction_val = 1
-        if direction='neg:
+        if direction=='neg':
             direction_val = -1
         else:       
             direction_val = 0    
@@ -476,6 +486,8 @@ class Metric:
                   granularity:str, granularity_settings:dict, 
                   source_id:int, source_alias:str, 
                   upd_metric:str, 
+                  project_id:int=0, 
+                  metric_tag_id:int=0, 
                   upd_metric_vals:list, upd_metric_time_intervals:list,
                   tz_str_source:str='', tz_str_system:str='',
                   mode:str='prod',
@@ -532,9 +544,9 @@ class Metric:
                                     granularity=granularity, 
                                     metric_id=metrics[upd_metric]['id'], 
                                     metric_dt = cur_item_dt,
-                                    project_id=self.project_id, metric_tag_id=self.metric_tag_id, 
+                                    project_id=project_id, metric_tag_id=metric_tag_id, 
                                     params={"value": real_value, "dp": metrics[upd_metric]['metric_dp']})
-                logging.info(f"Update {granularity}.[{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}.{self.project_id}.{self.metric_tag_id}: [{cur_item_dt_str}] = {real_value}")
+                logging.info(f"Update {granularity}.[{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}.{project_id}.{metric_tag_id}: [{cur_item_dt_str}] = {real_value}")
                 upd_counter += 1
                 continue
 
@@ -546,22 +558,21 @@ class Metric:
                     "source_alias": source_alias, 
                     "metric_id": metrics[upd_metric]['id'],  
                     "metric_parentid": metrics[upd_metric]['parentid'], 
-                    "metric_group_id": self.metric_group_id,
-                    "metric_project_id": self.project_id,
-                    "metric_tag_id": self.metric_tag_id,
+                    "metric_project_id": project_id,
+                    "metric_tag_id": metric_tag_id,
                     "value": real_value, 
                     "dp": metrics[upd_metric]['metric_dp']
                 })
-                logging.info(f"Insert {granularity}.{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}.{self.project_id}.{self.metric_tag_id}: [{cur_item_dt_str}] = {real_value}")
+                logging.info(f"Insert {granularity}.{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}.{project_id}.{metric_tag_id}: [{cur_item_dt_str}] = {real_value}")
 
         # Если есть, что добавлять, добавляем
         if len(ins_mt):
             if mode=="prod":
                 Metric.insert_list(db=db, granularity=granularity, params=ins_mt)
-            logging.info(f"Insert {granularity}.{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}.{self.project_id}.{self.metric_tag_id}: Complete "+str(len(ins_mt))+" items!")
+            logging.info(f"Insert {granularity}.{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}.{project_id}.{metric_tag_id}: Complete "+str(len(ins_mt))+" items!")
             insert_counter_all += len(ins_mt)
         if upd_counter>0:
-            logging.info(f"Update {granularity}.{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}..{self.project_id}.{self.metric_tag_id}: Complete "+str(upd_counter)+" items!")
+            logging.info(f"Update {granularity}.{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}.{project_id}.{metric_tag_id}: Complete "+str(upd_counter)+" items!")
             upd_counter_all += upd_counter    
 
         return {'insert_counter_all': insert_counter_all, 'upd_counter_all': upd_counter_all}    

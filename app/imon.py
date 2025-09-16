@@ -8,6 +8,7 @@ from datetime import datetime
 from pydoc import locate
 import matplotlib.pyplot as plt
 import logging
+import os
 
 from models.sysbf import SysBf
 from config import config
@@ -22,7 +23,9 @@ from models.robot_mysql1get import Robot_mysql1get
 from models.robot_mgen import Robot_mgen
 from models.robot_newsmaker import Robot_newsmaker
 
-start_time = time.time()    
+start_time = time.time()   
+
+print("path:", os.getcwd())
 
 # Обработка параметров
 def createParser ():
@@ -33,6 +36,7 @@ def createParser ():
     parser.add_argument ('--job_status', choices=['', 'run', 'fin', 'error'], default='')
     parser.add_argument ('--robot', type=str, default="")
     parser.add_argument ('--group_id', type=int, default=0)
+    parser.add_argument ('--project_id', type=int, default=1)
     parser.add_argument ('--metric_id', type=int, default=0)
     parser.add_argument ('--active', type=int, default=-1)
     parser.add_argument ('--limit', type=int, default=0)
@@ -82,6 +86,7 @@ if namespace.action == 'runrobot':
             "source": namespace.source, 
             "granularity": namespace.granularity, 
             "group_id": namespace.group_id, 
+            "project_id": namespace.project_id, 
             "metric_id": namespace.metric_id,
             "datetime_to": namespace.datetime_to,
             "start_init": namespace.start_init
@@ -148,7 +153,8 @@ elif namespace.action == 'mgen':
     robot = Robot_mgen(settings={ 
         "granularity": namespace.granularity, 
         "group_id": namespace.group_id, 
-        "metric_id": namespace.metric_id
+        "metric_id": namespace.metric_id,
+        "project_id": namespace.project_id, 
         }, config=config)
     res = robot.run()
     message_str = "MGen fin, comment: \n" + res['comment']
@@ -307,6 +313,7 @@ Params:
     --robot (str) the robot alias to run      
     --source ('' | metrica | app_metrica), ('' by default)
     --group_id (int) the group id for filtering or create tasks  
+    --project_id (int) the project id for filtering or create tasks        
     --metric_id (int) the metric id for filtering        
     --active (int) the activity marker (-1 by default)      
     --limit items limit (10 by default)
@@ -319,18 +326,18 @@ Params:
 The incident monitor is configured from the database!       
 
 Examples:
-    imon.sh runrobot --log_view INFO --robot getload --source sysload    
-    imon.sh yamget --granularity h1 --source metrica
-    imon.sh yamget --granularity h1 --source app_metrica
-    imon.sh yamappeventsget --granularity h1
-    imon.sh mysql1get --granularity h1 
-    imon.sh mgen --granularity h1  
-    imon.sh monitor --granularity h1   
-    imon.sh newsmaker --granularity d1                 
-    imon.sh newsmaker --granularity w1                 
-    imon.sh newsmaker --granularity m1     
+    imon.sh runrobot --log_view INFO --robot getload --source sysload --project_id 1   
+    imon.sh yamget --granularity h1 --source metrica --project_id 1
+    imon.sh yamget --granularity h1 --source app_metrica --project_id 1
+    imon.sh yamappeventsget --granularity h1 --project_id 1
+    imon.sh mysql1get --granularity h1 --project_id 1
+    imon.sh mgen --granularity h1 --project_id 1  
+    imon.sh monitor --granularity h1 --project_id 1   
+    imon.sh newsmaker --granularity d1 --project_id 1                 
+    imon.sh newsmaker --granularity w1 --project_id 1                 
+    imon.sh newsmaker --granularity m1 --project_id 1     
     imon.sh create_tasks_for_all_metrics  
-    ./dockerimon.sh runrobot --log_view INFO --robot getload --source sysload --datetime_to 2025-02-01                 
+    ./dockerimon.sh runrobot --log_view INFO --robot getload --source sysload --datetime_to 2025-02-01 --project_id 1                 
 """)
     
 

@@ -11,7 +11,7 @@ from models.getloadapi import GetLoadAPI
 from models.sysbf import SysBf
 
 class Robot_getload:
-    "Сбор данных с Я.Метрики управление с параметров и из конфига"
+    "Сбор данных по нагрузке через API"
 
     metrics_pkg_qty = 1 # Количество метрик в пачке
     source_id = 0
@@ -35,6 +35,7 @@ class Robot_getload:
     db_mode = 'prod' # prod - для реальной записи
     start_init = False
     add_gran_list = ["h1"]
+    project_id = 1
 
     """
     Используемые параметры:
@@ -62,8 +63,7 @@ class Robot_getload:
         return cstr
 
     def __init__(self, *, settings:None, config:dict={}):
-        def_settings = {"pid": "nopid", "fr_api": False, "source": "", "granularity":"", "group_id": 0, "metric_id":0, "mode": "prod", "datetime_to": ""}  
-        
+        def_settings = {"pid": "nopid", "fr_api": False, "source": "", "granularity":"", "group_id": 0, "start_init": "false", "metric_id":0, "project_id":1,"mode": "prod", "datetime_to": ""}  
         self.db = Mysqldb(config['db'])
         
         self.config = config
@@ -71,17 +71,17 @@ class Robot_getload:
         self.debug = self.settings.get('debug',False)
         self.settings['group_id'] = int(self.settings['group_id'])
         self.settings['metric_id'] = int(self.settings['metric_id'])
+        self.settings['project_id'] = int(self.settings['project_id'])
         self.pid = str(settings.get('pid','nopid'))
         self.source_alias = self.settings['source']
-
+        self.project_id = self.settings['project_id']
+        
         self.granularity_list = config['granularity_list']
         self.tz_str_db = config['db'].get('timezone', self.tz_str_db)
-
-        if self.settings[ "start_init"]=="true":
+        if self.settings["start_init"]=="true":
             # Список таймфреймов, автоматически наполняемый при старте
             self.add_gran_list = ["h1", "d1", "w1", "mo1"]
             self.start_init = True
-        
         if 'system' in config:
             self.proc_path = config['system'].get('proc_path', self.proc_path)
             self.proc_ttl = int(config['system'].get('proc_ttl', self.proc_ttl))
@@ -96,7 +96,7 @@ class Robot_getload:
             self.api = GetLoadAPI(token=config['sources'][self.source_alias]['token'], 
                             api_url=config['sources'][self.source_alias]['api_url'], 
                             source=self.settings['source'], tmp_path=self.tmp_path)
-    
+        print("Robot_getload.__init__: Ok!")
         
     def run(self, *, output:bool=False) -> dict:
         run_timer = SysTimer() 
@@ -112,7 +112,6 @@ class Robot_getload:
 
         db = self.db
         source_id = self.source_id
-        source_alias = self.source_alias
         datetime_now = SysBf.tzdt(datetime.now(), self.tz_str_system)
         if self.settings['datetime_to']!='':
             datetime_to = SysBf.tzdt_fr_str(self.settings['datetime_to'], self.tz_str_system)
@@ -153,7 +152,7 @@ class Robot_getload:
         # Metric.clear_table(db=self.db, granularity=granularity, date_to=datetime_now - timedelta(days=granularity_settings['dblimit']))
 
         metrics_dict = {}
-        metrics = Metric.get_list(db=db, source_id=source_id, metric_type="src")
+        metrics = Metric.get_list(db=db, metric_type="src")
         # Дадим метрикам ключи - API алиасы метрик    
         for mt in metrics:
             # if not mt['id'] in [10, 11]: # TODO - Отрубить после теста. Для теста пачки или там, где нужны ограничения по метрикам
@@ -167,7 +166,7 @@ class Robot_getload:
         del metrics_dict
 
         # Получить дату последних данных в базе
-        max_dt = Metric.get_last_dt(db=db, granularity=granularity, tz_str=self.tz_str_db, source_id=self.source_id)
+        max_dt = Metric.get_last_dt(db=db, granularity=granularity, tz_str=self.tz_str_db, project_id=self.project_id)
         max_dt_str = max_dt.strftime("%Y-%m-%dT%H")
         
         # Сформируем дату до которой будем искать данные
@@ -211,6 +210,10 @@ class Robot_getload:
                 "w1": {},
                 "mo1": {},
             } 
+            project_tags = Metric.get_tags(db=db, project_id=self.project_id)
+            project_tags_ids = {}
+            for tag in project_tags:
+                project_tags_ids[tag["tag"]] = tag["id"]
             for dt_file in file_list:
                 if dt_file>max_dt_str and dt_file<end_dt_str:
                     logging.info(f'API start get {dt_file}')
@@ -325,13 +328,24 @@ class Robot_getload:
                             for metric_tag, metric_tag_data in metric_data.items():
                                 if metric_tag=="all" or metric_tag=="UNKNOWN":
                                     metric_tag = ""   
+                                if metric_tag == "":
+                                    metric_tag_id = 0
+                                elif metric_tag in project_tags_ids:
+                                    metric_tag_id = project_tags_ids[metric_tag]
+                                else:
+                                    # Тег не зарегистрирован, добавим в массив и базу
+                                    metric_tag_id = Metric.add_tag(db=db, project_id=self.project_id, metric_tag=metric_tag)
+                                    project_tags_ids[metric_tag] = metric_tag_id  
+                                    logging.info(f'Add tag {metric_tag_id} to project_id={self.project_id}')   
+
                                 res = Metric.add_fr_ym(db=db,
                                             metrics=metrics, # Словарь метрик с их параметрами
                                             granularity="m1", granularity_settings=granularity_settings, 
                                             source_id=source_id,
                                             tz_str_source=self.tz_str_source, tz_str_system=self.tz_str_system,
                                             upd_metric=upd_metric, # API алиас изменяемой метрики
-                                            upd_metric_tag=metric_tag,
+                                            project_id=self.project_id,
+                                            upd_metric_tag=metric_tag_id,
                                             upd_metric_vals=metric_tag_data["vals"], # Список добавляемых значений метрики
                                             upd_metric_time_intervals=metric_tag_data["ts"], # Список интервалов добавляемых элементов
                                             mode=self.db_mode, # prod
@@ -353,13 +367,22 @@ class Robot_getload:
                     for metric_tag, metric_tag_data in metric_data.items():
                         if metric_tag=="all" or metric_tag=="UNKNOWN":
                             metric_tag = ""   
+                        if metric_tag == "":
+                            metric_tag_id = 0
+                        elif metric_tag in project_tags_ids:
+                            metric_tag_id = project_tags_ids[metric_tag]
+                        else:
+                            # Тег не зарегистрирован, добавим в массив и базу
+                            metric_tag_id = Metric.add_tag(db=db, project_id=self.project_id, metric_tag=metric_tag)
+                            project_tags_ids[metric_tag] = metric_tag_id       
                         res = Metric.add_fr_ym(db=db,
                                     metrics=metrics, # Словарь метрик с их параметрами
                                     granularity=gran, granularity_settings=granularity_settings, 
                                     source_id=source_id,
                                     tz_str_source=self.tz_str_source, tz_str_system=self.tz_str_system,
                                     upd_metric=upd_metric, # API алиас изменяемой метрики
-                                    upd_metric_tag=metric_tag,
+                                    project_id=self.project_id,
+                                    upd_metric_tag=metric_tag_id,
                                     upd_metric_vals=metric_tag_data["vals"], # Список добавляемых значений метрики
                                     upd_metric_time_intervals=metric_tag_data["ts"], # Список интервалов добавляемых элементов
                                     mode=self.db_mode, # prod
@@ -367,6 +390,8 @@ class Robot_getload:
                                     onlyinsert=True, first_item_enable=True)  
                         insert_counter_all += res['insert_counter_all'] 
                         insert_counter[gran] += res['insert_counter_all'] 
+
+            print(project_tags_ids)            
         ########################[ /Робот ]##########################
 
         # Удалим блокирующий запуск файл
