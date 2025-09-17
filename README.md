@@ -76,3 +76,5 @@ pip3 install -r requirements.txt
 ```
 docker inspect c1 -f "{{json .NetworkSettings.Networks }}"
 ```
+- Пример генерации логов для мониторинга нагрузки тут https://github.com/falc0shka/php-metrics . Устанавливаем через composer 
+в свою систему и подключаем или используем как пример реализации. 

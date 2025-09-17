@@ -322,7 +322,8 @@ Params:
     --datetime_to (str) default="" (ISO format)   
     --group (str) the group alias for filtering news and other
     --message_lvl (str) for custom value in news sending    
-    --news_alias (str) news alias from config to send              
+    --news_alias (str) news alias from config to send   
+    --start_init start init DB mode (false - default)          
 The incident monitor is configured from the database!       
 
 Examples:
