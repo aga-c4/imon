@@ -47,7 +47,6 @@ def createParser ():
     parser.add_argument ('--group', type=str, default="")
     parser.add_argument ('--message_lvl', type=str, default="")
     parser.add_argument ('--news_alias', type=str, default="")
-    parser.add_argument ('--start_init', type=str, default="false")
     return parser 
 
 # Обработка входных данных
@@ -88,8 +87,7 @@ if namespace.action == 'runrobot':
             "group_id": namespace.group_id, 
             "project_id": namespace.project_id, 
             "metric_id": namespace.metric_id,
-            "datetime_to": namespace.datetime_to,
-            "start_init": namespace.start_init
+            "datetime_to": namespace.datetime_to
             }, config=config)
         logging.info("Run robot: {0}".format(namespace.robot))
         res = SysBf.call_method_fr_obj(robot_model, "run")
@@ -322,8 +320,7 @@ Params:
     --datetime_to (str) default="" (ISO format)   
     --group (str) the group alias for filtering news and other
     --message_lvl (str) for custom value in news sending    
-    --news_alias (str) news alias from config to send   
-    --start_init start init DB mode (false - default)          
+    --news_alias (str) news alias from config to send            
 The incident monitor is configured from the database!       
 
 Examples:

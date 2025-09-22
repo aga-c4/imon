@@ -99,6 +99,17 @@ class Metric:
         return result  
     
     @staticmethod
+    def get_tags_sum_list(*, db:Mysqldb, granularity:str='h1', dt_to:datetime, dt_from:datetime, project_id:int=0) -> list:
+        sql  = f"SELECT mt.id as metric_id, mmm.metric_api_alias as metric_api_alias, tg.tag as tag, SUM(mt.value/POW( 10, mt.dp )) as sumvals"
+        sql += f" from {Metric.data_table}{granularity} mt" 
+        sql += f" LEFT JOIN {Metric.tags_table} tg on tg.id=mt.metric_tag_id"
+        sql += f" LEFT JOIN {Metric.table} mmm on mt.metric_id=mmm.id"
+        sql += f" WHERE mt.metric_project_id={project_id} and mt.dt>='" + str(dt_from)+"' and mt.dt<='" + str(dt_to)+"'"   
+        sql +=  ' group by mt.metric_tag_id;'        
+        result = db.query(sql)
+        return result  
+    
+    @staticmethod
     def clear_table(*, db:Mysqldb, granularity:str='', metric_id:int=0, date_to:datetime):
         "Очищает таблицу значений метрик, установите date_to в будущее, удалит все, если не задано metric_id, удалит по всем метрикам"
         sql = f"DELETE from {Metric.data_table}{granularity} where dt<'" + str(date_to)+"';"
@@ -110,18 +121,19 @@ class Metric:
 
     @staticmethod
     def get_last_dt(*, db:Mysqldb, granularity:str='h1', id:int=0, tz_str:str='', project_id:int=0, source_id:int=None) -> datetime:
+        sql = f"SELECT max(dt) as maxdt from {Metric.data_table}{granularity} where metric_project_id={project_id}"
+        if id>0:
+            sql += f" and metric_id={id}"
         if not source_id is None:
-            # Выдадим время последней зарегистрированной метрики с заданным алиасом источника по заданному проекту
-            sql = f"SELECT max(dt) as maxdt from {Metric.data_table}{granularity} where metric_id={id} and metric_project_id={project_id} and metric_source_id={source_id};"
-        elif id==0:
-            return SysBf.tzdt(datetime.datetime.fromtimestamp(0), tz_str)    
-        else: 
-            sql = f"SELECT max(dt) as maxdt from {Metric.data_table}{granularity} where metric_id={id} and metric_project_id={project_id};"
+            sql += f" and metric_source_id={source_id};" 
+        sql += ";"
         result = db.query(sql) 
         if result:
             if not result[0]['maxdt'] is None:
+                # print("get_last_dt:", result[0]['maxdt'])
+                # print("get_last_dt_str:", str(result[0]['maxdt']))
                 return SysBf.tzdt(result[0]['maxdt'], tz_str)
-        return SysBf.tzdt(datetime.datetime.fromtimestamp(0), tz_str)
+        return SysBf.tzdt_fr_str(dt_str='1980-01-01', tz_str=tz_str)
     
     @staticmethod
     def get_minmax_dt(*, db:Mysqldb, granularity:str='' , id:int, tz_str:str='', project_id:int=0) -> dict:
