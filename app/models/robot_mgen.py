@@ -80,6 +80,10 @@ class Robot_mgen:
     @staticmethod
     def extract_m_values(formula) -> set:
         return set(re.findall(r'm(\d+)', formula))
+    
+    @staticmethod
+    def extract_ma_values(formula) -> set:
+        return set(re.findall(r'ma(\d+)', formula))
 
     @staticmethod
     def calculate_formula(mlist, formula) -> str:
