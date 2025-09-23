@@ -201,9 +201,9 @@ class Robot_getload:
                 if not "all" in cur_metric_accum[gran][upd_metric]:
                     cur_metric_accum[gran][upd_metric]["all"] = {'sum':0, 'cnt': 0}      
                 cur_metric_accum[gran][upd_metric][upd_tag]["sum"] += mtres["sumvals"] 
-                cur_metric_accum[gran][upd_metric]["all"]["cnt"] += mtres["sumvals"]    
-                cur_metric_accum[gran][upd_metric][upd_tag]["sum"] += mtres["sumvals"] 
-                cur_metric_accum[gran][upd_metric]["all"]["cnt"] += mtres["sumvals"]    
+                cur_metric_accum[gran][upd_metric]["all"]["sum"] += mtres["sumvals"]   
+                cur_metric_accum[gran][upd_metric][upd_tag]["cnt"] += 1 
+                cur_metric_accum[gran][upd_metric]["all"]["cnt"] += 1  
 
         # Получить список доступных архивов
         file_list = self.api.get_list()
@@ -265,10 +265,13 @@ class Robot_getload:
                                             if not metric_tag in upd_metric_list[gran][upd_metric]:
                                                 upd_metric_list[gran][upd_metric][metric_tag] = {"ts":[],"vals":[]}
                                             upd_metric_list[gran][upd_metric][metric_tag]["ts"].append(cur_ts_period[gran])
-                                            if metrics[upd_metric]["up_dt_funct"]=="sum": # Средняя
-                                                upd_metric_list[gran][upd_metric][metric_tag]["vals"].append(metric_tag_vals["sum"] / upd_metric_list[gran][upd_metric][metric_tag]["vals"].append(metric_tag_vals["cnt"]))            
-                                            else: # Сумма
-                                                upd_metric_list[gran][upd_metric][metric_tag]["vals"].append(metric_tag_vals["sum"])      
+                                            if metric_tag_vals["cnt"]==0:
+                                                upd_metric_list[gran][upd_metric][metric_tag]["vals"].append(0)           
+                                            else:        
+                                                if metrics[upd_metric]["up_dt_funct"]=="sum": # Средняя
+                                                    upd_metric_list[gran][upd_metric][metric_tag]["vals"].append(metric_tag_vals["sum"] / metric_tag_vals["cnt"])           
+                                                else: # Сумма
+                                                    upd_metric_list[gran][upd_metric][metric_tag]["vals"].append(metric_tag_vals["sum"])      
 
                                 # Сменился период в заданном таймфрейме
                                 last_ts_period[gran] = cur_ts_period[gran]
@@ -305,11 +308,13 @@ class Robot_getload:
                                             if not upd_metric in cur_metric_accum[gran]:
                                                 cur_metric_accum[gran][upd_metric] = {}           
                                             if not upd_tag in cur_metric_accum[gran][upd_metric]:
-                                                cur_metric_accum[gran][upd_metric][upd_tag] = 0     
+                                                cur_metric_accum[gran][upd_metric][upd_tag] = {'sum':0, 'cnt': 0}     
                                             if not "all" in cur_metric_accum[gran][upd_metric]:
-                                                cur_metric_accum[gran][upd_metric]["all"] = 0
-                                            cur_metric_accum[gran][upd_metric][upd_tag] += upd_value 
-                                            cur_metric_accum[gran][upd_metric]["all"] += upd_value   
+                                                cur_metric_accum[gran][upd_metric]["all"] = {'sum':0, 'cnt': 0}
+                                            cur_metric_accum[gran][upd_metric][upd_tag]["sum"] += upd_value 
+                                            cur_metric_accum[gran][upd_metric]["all"]["sum"] += upd_value   
+                                            cur_metric_accum[gran][upd_metric][upd_tag]["cnt"] += 1 
+                                            cur_metric_accum[gran][upd_metric]["all"]["cnt"] += 1  
                                         
                                         # Если надо сохранять m1, до добавим в список сохранения
                                         if dt_cur_hour_day_str<dt_insert_from["m1"]:
