@@ -55,30 +55,7 @@ class SysBf:
                                     date_time_obj = parse(dt_str)
                                 except:
                                     logging.error(f'SysBf:tzdt_fr_str: Date format error [{dt_str}] type:' + str(type(dt_str)))
-
-        tzdt = date_time_obj
-        if tz_str!='':
-            try:
-                timezone = pytz.timezone(tz_str)
-                tzdt = timezone.localize(date_time_obj)
-            except:
-                logging.error(f'SysBf:tzdt_fr_str: Timezone format error [{tz_str}] type:' + str(type(tz_str)))    
-
-        return tzdt
-    
-    @staticmethod
-    def get_days_of_month(date:datetime):
-        if date.month == 12:
-            return date.replace(day=31)
-        firstd = date.replace(day=1) 
-        lastd = date.replace(month=date.month+1, day=1) - datetime.timedelta(days=1)     
-        return [firstd, lastd] 
-
-    @staticmethod
-    def get_days_of_week(date:datetime):
-        monday = date - datetime.timedelta(days=date.weekday()) 
-        sunday = monday + datetime.timedelta(days=6)
-        return [monday,sunday]
+        return SysBf.tzdt(dt=date_time_obj, tz_str=tz_str)
     
     @staticmethod
     def tzdt(dt:datetime, tz_str:str='') -> datetime:
@@ -88,9 +65,74 @@ class SysBf:
                 timezone = pytz.timezone(tz_str)
                 tzdt = timezone.localize(tzdt)
             except:
-                logging.error(f'SysBf:tzdt: Timezone format error [{tz_str}] type:' + str(type(tz_str)))    
+                logging.error(f'SysBf:tzdt: Timezone format error [{tz_str}] type:' + str(type(tz_str)) + ' time: ' + str(dt))    
 
         return tzdt
+
+    @staticmethod
+    def dt_to_tz(dt:datetime, tz_str:str='') -> datetime:
+        if tz_str!='':
+            timezone = pytz.timezone(tz_str)
+            return  dt.astimezone(timezone)  
+        return dt.astimezone(pytz.utc)    
+
+    @staticmethod
+    def get_dateframes_by_current_dt(date:datetime, granularity:str="", tpl:str=""):    
+        result = {}
+        resitem = None
+        if granularity=="" or granularity=="m1":
+            resitem = [date.replace(second=0, microsecond=0), date.replace(second=59, microsecond=1000) ]
+            if tpl!="":
+                result["m1"] = [resitem[0].strftime(tpl), resitem[1].strftime(tpl)]
+            else:        
+                result["m1"] = resitem
+        if granularity=="" or granularity=="h1":    
+            resitem = [date.replace(minute=0, second=0, microsecond=0), date.replace(minute=59, second=59, microsecond=1000)]
+            if tpl!="":
+                result["h1"] = [resitem[0].strftime(tpl), resitem[1].strftime(tpl)]
+            else:        
+                result["h1"] = resitem
+        if granularity=="" or granularity=="d1":
+            resitem = [date.replace(hour=0, minute=0, second=0, microsecond=0), date.replace(hour=23, minute=59, second=59, microsecond=1000)]
+            if tpl!="":
+                result["d1"] = [resitem[0].strftime(tpl), resitem[1].strftime(tpl)]
+            else:        
+                result["d1"] = resitem
+        if granularity=="" or granularity=="w1":
+            resitem = SysBf.get_days_of_week(date, tpl)
+            result["w1"] = resitem
+        if granularity=="" or granularity=="mo1":
+            resitem = SysBf.get_days_of_month(date, tpl)
+            result["mo1"] = resitem
+        if granularity!="" and resitem!=None:
+            return resitem        
+        else:
+            return result
+        
+    @staticmethod
+    def get_days_of_month(date:datetime, tpl:str=""):
+        firstd = date.replace(day=1) 
+        if date.month == 12:
+            lastd = date.replace(day=31)
+        else:    
+            lastd = date.replace(month=date.month+1, day=1) - datetime.timedelta(days=1)     
+        firstd = firstd.replace(hour=0, minute=0, second=0, microsecond=0) 
+        lastd = lastd.replace(hour=23, minute=59, second=59, microsecond=1000) 
+        if tpl!="":
+            return [firstd.strftime(tpl), lastd.strftime(tpl)] 
+        else:    
+            return [firstd, lastd] 
+
+    @staticmethod
+    def get_days_of_week(date:datetime, tpl:str=""):
+        firstd = date - datetime.timedelta(days=date.weekday()) 
+        lastd = firstd + datetime.timedelta(days=6)
+        firstd = firstd.replace(hour=0, minute=0, second=0, microsecond=0) 
+        lastd = lastd.replace(hour=23, minute=59, second=59, microsecond=1000) 
+        if tpl!="":
+            return [firstd.strftime(tpl), lastd.strftime(tpl)] 
+        else:    
+            return [firstd, lastd]  
     
     @staticmethod
     def as_timezone(dt:datetime, tz_to_str:str='') -> datetime:
