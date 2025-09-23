@@ -78,6 +78,7 @@ class Robot_getload:
         
         self.granularity_list = config['granularity_list']
         self.tz_str_db = config['db'].get('timezone', self.tz_str_db)
+        
         if 'system' in config:
             self.proc_path = config['system'].get('proc_path', self.proc_path)
             self.proc_ttl = int(config['system'].get('proc_ttl', self.proc_ttl))
