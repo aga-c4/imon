@@ -57,7 +57,7 @@ config = {
         "db": "imon",
         "user": "root",
         "passwd": "root",
-        "timezone": "Europe/Moscow"
+        "timezone": "UTC"
     },
     "sources_allow": ["sysload"],
     "sources": {
