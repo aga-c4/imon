@@ -17,8 +17,12 @@ metrics
 - metric_type string50 тип метрики (исходная "src" или рассчитываемая "res")
 - metric_modification string255 формула для рассчета метрики, (Пример: 100*m21/m2, где m21 значение метрики с id=21) 
 - metric_ts_types string255 типы временных фрагментаций  (обычно "m1,h1,d1,w1,m1")
+- up_dt_funct str10 вариант объединения в старший таймфрейм (sum/avg), по умолчанию sum
 - metric_group_id int идентификатор группы метрик из таблицы metrics_groups
 - metric_project int  идентификатор проекта метрик из таблицы metrics_projects
+- metric_device_alias идентификатор устройства для сбора с Я.Метрики
+- metric_region_alias идентификатор региона для сбора с Я.Метрики
+- metric_trafsrc_alias идентификатор источника трафика для сбора с Я.Метрики
 
 Реестр Тегов:
 metric_tags
@@ -94,6 +98,8 @@ tasks
         {"data":{"metric_id":476, "granularity":"h1", "region_alias": "", "device_alias": "","accum_items": 1}, "anoms":{"direction": "both", "max_anoms": 0.2, "alpha": 0.01, "piecewise_median_period_weeks": 2},"message_lvl":"important"}
 - task_robot string255 алиас робота (необходимо для запуска контроллера робота, пример twanom для поиска инцидентов)
 - task_max_execution_sec int максимальное время исполнения скрипта роботом
+- task_project_id int Идентификатор проекта
+- task_group_id int Идентификатор груммы - нужно для массовых операций над задачами, обычно создание/удаление
 Задачи можно создать или добавить автоматически:
 imon.sh create_tasks_for_all_metrics
 
