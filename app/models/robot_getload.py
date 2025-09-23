@@ -78,6 +78,7 @@ class Robot_getload:
         
         self.granularity_list = config['granularity_list']
         self.tz_str_db = config['db'].get('timezone', self.tz_str_db)
+        
         if 'system' in config:
             self.proc_path = config['system'].get('proc_path', self.proc_path)
             self.proc_ttl = int(config['system'].get('proc_ttl', self.proc_ttl))
@@ -112,7 +113,8 @@ class Robot_getload:
         if self.settings['datetime_to']!='':
             datetime_to = SysBf.tzdt_fr_str(self.settings['datetime_to'], self.tz_str_system)
         else:
-            datetime_to = datetime_now
+            datetime_to = datetime_now   
+        print("datetime_to:", str(datetime_to))
         
         # Запрет дублирования запуска, если зависнет удалите файл!
         proc_file = f"{self.proc_path}/{self.alias}_{self.settings['pid']}.pid"
@@ -235,7 +237,6 @@ class Robot_getload:
 
                     # Пройтись по минутам, открыть файлы, записать данные в базу данных с тегами, записать суммарные данные без тега  
                     if minute_file_list!=False and type(minute_file_list["flist"]) is list:    
-
                         for gran in self.add_gran_list:
                             # рассчитаем края периода по текущим данным
                             item_ts_period = ["",""]

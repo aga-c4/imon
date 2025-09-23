@@ -26,6 +26,10 @@ class Robot_mgen:
     tz_str_system = ''
     tz_str_db = ''
     comment_str = ''
+    db_mode = 'prod' # prod - для реальной записи
+    all_gran_list = ["m1","h1", "d1", "w1", "mo1"]
+    add_gran_list = ["h1", "d1", "w1", "mo1"]
+    project_id = 1
 
     """
     Используемые параметры:
@@ -76,6 +80,10 @@ class Robot_mgen:
     @staticmethod
     def extract_m_values(formula) -> set:
         return set(re.findall(r'm(\d+)', formula))
+    
+    @staticmethod
+    def extract_ma_values(formula) -> set:
+        return set(re.findall(r'ma(\d+)', formula))
 
     @staticmethod
     def calculate_formula(mlist, formula) -> str:
@@ -137,7 +145,7 @@ class Robot_mgen:
         metrics = metrics_dict
         del metrics_dict
 
-        # res метрики имеют формулу типа 10*m1/(m2+m3)+10 , где m - префикс метрики с идентификатором, остальное - операторы и константы
+        # res метрики имеют формулу типа 10*m1/(m2+m3)+10 , где m - префикс метрики с идентификатором с совпадающим тегом, ma - без тега, остальное - операторы и константы
         for granularity, granularity_settings in self.granularity_list.items():
             if self.settings['granularity']!='' and self.settings['granularity']!=granularity:
                 continue
