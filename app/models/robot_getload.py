@@ -310,7 +310,7 @@ class Robot_getload:
                                             if metric_tag_vals["cnt"]==0:
                                                 upd_metric_list[gran][upd_metric][metric_tag]["vals"].append(0)           
                                             else:        
-                                                if metrics[upd_metric]["up_dt_funct"]=="sum": # Средняя
+                                                if metrics[upd_metric]["up_dt_funct"]=="avg": # Средняя
                                                     upd_metric_list[gran][upd_metric][metric_tag]["vals"].append(metric_tag_vals["sum"] / metric_tag_vals["cnt"])           
                                                 else: # Сумма
                                                     upd_metric_list[gran][upd_metric][metric_tag]["vals"].append(metric_tag_vals["sum"])      
