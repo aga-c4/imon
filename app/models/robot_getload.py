@@ -33,8 +33,9 @@ class Robot_getload:
     tz_str_system = ''
     tz_str_db = ''
     db_mode = 'prod' # prod - для реальной записи
-    all_gran_list = ["m1","h1", "d1", "w1", "mo1"]
-    add_gran_list = ["h1", "d1", "w1", "mo1"]
+    all_gran_list = ["m1","h1", "d1", "w1", "mo1"] # От младших к старшим, Важно!
+    add_gran_list = ["h1", "d1", "w1", "mo1"] # От младших к старшим, Важно!
+    prev_gran_list = {"h1":"m1", "d1":"h1", "w1":"d1", "mo1":"d1"}
     project_id = 1
 
     """
@@ -106,6 +107,12 @@ class Robot_getload:
                 "w1": 0,
                 "mo1": 0}
         upd_counter_all = 0
+        upd_counter = {
+                "m1": 0,
+                "h1": 0,
+                "d1": 0,
+                "w1": 0,
+                "mo1": 0}
 
         db = self.db
         source_id = self.source_id
@@ -161,36 +168,71 @@ class Robot_getload:
 
         cur_metric_accum = {}
         dt_insert_from = {}
+        db_exist_dt = {}
         db_exist_dt_str = {}
         max_dt = SysBf.tzdt_fr_str(dt_str='1980-01-01', tz_str=self.tz_str_system)
         for gran in self.all_gran_list:
-            # print("gran:", gran)
-            # Почистим базу от лишних записей по данному варианту таймфрейма
             granularity_settings = self.granularity_list.get(gran, {})
-            db_exist_dt = SysBf.dt_to_tz(Metric.get_last_dt(db=db, granularity=gran, tz_str=self.tz_str_db, project_id=self.project_id), tz_str=self.tz_str_system)
-            # print("db_exist_dt",str(SysBf.tzdt(db_exist_dt, tz_str=self.tz_str_system)))
-            db_exist_dt_str[gran] = db_exist_dt.strftime("%Y-%m-%dT%H:%M:%S")  
-            # print("db_exist_dt_str",str(db_exist_dt_str[gran]))
-            if db_exist_dt>max_dt:
-                max_dt = db_exist_dt 
+            db_exist_dt[gran] = SysBf.dt_to_tz(Metric.get_last_dt(db=db, granularity=gran, tz_str=self.tz_str_db, project_id=self.project_id), tz_str=self.tz_str_system)
+            if gran in self.prev_gran_list:
+                prev_gran = self.prev_gran_list[gran]  
+                db_first_dt_prev  = SysBf.dt_to_tz(Metric.get_first_dt(db=db, granularity=prev_gran, tz_str=self.tz_str_db, project_id=self.project_id), tz_str=self.tz_str_system)
+                if not db_first_dt_prev is None and db_exist_dt[gran]<db_first_dt_prev:
+                    db_exist_dt[gran]=db_first_dt_prev
+                    # print(f"no data, db_exist_dt[{gran}]=", db_first_dt_prev)
+            db_exist_dt_str[gran] = db_exist_dt[gran].strftime("%Y-%m-%dT%H:%M:%S")  
+            if db_exist_dt[gran]>max_dt:
+                max_dt = db_exist_dt[gran] 
+                # print(f"new max_dt = db_exist_dt[{gran}]=", db_exist_dt[gran] )
             Metric.clear_table(db=self.db, granularity=gran, date_to=datetime_now - timedelta(days=granularity_settings['dblimit']))
             # Ограничение по записи в базу
             dt_insert_from[gran] = (datetime_now - timedelta(days=granularity_settings["dblimit"])).strftime("%Y-%m-%d")+"T00:00:00"   
             # Очистка аккумулятора генерации вышестоящих рядов   
             cur_metric_accum[gran] = {} 
+
         # Получим дату последних данных в базе
         max_dt_str = max_dt.strftime("%Y-%m-%dT%H")    
-        print("max_dt:", str(max_dt))
-        print("max_dt_str:", max_dt_str)
+        print("max_dt:", str(max_dt), " --> max_dt_str:", max_dt_str)
         cur_ts_period = SysBf.get_dateframes_by_current_dt(date=max_dt, tpl="%Y-%m-%dT%H:%M:%S")
         cur_ts_period_dt = SysBf.get_dateframes_by_current_dt(date=max_dt)
         print("cur_ts_period:", cur_ts_period)
-        # print(SysBf.dt_to_tz(max_dt,"Asia/Tokyo"))
 
         # Добавление старших таймфреймов в списки их сохранения
         for gran in self.add_gran_list:
+            if db_exist_dt[gran]<cur_ts_period_dt[gran][0]:
+                # print(f"db_exist_dt[{gran}]:", db_exist_dt[gran])
+                # Сформируем из нижестоящих рядов недостающие значения до текущего периода
+                max_dt_bk = max_dt
+                granularity_settings = self.granularity_list.get(gran, {})  
+                res = Metric.add_items_fr_jun_tf(mode=self.db_mode, # prod
+                                                db=db, metrics=metrics, source_id=source_id, project_id=self.project_id,
+                                                tz_str_db=self.tz_str_db, tz_str_system=self.tz_str_system,
+                                                granularity=gran, prev_granularity=self.prev_gran_list[gran], granularity_settings=granularity_settings, 
+                                                dt_from=db_exist_dt[gran], dt_to=cur_ts_period_dt[gran][0], 
+                                                datetime_to=self.settings['datetime_to'], first_item_enable=True)
+
+                insert_counter_all += res['insert_counter_all']
+                insert_counter[gran] += res['insert_counter_all']
+                upd_counter_all += res['upd_counter_all']
+                upd_counter[gran] += res['upd_counter_all']
+                if res['insert_counter_all']>0:
+                    print(gran, "Add ", res['insert_counter_all'], "items")
+                db_exist_dt_gran = SysBf.dt_to_tz(Metric.get_last_dt(db=db, granularity=gran, tz_str=self.tz_str_db, project_id=self.project_id), tz_str=self.tz_str_system)
+                if db_exist_dt[gran]<db_exist_dt_gran:
+                    db_exist_dt[gran] = db_exist_dt_gran
+                    print(f"New db_exist_dt[{gran}]=", db_exist_dt[gran])
+                    if db_exist_dt[gran]>max_dt:
+                        max_dt = db_exist_dt[gran] 
+                        print(f"New max_dt=", db_exist_dt[gran])
+
+                if max_dt_bk != max_dt:
+                    cur_ts_period = SysBf.get_dateframes_by_current_dt(date=max_dt, tpl="%Y-%m-%dT%H:%M:%S")
+                    cur_ts_period_dt = SysBf.get_dateframes_by_current_dt(date=max_dt)
+                    print("New cur_ts_period:", cur_ts_period)
+
             # Запросим список метрики и их сумм по заданной гранулярности, метрикам и тегам
-            tags_sum_list = Metric.get_tags_sum_list(db=db, granularity=gran, dt_to=cur_ts_period_dt[gran][0], dt_from=cur_ts_period_dt[gran][1], project_id=self.project_id)
+            tags_sum_list = Metric.get_tags_sum_list(db=db, granularity=gran, tz_str_db=self.tz_str_db, project_id=self.project_id, 
+                                                        dt_from=cur_ts_period_dt[gran][0], dt_to=cur_ts_period_dt[gran][1])
             for mtres in tags_sum_list:      
                 upd_metric = mtres["metric_api_alias"]   
                 upd_tag = mtres["tag"] 
@@ -200,10 +242,10 @@ class Robot_getload:
                     cur_metric_accum[gran][upd_metric][upd_tag] = {'sum':0, 'cnt': 0}      
                 if not "all" in cur_metric_accum[gran][upd_metric]:
                     cur_metric_accum[gran][upd_metric]["all"] = {'sum':0, 'cnt': 0}      
-                cur_metric_accum[gran][upd_metric][upd_tag]["sum"] += mtres["sumvals"] 
-                cur_metric_accum[gran][upd_metric]["all"]["sum"] += mtres["sumvals"]   
-                cur_metric_accum[gran][upd_metric][upd_tag]["cnt"] += 1 
-                cur_metric_accum[gran][upd_metric]["all"]["cnt"] += 1  
+                cur_metric_accum[gran][upd_metric][upd_tag]["sum"] = mtres["value"] 
+                cur_metric_accum[gran][upd_metric]["all"]["sum"] = mtres["value"]   
+                cur_metric_accum[gran][upd_metric][upd_tag]["cnt"] = mtres["val_count"]  
+                cur_metric_accum[gran][upd_metric]["all"]["cnt"] = mtres["val_count"]   
 
         # Получить список доступных архивов
         file_list = self.api.get_list()
@@ -363,15 +405,14 @@ class Robot_getload:
                                             metrics=metrics, # Словарь метрик с их параметрами
                                             granularity="m1", granularity_settings=granularity_settings, 
                                             source_id=source_id,
-                                            tz_str_source=self.tz_str_source, tz_str_system=self.tz_str_system,
+                                            tz_str_source=self.tz_str_source, tz_str_system=self.tz_str_system, tz_str_db=self.tz_str_db,
                                             upd_metric=upd_metric, # API алиас изменяемой метрики
                                             project_id=self.project_id,
                                             metric_tag_id=metric_tag_id,
                                             upd_metric_vals=metric_tag_data["vals"], # Список добавляемых значений метрики
                                             upd_metric_time_intervals=metric_tag_data["ts"], # Список интервалов добавляемых элементов
                                             mode=self.db_mode, # prod
-                                            datetime_to=self.settings['datetime_to'],
-                                            onlyinsert=True, first_item_enable=True)  
+                                            datetime_to=self.settings['datetime_to'], first_item_enable=True)  
                                 insert_counter_all += res['insert_counter_all'] 
                                 insert_counter["m1"] += res['insert_counter_all'] 
                     
@@ -400,15 +441,14 @@ class Robot_getload:
                                     metrics=metrics, # Словарь метрик с их параметрами
                                     granularity=gran, granularity_settings=granularity_settings, 
                                     source_id=source_id,
-                                    tz_str_source=self.tz_str_source, tz_str_system=self.tz_str_system,
+                                    tz_str_source=self.tz_str_source, tz_str_system=self.tz_str_system, tz_str_db=self.tz_str_db,
                                     upd_metric=upd_metric, # API алиас изменяемой метрики
                                     project_id=self.project_id,
                                     metric_tag_id=metric_tag_id,
                                     upd_metric_vals=metric_tag_data["vals"], # Список добавляемых значений метрики
                                     upd_metric_time_intervals=metric_tag_data["ts"], # Список интервалов добавляемых элементов
                                     mode=self.db_mode, # prod
-                                    datetime_to=self.settings['datetime_to'],
-                                    onlyinsert=True, first_item_enable=True)  
+                                    datetime_to=self.settings['datetime_to'], first_item_enable=True)  
                         insert_counter_all += res['insert_counter_all'] 
                         insert_counter[gran] += res['insert_counter_all']           
         ########################[ /Робот ]##########################

@@ -59,6 +59,8 @@ class SysBf:
     
     @staticmethod
     def tzdt(dt:datetime, tz_str:str='') -> datetime:
+        if dt is None:
+            return None
         tzdt = dt
         if tz_str!='':
             try:
@@ -71,6 +73,8 @@ class SysBf:
 
     @staticmethod
     def dt_to_tz(dt:datetime, tz_str:str='') -> datetime:
+        if dt is None:
+            return None
         if tz_str!='':
             timezone = pytz.timezone(tz_str)
             return  dt.astimezone(timezone)  

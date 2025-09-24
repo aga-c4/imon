@@ -46,7 +46,7 @@ class GetLoadAPI:
             if not os.path.exists(zipfilename):  
                 headers = {
                     'Authorization': f'OAuth {self.token}',
-                    'Content-Type': 'application/x-yametrika+json'
+                    'Content-Type': 'application/json'
                 }
                 response = requests.get(self.base_url+'?file='+file, headers=headers)
                 if response.status_code == 200: 

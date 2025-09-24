@@ -4,7 +4,7 @@ ENV TZ 'Europe/Moscow'
 ENV LOCSTR 'en_US.UTF-8 UTF-8'
 
 RUN apt-get update && apt-get install --no-install-recommends --no-install-suggests -y \
-        tzdata locales \
+        ca-certificates tzdata locales \
         curl mc \
     && echo $TZ > /etc/timezone \
     && rm /etc/localtime \
@@ -18,7 +18,5 @@ WORKDIR /usr/src/app
 
 COPY ./requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
 
 CMD [ "python", "./imon.py" ]

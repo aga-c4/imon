@@ -99,12 +99,76 @@ class Metric:
         return result  
     
     @staticmethod
-    def get_tags_sum_list(*, db:Mysqldb, granularity:str='h1', dt_to:datetime, dt_from:datetime, project_id:int=0) -> list:
-        sql  = f"SELECT mt.id as metric_id, mmm.metric_api_alias as metric_api_alias, tg.tag as tag, SUM(mt.value/POW( 10, mt.dp )) as sumvals"
+    def add_items_fr_jun_tf(*, metrics:dict, db:Mysqldb, source_id:int=None, 
+                            granularity:str='h1', prev_granularity:str='m1', granularity_settings:dict, 
+                            project_id:int=0, tz_str_db:str='', tz_str_system:str='', 
+                            dt_from:datetime, dt_to:datetime, mode:str="prod",
+                            datetime_to:str='', first_item_enable:bool=False) -> list:
+        """ dt_from - дата начала НЕ включая,  dt_to - дата окончания НЕ включая """
+
+        if datetime_to!='':
+            datetime_add_to = SysBf.tzdt_fr_str(datetime_to, tz_str_system)
+        else:  
+            datetime_add_to = SysBf.tzdt(datetime.datetime.now(), tz_str_system)
+        if dt_to>datetime_add_to:
+            dt_to = datetime_add_to   
+
+        dt_from_period = SysBf.get_dateframes_by_current_dt(date=dt_from, granularity=granularity)
+        
+        # Цикл перебора периодов 
+        cur_ts_period_dt = SysBf.get_dateframes_by_current_dt(date=dt_from_period[1] + datetime.timedelta(minutes=1), granularity=granularity)
+        cur_dt_from = cur_ts_period_dt[0]
+        cur_dt_to = cur_ts_period_dt[1]
+        insert_counter = 0
+        upd_counter = 0
+        while cur_dt_to<dt_to:
+            print("dt_from:", str(dt_from), " cur_dt_to:", str(cur_dt_to), " < dt_to:", str(dt_to))
+            # Получим список тегов и метрик младшего ряда за заданный период   
+            # print("dt_from=", cur_dt_from, "dt_to=", cur_dt_to, "cur_dt_from=", cur_dt_from)
+            # По тегам и метрикам посчитаем функцию объединения и запишем данные в текущий период
+            tags_dt_funct_list = Metric.get_tags_sum_list(db=db, granularity=prev_granularity, tz_str_db=tz_str_db,
+                                                        dt_from=cur_dt_from, dt_to=cur_dt_to, project_id=project_id)
+            for mtres in tags_dt_funct_list: 
+                upd_metric = mtres["metric_api_alias"]   
+                if metrics[upd_metric]["up_dt_funct"] =="avg":
+                    if mtres["val_count"]==0:
+                        value = 0
+                    else:        
+                        value = mtres["value"]/mtres["val_count"]
+                else:
+                    value = mtres["value"]   
+                res = Metric.add_fr_ym(db=db,
+                            metrics=metrics, # Словарь метрик с их параметрами
+                            granularity=granularity, granularity_settings=granularity_settings, 
+                            source_id=source_id,
+                            tz_str_source=tz_str_system, tz_str_system=tz_str_system, tz_str_db=tz_str_db,
+                            upd_metric=mtres["metric_api_alias"], # API алиас изменяемой метрики
+                            project_id=project_id,
+                            metric_tag_id=mtres["tag_id"] ,
+                            upd_metric_vals=[value], # Список добавляемых значений метрики
+                            upd_metric_time_intervals=[[cur_dt_from.strftime("%Y-%m-%dT%H:%M:%S"), cur_dt_to.strftime("%Y-%m-%dT%H:%M:%S")]], # Список интервалов добавляемых элементов
+                            mode=mode, # prod
+                            datetime_to=datetime_to,
+                            first_item_enable=first_item_enable)  
+                insert_counter += res['insert_counter_all']       
+                upd_counter += res['upd_counter_all']
+
+            # Сформируем следующий период
+            cur_ts_period_dt = SysBf.get_dateframes_by_current_dt(date=cur_dt_to + datetime.timedelta(minutes=1), granularity=granularity)
+            cur_dt_from = cur_ts_period_dt[0]
+            cur_dt_to = cur_ts_period_dt[1]
+        return {'insert_counter_all': insert_counter, 'upd_counter_all': upd_counter}    
+    
+    @staticmethod
+    def get_tags_sum_list(*, db:Mysqldb, granularity:str='h1', project_id:int=0, 
+                               tz_str_db:str='', dt_to:datetime, dt_from:datetime) -> list:
+        dt_from_str = str(SysBf.dt_to_tz(dt_from, tz_str_db))
+        dt_to_str = str(SysBf.dt_to_tz(dt_to, tz_str_db))  
+        sql  = f"SELECT mt.id as metric_id, mmm.metric_alias as metric_alias, mmm.metric_api_alias as metric_api_alias, count(mt.value) as val_count, mt.metric_tag_id as tag_id, tg.tag as tag, SUM(mt.value/POW( 10, mt.dp )) as value"
         sql += f" from {Metric.data_table}{granularity} mt" 
         sql += f" LEFT JOIN {Metric.tags_table} tg on tg.id=mt.metric_tag_id"
         sql += f" LEFT JOIN {Metric.table} mmm on mt.metric_id=mmm.id"
-        sql += f" WHERE mt.metric_project_id={project_id} and mt.dt>='" + str(dt_from)+"' and mt.dt<='" + str(dt_to)+"'"   
+        sql += f" WHERE mt.metric_project_id={project_id} and mt.dt>='{dt_from_str}' and mt.dt<='{dt_to_str}'"   
         sql +=  ' group by mt.metric_tag_id;'        
         result = db.query(sql)
         return result  
@@ -134,6 +198,23 @@ class Metric:
                 # print("get_last_dt_str:", str(result[0]['maxdt']))
                 return SysBf.tzdt(result[0]['maxdt'], tz_str)
         return SysBf.tzdt_fr_str(dt_str='1980-01-01', tz_str=tz_str)
+    
+    @staticmethod
+    def get_first_dt(*, db:Mysqldb, granularity:str='h1', id:int=0, tz_str:str='', project_id:int=0, source_id:int=None) -> datetime:
+        sql = f"SELECT min(dt) as mindt from {Metric.data_table}{granularity} where metric_project_id={project_id}"
+        if id>0:
+            sql += f" and metric_id={id}"
+        if not source_id is None:
+            sql += f" and metric_source_id={source_id};" 
+        sql += ";"
+        result = db.query(sql) 
+        if result:
+            print(result[0]['mindt'])
+            if not result[0]['mindt'] is None:
+                # print("get_first_dt:", result[0]['mindt'])
+                # print("get_first_dt_str:", str(result[0]['mindt']))
+                return SysBf.tzdt(result[0]['mindt'], tz_str)
+        return None
     
     @staticmethod
     def get_minmax_dt(*, db:Mysqldb, granularity:str='' , id:int, tz_str:str='', project_id:int=0) -> dict:
@@ -501,10 +582,11 @@ class Metric:
                   project_id:int=0, 
                   metric_tag_id:int=0, 
                   upd_metric_vals:list, upd_metric_time_intervals:list,
-                  tz_str_source:str='', tz_str_system:str='',
+                  tz_str_source:str='', 
+                  tz_str_system:str='',
+                  tz_str_db:str='',
                   mode:str='prod',
                   datetime_to:str='',
-                  onlyinsert:bool=False,
                   first_item_enable:bool=False):
 
         insert_counter_all = 0
@@ -550,7 +632,7 @@ class Metric:
             if upd_max_dt.timestamp() > granularity_settings['update_ts_lag']:
                 start_dt = upd_max_dt - datetime.timedelta(seconds=granularity_settings['update_ts_lag'])
                 start_dt_exist = True
-            if onlyinsert and start_dt_exist and cur_item_dt > start_dt and cur_item_dt<=upd_max_dt: # Есть что обновлять и это разрешено (onlyinsert=True)
+            if start_dt_exist and cur_item_dt > start_dt and cur_item_dt<=upd_max_dt: # Есть что обновлять
                 if mode=="prod": 
                     Metric.stupdateval(db=db, 
                                     granularity=granularity, 
