@@ -29,7 +29,7 @@ class Robot_mgen:
     db_mode = 'prod' # prod - для реальной записи
     all_gran_list = ["m1","h1", "d1", "w1", "mo1"]
     add_gran_list = ["h1", "d1", "w1", "mo1"]
-    project_id = 1
+    project_id = 0
 
     """
     Используемые параметры:
