@@ -36,7 +36,7 @@ def createParser ():
     parser.add_argument ('--job_status', choices=['', 'run', 'fin', 'error'], default='')
     parser.add_argument ('--robot', type=str, default="")
     parser.add_argument ('--group_id', type=int, default=0)
-    parser.add_argument ('--project_id', type=int, default=1)
+    parser.add_argument ('--project_id', type=int, default=0)
     parser.add_argument ('--metric_id', type=int, default=0)
     parser.add_argument ('--active', type=int, default=-1)
     parser.add_argument ('--limit', type=int, default=0)

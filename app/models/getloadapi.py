@@ -18,7 +18,7 @@ class GetLoadAPI:
             'Content-Type': 'application/x-yametrika+json'
         }
         params = {}
-        response = requests.get(self.base_url, params=params, headers=headers)
+        response = requests.get(self.base_url+'?token='+self.token, params=params, headers=headers)
         if response.status_code == 200:
             return response.json()
         else:
@@ -48,7 +48,7 @@ class GetLoadAPI:
                     'Authorization': f'OAuth {self.token}',
                     'Content-Type': 'application/json'
                 }
-                response = requests.get(self.base_url+'?file='+file, headers=headers)
+                response = requests.get(self.base_url+'?file='+file+'&token='+self.token, headers=headers)
                 if response.status_code == 200: 
                     with open(zipfilename, 'wb') as file:
                         file.write(response.content)

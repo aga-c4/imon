@@ -155,11 +155,9 @@ class Robot_getload:
         for mt in metrics:
             # if not mt['id'] in [10, 11]: # TODO - Отрубить после теста. Для теста пачки или там, где нужны ограничения по метрикам
             #    continue
-
             if self.settings['metric_id']>0 and self.settings['metric_id']!=mt['id']:
                 continue
-
-            metrics_dict[mt['metric_api_alias']] = mt
+            metrics_dict[mt['metric_alias']] = mt
         metrics = metrics_dict
         del metrics_dict
 
@@ -234,7 +232,7 @@ class Robot_getload:
             tags_sum_list = Metric.get_tags_sum_list(db=db, granularity=gran, tz_str_db=self.tz_str_db, project_id=self.project_id, 
                                                         dt_from=cur_ts_period_dt[gran][0], dt_to=cur_ts_period_dt[gran][1])
             for mtres in tags_sum_list:      
-                upd_metric = mtres["metric_api_alias"]   
+                upd_metric = mtres["metric_alias"]   
                 upd_tag = mtres["tag"] 
                 if not upd_metric in cur_metric_accum[gran]:
                     cur_metric_accum[gran][upd_metric] = {}    
@@ -268,7 +266,7 @@ class Robot_getload:
             project_tags = Metric.get_tags(db=db, project_id=self.project_id)
             project_tags_ids = {}
             for tag in project_tags:
-                project_tags_ids[tag["tag"]] = tag["id"]
+                project_tags_ids[tag["tag"]] = tag["tag_id"]
             for dt_file in file_list:
                 if dt_file>max_dt_str and dt_file<end_dt_str:
                     logging.info(f'API start get {dt_file}')

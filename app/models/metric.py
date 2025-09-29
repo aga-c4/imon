@@ -12,6 +12,7 @@ class Metric:
     data_table = 'metrics_' 
     anoms_table = 'anoms_' 
     groups_table = 'metric_groups'   
+    projects_table = 'metric_projects'
     tags_table = 'tags'
     id = None
     granularity = None
@@ -72,12 +73,6 @@ class Metric:
         return result  
     
     @staticmethod
-    def get_tags(*, db:Mysqldb, project_id:int=0) -> list:
-        sql = f"SELECT id,tag from {Metric.tags_table} where project_id={project_id};"     
-        result = db.query(sql)
-        return result 
-    
-    @staticmethod
     def add_tag(*, db:Mysqldb, project_id:int=0, metric_tag:str="") -> list:
         sql = f"INSERT INTO {Metric.tags_table} (project_id, tag) VALUES ({project_id}, '{metric_tag}');"
         logging.info(f'Add tag {metric_tag} to project_id project_id')
@@ -99,12 +94,18 @@ class Metric:
         return result  
     
     @staticmethod
+    def get_projects(*, db:Mysqldb) -> list:
+        sql = f"SELECT * from {Metric.projects_table};"     
+        result = db.query(sql)
+        return result 
+    
+    @staticmethod
     def add_items_fr_jun_tf(*, metrics:dict, db:Mysqldb, source_id:int=None, 
                             granularity:str='h1', prev_granularity:str='m1', granularity_settings:dict, 
                             project_id:int=0, tz_str_db:str='', tz_str_system:str='', 
                             dt_from:datetime, dt_to:datetime, mode:str="prod",
                             datetime_to:str='', first_item_enable:bool=False) -> list:
-        """ dt_from - дата начала НЕ включая,  dt_to - дата окончания НЕ включая """
+        """ dt_from - дата начала НЕ включая,  dt_to - дата окончания НЕ включая. Работает только для src метрик!!! пока"""
 
         if datetime_to!='':
             datetime_add_to = SysBf.tzdt_fr_str(datetime_to, tz_str_system)
@@ -122,14 +123,16 @@ class Metric:
         insert_counter = 0
         upd_counter = 0
         while cur_dt_to<dt_to:
-            print("dt_from:", str(dt_from), " cur_dt_to:", str(cur_dt_to), " < dt_to:", str(dt_to))
+            # print("dt_from:", str(dt_from), " cur_dt_to:", str(cur_dt_to), " < dt_to:", str(dt_to))
             # Получим список тегов и метрик младшего ряда за заданный период   
             # print("dt_from=", cur_dt_from, "dt_to=", cur_dt_to, "cur_dt_from=", cur_dt_from)
             # По тегам и метрикам посчитаем функцию объединения и запишем данные в текущий период
-            tags_dt_funct_list = Metric.get_tags_sum_list(db=db, granularity=prev_granularity, tz_str_db=tz_str_db,
+            tags_dt_funct_list = Metric.get_tags_sum_list(db=db, granularity=prev_granularity, tz_str_db=tz_str_db, metric_type='src',
                                                         dt_from=cur_dt_from, dt_to=cur_dt_to, project_id=project_id)
+
+            # print(tags_dt_funct_list)
             for mtres in tags_dt_funct_list: 
-                upd_metric = mtres["metric_api_alias"]   
+                upd_metric = mtres["metric_alias"]   
                 if metrics[upd_metric]["up_dt_funct"] =="avg":
                     if mtres["val_count"]==0:
                         value = 0
@@ -142,7 +145,7 @@ class Metric:
                             granularity=granularity, granularity_settings=granularity_settings, 
                             source_id=source_id,
                             tz_str_source=tz_str_system, tz_str_system=tz_str_system, tz_str_db=tz_str_db,
-                            upd_metric=mtres["metric_api_alias"], # API алиас изменяемой метрики
+                            upd_metric=mtres["metric_alias"], # API алиас изменяемой метрики
                             project_id=project_id,
                             metric_tag_id=mtres["tag_id"] ,
                             upd_metric_vals=[value], # Список добавляемых значений метрики
@@ -160,18 +163,24 @@ class Metric:
         return {'insert_counter_all': insert_counter, 'upd_counter_all': upd_counter}    
     
     @staticmethod
-    def get_tags_sum_list(*, db:Mysqldb, granularity:str='h1', project_id:int=0, 
+    def get_tags_sum_list(*, db:Mysqldb, granularity:str='h1', project_id:int=0, metric_type:str='',
                                tz_str_db:str='', dt_to:datetime, dt_from:datetime) -> list:
         dt_from_str = str(SysBf.dt_to_tz(dt_from, tz_str_db))
         dt_to_str = str(SysBf.dt_to_tz(dt_to, tz_str_db))  
-        sql  = f"SELECT mt.id as metric_id, mmm.metric_alias as metric_alias, mmm.metric_api_alias as metric_api_alias, count(mt.value) as val_count, mt.metric_tag_id as tag_id, tg.tag as tag, SUM(mt.value/POW( 10, mt.dp )) as value"
+        sql  = f"SELECT mt.metric_id as metric_id, mmm.metric_alias as metric_alias, mmm.metric_api_alias as metric_api_alias,"
+        sql += f" count(mt.value) as val_count, mt.metric_tag_id as tag_id, tg.tag as tag, SUM(mt.value/POW( 10, mt.dp )) as value"
         sql += f" from {Metric.data_table}{granularity} mt" 
         sql += f" LEFT JOIN {Metric.tags_table} tg on tg.id=mt.metric_tag_id"
         sql += f" LEFT JOIN {Metric.table} mmm on mt.metric_id=mmm.id"
         sql += f" WHERE mt.metric_project_id={project_id} and mt.dt>='{dt_from_str}' and mt.dt<='{dt_to_str}'"   
+        if metric_type!='':
+            sql += f" and mmm.metric_type='{metric_type}'"   
         sql +=  ' group by mt.metric_tag_id;'        
         result = db.query(sql)
-        return result  
+        if result:
+            return result  
+        else:
+            return []
     
     @staticmethod
     def clear_table(*, db:Mysqldb, granularity:str='', metric_id:int=0, date_to:datetime):
@@ -217,11 +226,28 @@ class Metric:
         return None
     
     @staticmethod
-    def get_minmax_dt(*, db:Mysqldb, granularity:str='' , id:int, tz_str:str='', project_id:int=0) -> dict:
-        if id==0:
+    def get_tags(*, db:Mysqldb, granularity:str='', metric_id:int=0, project_id:int=0) -> dict:
+        if granularity=='':
+            sql = f"SELECT id as tag_id, tag as tag from {Metric.tags_table} where project_id={project_id};"    
+        else:    
+            sql = f"SELECT tg.id as tag_id, tg.tag as tag from {Metric.data_table}{granularity} mt"
+            sql += f" LEFT JOIN {Metric.tags_table} tg on tg.id=mt.metric_tag_id"
+            sql += f" where mt.metric_project_id={project_id}"
+            if metric_id>0:
+                sql += f" and mt.metric_id={metric_id}"
+            sql += " group by tg.id;"
+        result = db.query(sql) 
+        if type(result) is list:
+            return [{"tag_id":0, "tag": "All"}] + result
+        else:
+            return [{"tag_id":0, "tag": "All"}]
+    
+    @staticmethod
+    def get_minmax_dt(*, db:Mysqldb, granularity:str='', metric_id:int, tz_str:str='', project_id:int=0, metric_tag_id:int=0) -> dict:
+        if metric_id==0:
             return {"mindt": None, "maxdt": None}
 
-        sql = f"SELECT max(dt) as maxdt, min(dt) as mindt from {Metric.data_table}{granularity} where metric_id={id} and metric_project_id={project_id};"
+        sql = f"SELECT max(dt) as maxdt, min(dt) as mindt from {Metric.data_table}{granularity} where metric_id={metric_id} and metric_project_id={project_id} and metric_tag_id={metric_tag_id};"
         result = db.query(sql) 
         res = {"mindt": None, "maxdt": None}
         if result:

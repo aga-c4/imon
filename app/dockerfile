@@ -10,8 +10,8 @@ RUN apt-get update && apt-get install --no-install-recommends --no-install-sugge
     && rm /etc/localtime \
     && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     && dpkg-reconfigure -f noninteractive tzdata \
-    && echo $LOCSTR > /etc/locale.gen && locale-gen \
     && apt-get autoremove \
+    && echo $LOCSTR > /etc/locale.gen && locale-gen \
     && apt-get autoclean 
 
 WORKDIR /usr/src/app
