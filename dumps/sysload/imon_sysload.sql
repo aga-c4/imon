@@ -3,8 +3,8 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: mysql:3306
--- Время создания: Сен 29 2025 г., 12:31
--- Версия сервера: 8.3.0
+-- Время создания: Сен 30 2025 г., 09:28
+-- Версия сервера: 8.4.6
 -- Версия PHP: 8.2.29
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -170,7 +170,7 @@ CREATE TABLE IF NOT EXISTS `metrics` (
   `metric_region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
   `metric_trafsrc_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1307 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1309 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Дамп данных таблицы `metrics`
@@ -187,9 +187,9 @@ INSERT INTO `metrics` (`id`, `parentid`, `metric_active`, `metric_monitor`, `acc
 (8, 0, 1, 1, 1, 'sysload', 'system_memory_usage', 'system_memory_usage', 1, 'system_memory_usage', '', 2, 'src', '', 'm1,h1,d1,w1,m1', 0, 'avg', 1, 1, 1, 'all', 'all', 'all'),
 (9, 0, 1, 1, 1, 'sysload', 'system_memory_usage_pr', 'system_memory_usage_pr', 1, '', '', 2, 'res', '100*m8/m7', 'm1,h1,d1,w1,m1', 0, 'avg', 1, 1, 1, 'all', 'all', 'all'),
 (20, 0, 1, 1, 1, 'sysload', 'logging_max_memory', 'logging_max_memory', 1, 'logging_max_memory', '', 2, 'src', '', 'm1,h1,d1,w1,m1', 0, 'avg', 1, 1, 1, 'all', 'all', 'all'),
-(21, 0, 1, 1, 1, 'sysload', 'logging_max_memory_by_avg_pr', 'logging_max_memory_by_avg_pr', 1, '', '', 2, 'res', '100*m20/((m201+m301)/m2)', 'm1,h1,d1,w1,m1', 0, 'avg', 1, 1, 1, 'all', 'all', 'all'),
+(21, 0, 1, 1, 1, 'sysload', 'logging_max_memory_by_avg_pr', 'logging_max_memory_by_avg_pr', 1, '', '', 2, 'res', '100*m20/(m201/m2)', 'm1,h1,d1,w1,m1', 0, 'avg', 1, 1, 1, 'all', 'all', 'all'),
 (22, 0, 1, 1, 1, 'sysload', 'logging_execution_time', 'logging_execution_time', 1, 'logging_execution_time', '', 2, 'src', '', 'm1,h1,d1,w1,m1', 0, 'avg', 1, 1, 1, 'all', 'all', 'all'),
-(23, 0, 1, 1, 1, 'sysload', 'logging_execution_time_by_avg_pr', 'logging_execution_time_by_avg_pr', 1, '', '', 2, 'res', '100*m22/((m202+m302)/m2)', 'm1,h1,d1,w1,m1', 0, 'avg', 1, 1, 1, 'all', 'all', 'all'),
+(23, 0, 1, 1, 1, 'sysload', 'logging_execution_time_by_avg_pr', 'logging_execution_time_by_avg_pr', 1, '', '', 2, 'res', '100*m22/(m202/m2)', 'm1,h1,d1,w1,m1', 0, 'avg', 1, 1, 1, 'all', 'all', 'all'),
 (151, 0, 1, 1, 1, 'sysload', 'requests_start_by_hit_pr', 'requests_start_by_hit_pr', 1, '', '', 3, 'res', '100*m2/ma1', 'm1,h1,d1,w1,m1', 0, 'avg', 1, 1, 1, 'all', 'all', 'all'),
 (152, 0, 1, 1, 1, 'sysload', 'requests_finish_success_by_start_pr', 'requests_finish_success_by_start_pr', 1, '', '', 3, 'res', '100*m3/m2', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
 (153, 0, 1, 1, 1, 'sysload', 'requests_finish_exception_by_start_pr', 'requests_finish_exception_by_start_pr', 1, '', '', 3, 'res', '100*m4/m2', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
@@ -199,34 +199,28 @@ INSERT INTO `metrics` (`id`, `parentid`, `metric_active`, `metric_monitor`, `acc
 (204, 0, 1, 1, 1, 'sysload', 'success_db_requests_time', 'success_db_requests_time', 1, 'success_db_requests_time', '', 3, 'src', '', 'm1,h1,d1,w1,m1', 0, 'sum', 0, 1, 1, 'all', 'all', 'all'),
 (205, 0, 1, 1, 1, 'sysload', 'success_api_requests', 'success_api_requests', 1, 'success_api_requests', '', 0, 'src', '', 'm1,h1,d1,w1,m1', 0, 'sum', 0, 1, 1, 'all', 'all', 'all'),
 (206, 0, 1, 1, 1, 'sysload', 'success_api_requests_time', 'success_api_requests_time', 1, 'success_api_requests_time', '', 3, 'src', '', 'm1,h1,d1,w1,m1', 0, 'sum', 0, 1, 1, 'all', 'all', 'all'),
-(207, 0, 1, 1, 1, 'sysload', 'success_db_requests_time_by_request_pr', 'success_db_requests_time_by_request_pr', 1, '', '', 3, 'res', 'm204/m203', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(208, 0, 1, 1, 1, 'sysload', 'success_api_requests_time_by_request_pr', 'success_api_requests_time_by_request_pr', 1, '', '', 3, 'res', 'm206/m205', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
 (301, 0, 1, 1, 1, 'sysload', 'exception_max_memory', 'exception_max_memory', 1, 'exception_max_memory', '', 3, 'src', '', 'm1,h1,d1,w1,m1', 0, 'sum', 0, 1, 1, 'all', 'all', 'all'),
 (302, 0, 1, 1, 1, 'sysload', 'exception_execution_time', 'exception_execution_time', 1, 'exception_execution_time', '', 3, 'src', '', 'm1,h1,d1,w1,m1', 0, 'sum', 0, 1, 1, 'all', 'all', 'all'),
 (303, 0, 1, 1, 1, 'sysload', 'exception_db_requests', 'exception_db_requests', 1, 'exception_db_requests', '', 0, 'src', '', 'm1,h1,d1,w1,m1', 0, 'sum', 0, 1, 1, 'all', 'all', 'all'),
 (304, 0, 1, 1, 1, 'sysload', 'exception_db_requests_time', 'exception_db_requests_time', 1, 'exception_db_requests_time', '', 3, 'src', '', 'm1,h1,d1,w1,m1', 0, 'sum', 0, 1, 1, 'all', 'all', 'all'),
 (305, 0, 1, 1, 1, 'sysload', 'exception_api_requests', 'exception_api_requests', 1, 'exception_api_requests', '', 0, 'src', '', 'm1,h1,d1,w1,m1', 0, 'sum', 0, 1, 1, 'all', 'all', 'all'),
 (306, 0, 1, 1, 1, 'sysload', 'exception_api_requests_time', 'exception_api_requests_time', 1, 'exception_api_requests_time', '', 3, 'src', '', 'm1,h1,d1,w1,m1', 0, 'sum', 0, 1, 1, 'all', 'all', 'all'),
-(307, 0, 1, 1, 1, 'sysload', 'exception_db_requests_time_by_request_pr', 'exception_db_requests_time_by_request_pr', 1, '', '', 3, 'res', 'm304/m303', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(308, 0, 1, 1, 1, 'sysload', 'exception_api_requests_time_by_request_pr', 'exception_api_requests_time_by_request_pr', 1, '', '', 3, 'res', 'm306/m305', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1101, 0, 1, 1, 1, 'sysload', 'max_memory_by_start_pr', 'max_memory_by_start_pr', 1, '', '', 3, 'res', '100*(m201+m301)/m2', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1102, 0, 1, 1, 1, 'sysload', 'execution_time_by_start_pr', 'execution_time_by_start_pr', 1, '', '', 3, 'res', '100*(m202+m302)/m2', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1103, 0, 1, 1, 1, 'sysload', 'db_requests_by_start_pr', 'db_requests_by_start_pr', 1, '', '', 3, 'res', '100*(m203+m303)/m2', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1104, 0, 1, 1, 1, 'sysload', 'db_requests_time_by_start_pr', 'db_requests_time_by_start_pr', 1, '', '', 3, 'res', '100*(m204+m304)/m2', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1105, 0, 1, 1, 1, 'sysload', 'api_requests_by_start_pr', 'api_requests_by_start_pr', 1, '', '', 3, 'res', '100*(m205+m305)/m2', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1106, 0, 1, 1, 1, 'sysload', 'api_requests_time_by_start_pr', 'api_requests_time_by_start_pr', 1, '', '', 3, 'res', '100*(m206+m306)/m2', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
 (1201, 0, 1, 1, 1, 'sysload', 'success_max_memory_by_start_pr', 'success_max_memory_by_start_pr', 1, '', '', 3, 'res', '100*m201/m3', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
 (1202, 0, 1, 1, 1, 'sysload', 'success_execution_time_by_start_pr', 'success_execution_time_by_start_pr', 1, '', '', 3, 'res', '100*m202/m3', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
 (1203, 0, 1, 1, 1, 'sysload', 'success_db_requests_by_start_pr', 'success_db_requests_by_start_pr', 1, '', '', 3, 'res', '100*m203/m3', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
 (1204, 0, 1, 1, 1, 'sysload', 'success_db_requests_time_by_start_pr', 'success_db_requests_time_by_start_pr', 1, '', '', 3, 'res', '100*m204/m3', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
 (1205, 0, 1, 1, 1, 'sysload', 'success_api_requests_by_start_pr', 'success_api_requests_by_start_pr', 1, '', '', 3, 'res', '100*m205/m3', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
 (1206, 0, 1, 1, 1, 'sysload', 'success_api_requests_time_by_start', 'success_api_requests_time_by_start', 1, '', '', 3, 'res', '100*m206/m3', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1207, 0, 1, 1, 1, 'sysload', 'success_db_requests_time_by_request_pr', 'success_db_requests_time_by_request_pr', 1, '', '', 3, 'res', '100*m204/m203', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1208, 0, 1, 1, 1, 'sysload', 'success_api_requests_time_by_request_pr', 'success_api_requests_time_by_request_pr', 1, '', '', 3, 'res', '100*m206/m205', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
 (1301, 0, 1, 1, 1, 'sysload', 'exception_max_memory_by_start_pr', 'exception_max_memory_by_start_pr', 1, '', '', 3, 'res', '100*m301/m4', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
 (1302, 0, 1, 1, 1, 'sysload', 'exception_execution_time_by_start_pr', 'exception_execution_time_by_start_pr', 1, '', '', 3, 'res', '100*m302/m4', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
 (1303, 0, 1, 1, 1, 'sysload', 'exception_db_requests_by_start_pr', 'exception_db_requests_by_start_pr', 1, '', '', 3, 'res', '100*m303/m4', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
 (1304, 0, 1, 1, 1, 'sysload', 'exception_db_requests_time_by_start_pr', 'exception_db_requests_time_by_start_pr', 1, '', '', 3, 'res', '100*m304/m4', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
 (1305, 0, 1, 1, 1, 'sysload', 'exception_api_requests_by_start_pr', 'exception_api_requests_by_start_pr', 1, '', '', 3, 'res', '100*m305/m4', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1306, 0, 1, 1, 1, 'sysload', 'exception_api_requests_time_by_start_pr', 'exception_api_requests_time_by_start_pr', 1, '', '', 3, 'res', '100*m306/m4', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all');
+(1306, 0, 1, 1, 1, 'sysload', 'exception_api_requests_time_by_start_pr', 'exception_api_requests_time_by_start_pr', 1, '', '', 3, 'res', '100*m306/m4', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1307, 0, 1, 1, 1, 'sysload', 'exception_db_requests_time_by_request_pr', 'exception_db_requests_time_by_request_pr', 1, '', '', 3, 'res', '100*m304/m303', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1308, 0, 1, 1, 1, 'sysload', 'exception_api_requests_time_by_request_pr', 'exception_api_requests_time_by_request_pr', 1, '', '', 3, 'res', '100*m306/m305', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all');
 
 -- --------------------------------------------------------
 
