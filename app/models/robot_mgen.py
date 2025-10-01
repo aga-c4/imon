@@ -163,8 +163,8 @@ class Robot_mgen:
                 # Почистим данные по метрикам для нового проекта
                 m_src_vals = {} # Массив значений метрик источников
                 m_src_dt = {} # Массив значений метрик дат начала и конца данных
-                for mt in metrics:
-                    metrics[mt['id']]["tags"] = {}  
+                for key, mt in metrics.items():
+                    metrics[key]["tags"] = {}  
 
                 for metric_group in metric_groups:
                     if self.settings['group_id']>0 and int(self.settings['group_id'])!=metric_group['id']:
