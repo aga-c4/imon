@@ -136,14 +136,9 @@ class Robot_mgen:
         # 1. Получим список ВСЕХ метрик и для res метрик сформируем список метрик от которых они зависят
         metrics_dict = {}
         metrics = Metric.get_list(db=db)
-        res_metrics = {} 
         # Дадим метрикам ключи - Id метрик    
         for mt in metrics:
-            metrics_dict[mt['id']] = mt
-            metrics_dict[mt['id']]["tags"] = {}   
-            if mt['metric_type'] == "res":
-                res_metrics[mt['id']] = mt
-                res_metrics[mt['id']]["tags"] = {}   
+            metrics_dict[mt['id']] = mt  
         metrics = metrics_dict
         del metrics_dict
 
@@ -156,9 +151,6 @@ class Robot_mgen:
                 continue
             logging.info(f"granularity: {granularity}")
 
-            m_src_vals = {} # Массив значений метрик источников
-            m_src_dt = {} # Массив значений метрик дат начала и конца данных
-
             # Почистим базу от лишних записей по данному варианту таймфрейма
             Metric.clear_table(db=self.db, granularity=granularity, date_to=datetime_now - timedelta(days=granularity_settings['dblimit']))
             
@@ -167,6 +159,13 @@ class Robot_mgen:
                 if self.settings['project_id']>0 and int(self.settings['project_id'])!=project_id:
                     continue
                 logging.info(f"Project: {metric_project['metric_project_name']}") 
+
+                # Почистим данные по метрикам для нового проекта
+                m_src_vals = {} # Массив значений метрик источников
+                m_src_dt = {} # Массив значений метрик дат начала и конца данных
+                for mt in metrics:
+                    metrics[mt['id']]["tags"] = {}  
+
                 for metric_group in metric_groups:
                     if self.settings['group_id']>0 and int(self.settings['group_id'])!=metric_group['id']:
                         continue
