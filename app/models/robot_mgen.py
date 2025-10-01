@@ -171,6 +171,7 @@ class Robot_mgen:
                         continue
 
                     logging.info(f"Group: {metric_group['metric_group_name']}") 
+                    group_id = metric_group['id']
 
                     # 1. Получим список метрик res и сформируем список метрик от которых они зависят
                     metric_tags = Metric.get_tags(db=db, granularity=granularity, project_id=project_id)
@@ -248,17 +249,17 @@ class Robot_mgen:
                                         cur_maxdt = metrics[smt]["tags"][0]['maxdt']              
 
                             if cur_mindt is None or cur_maxdt is None:
-                                logging.info(f"Calculate {granularity}.{mt['id']}.{mt['metric_alias']}.{tag_name}: There is not enough data!")
+                                logging.info(f"Calculate {granularity}.{project_id}.{group_id}.{mt['id']}.{mt['metric_alias']}.{tag_name}: There is not enough data!")
                                 continue 
 
                             if tag_id in metrics[mt['id']]["tags"] \
                                 and not metrics[mt['id']]["tags"][tag_id]['mindt'] is None and cur_maxdt <= metrics[mt['id']]["tags"][tag_id]['mindt']:
-                                logging.info(f"Calculate {granularity}.{mt['id']}.{mt['metric_alias']}.{tag_name}: Already calculated!")
+                                logging.info(f"Calculate {granularity}.{project_id}.{group_id}.{mt['id']}.{mt['metric_alias']}.{tag_name}: Already calculated!")
                                 continue  
 
                             if 0 in metrics[mt['id']]["tags"] \
                                 and not metrics[mt['id']]["tags"][0]['mindt'] is None and cur_maxdt <= metrics[mt['id']]["tags"][0]['mindt']:
-                                logging.info(f"Calculate {granularity}.{mt['id']}.{mt['metric_alias']}.{tag_name}: Already calculated!")
+                                logging.info(f"Calculate {granularity}.{project_id}.{group_id}.{mt['id']}.{mt['metric_alias']}.{tag_name}: Already calculated!")
                                 continue 
 
                             dt_start_gen = cur_mindt # Начальная реальная дата, после которой начнется генерация
@@ -361,7 +362,7 @@ class Robot_mgen:
                                                             project_id=self.project_id,
                                                             metric_tag_id=tag_id,
                                                             params={"value": real_value, "dp": mt['metric_dp']})
-                                        logging.info(f"Update {granularity}.{mt['id']}.{mt['metric_alias']}: [{mlist_dt_str}] = {round_value}")
+                                        logging.info(f"Update {granularity}.{project_id}.{group_id}.{mt['id']}.{mt['metric_alias']}: [{mlist_dt_str}] = {round_value}")
                                         upd_counter += 1
                                         continue
 
@@ -376,16 +377,16 @@ class Robot_mgen:
                                             "dp": mt['metric_dp'], 
                                             "metric_project_id": project_id
                                         })
-                                        logging.info(f"Insert {granularity}.{mt['id']}.{mt['metric_alias']}.{tag_name}: [{mlist_dt_str}] = {round_value}")
+                                        logging.info(f"Insert {granularity}.{project_id}.{group_id}.{mt['id']}.{mt['metric_alias']}.{tag_name}: [{mlist_dt_str}] = {round_value}")
                                         insert_counter += len(ins_mt)
                             # Если есть, что добавлять, добавляем
                             if len(ins_mt):
                                 if self.settings["mode"]=="prod":
                                     Metric.insert_list(db=self.db, granularity=granularity, params=ins_mt)
-                                logging.info(f"Insert {granularity}.{mt['id']}.{mt['metric_alias']}.{tag_name}: Complete "+str(len(ins_mt))+" items!")
+                                logging.info(f"Insert {granularity}.{project_id}.{group_id}.{mt['id']}.{mt['metric_alias']}.{tag_name}: Complete "+str(len(ins_mt))+" items!")
                                 insert_counter_all += insert_counter
                             if upd_counter:
-                                logging.info(f"Update {granularity}.{mt['id']}.{mt['metric_alias']}.{tag_name}: Complete "+str(upd_counter)+" items!")
+                                logging.info(f"Update {granularity}.{project_id}.{group_id}.{mt['id']}.{mt['metric_alias']}.{tag_name}: Complete "+str(upd_counter)+" items!")
                                 upd_counter_all += upd_counter 
 
                             # Актуализируем данные по измененной метрике       

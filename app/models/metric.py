@@ -68,7 +68,7 @@ class Metric:
 
     @staticmethod
     def get_groups(*, db:Mysqldb) -> list:
-        sql = f"SELECT * from {Metric.groups_table};"     
+        sql = f"SELECT * from {Metric.groups_table} order by id;"     
         result = db.query(sql)
         return result  
     
@@ -95,7 +95,7 @@ class Metric:
     
     @staticmethod
     def get_projects(*, db:Mysqldb) -> list:
-        sql = f"SELECT * from {Metric.projects_table};"     
+        sql = f"SELECT * from {Metric.projects_table} order by id;"     
         result = db.query(sql)
         return result 
     
