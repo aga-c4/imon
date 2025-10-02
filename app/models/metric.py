@@ -252,7 +252,6 @@ class Metric:
         if metric_type!='':
             sql += f" mmm.metric_type='{metric_type}' and "       
         sql += f"mt.metric_project_id={project_id};"
-        print(sql)
         result = db.query(sql) 
         res = {"mindt": None, "maxdt": None}
         if result:
