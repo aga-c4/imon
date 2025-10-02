@@ -244,9 +244,6 @@ class Metric:
     
     @staticmethod
     def get_minmax_dt(*, db:Mysqldb, granularity:str='', metric_id:int=0, tz_str:str='', tz_str_db:str='', project_id:int=0, metric_tag_id:int=0, metric_type:str='') -> dict:
-        if metric_id==0:
-            return {"mindt": None, "maxdt": None}
-
         sql = f"SELECT max(mt.dt) as maxdt, min(mt.dt) as mindt from {Metric.data_table}{granularity} mt LEFT JOIN {Metric.table} mmm on mt.metric_id=mmm.id where "
         if metric_id!=0:
             sql += f"mt.metric_id={metric_id} and "
@@ -255,6 +252,7 @@ class Metric:
         if metric_type!='':
             sql += f" mmm.metric_type='{metric_type}' and "       
         sql += f"mt.metric_project_id={project_id};"
+        print(sql)
         result = db.query(sql) 
         res = {"mindt": None, "maxdt": None}
         if result:
