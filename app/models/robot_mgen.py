@@ -181,6 +181,15 @@ class Robot_mgen:
                 for key, mt in metrics.items():
                     metrics[key]["tags"] = {}  
 
+                last_dt_gen_use_mm = {"mindt": None, "maxdt": None}
+                if last_dt_gen_use==1:    
+                    last_dt_gen_use_mm = Metric.get_minmax_dt(db=self.db, 
+                                                                granularity=granularity,
+                                                                metric_type='res',
+                                                                project_id=project_id,
+                                                                tz_str=self.tz_str_db)
+                                    
+
                 for metric_group in metric_groups:
                     if self.settings['group_id']>0 and int(self.settings['group_id'])!=metric_group['id']:
                         continue
@@ -205,19 +214,10 @@ class Robot_mgen:
                             if self.settings['metric_id']>0 and self.settings['metric_id']!=mt['id']:
                                 # Схема не оптимальная, но оставим пока так
                                 continue
-   
-                            mt_id = 0      
-                            last_dt_gen_use_mm = {"mindt": None, "maxdt": None}
-                            if last_dt_gen_use==1:    
-                                last_dt_gen_use_mm = Metric.get_minmax_dt(db=self.db, 
-                                                                            granularity=granularity,
-                                                                            metric_type='res',
-                                                                            project_id=project_id, metric_tag_id=tag_id,
-                                                                            tz_str=self.tz_str_db)
                             
                             metrics[mt['id']]["tags"][tag_id] = Metric.get_minmax_dt(db=self.db, 
                                                                             granularity=granularity, 
-                                                                            metric_id=mt_id, 
+                                                                            metric_id=mt['id'], 
                                                                             project_id=project_id, metric_tag_id=tag_id,
                                                                             tz_str=self.tz_str_db)
 
@@ -306,7 +306,7 @@ class Robot_mgen:
                             if  not last_dt_gen_use_mm['maxdt'] is None and dt_start_ins <= last_dt_gen_use_mm['maxdt']: 
                                 dt_start_ins = last_dt_gen_use_mm['maxdt']          
 
-                            logging.info("dt_start_gen:", dt_start_gen, " dt_start_ins:", dt_start_ins, " dt_fin_gen:", dt_fin_gen)      
+                            logging.info(f"dt_start_gen: {str(dt_start_gen)}, dt_start_ins: {str(dt_start_ins)}, dt_fin_gen: {str(dt_fin_gen)}")      
                             
                             # Пройдем по метрикам src, в реалтайме заберем данные по нужным источникам, 
                             for smt in metrics[mt['id']]['metric_modification_set']:
