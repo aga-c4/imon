@@ -139,7 +139,7 @@ class Robot_mgen:
                             "job_execution_sec": run_timer.get_time(), 
                             "job_max_mem_kb": 0},
                         "count": 0,
-                        "comment": f"Project {settings_project_id} Error: Already running or process file error!"} 
+                        "comment": f"Project {settings_project_id} Gran:[{self.settings['granularity']}] Error: Already running or process file error!"} 
         
         # Файл устарел или отсутствует, перезапишем
         f = open(proc_file, 'w')
@@ -434,7 +434,7 @@ class Robot_mgen:
         # Удалим блокирующий запуск файл
         os.remove(proc_file)
 
-        self.comment(f"Project {settings_project_id} Update: {upd_counter_all}; Insert:{insert_counter_all}")
+        self.comment(f"Project {settings_project_id} Gran:[{self.settings['granularity']}] Update: {upd_counter_all}; Insert:{insert_counter_all}")
         return {"success": True, 
                       "telemetry": {
                           "job_execution_sec": run_timer.get_time(), 
