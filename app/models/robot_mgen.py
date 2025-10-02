@@ -298,7 +298,11 @@ class Robot_mgen:
                             if  not last_dt_gen_use_mm['maxdt'] is None and dt_start_gen <= last_dt_gen_use_mm['maxdt']: 
                                 dt_start_gen = last_dt_gen_use_mm['maxdt']   
                             if  not last_dt_gen_use_mm['maxdt'] is None and dt_start_ins <= last_dt_gen_use_mm['maxdt']: 
-                                dt_start_ins = last_dt_gen_use_mm['maxdt']          
+                                dt_start_ins = last_dt_gen_use_mm['maxdt']   
+
+                            if dt_start_gen >= dt_fin_gen:
+                                logging.info(f"Calculate {granularity}.{project_id}.{group_id}.{mt['id']}.{mt['metric_alias']}.{tag_name}: Already calculated (dt_start_gen >= dt_fin_gen)!")
+                                continue             
 
                             logging.info(f"Project: {project_id}, Gr: {group_id}, mt_id: {mt['id']}, TgId: {tag_id}, dt_start_gen: {str(dt_start_gen)}, dt_start_ins: {str(dt_start_ins)}, dt_fin_gen: {str(dt_fin_gen)}")      
                             
