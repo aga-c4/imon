@@ -282,11 +282,6 @@ class Robot_mgen:
                                 logging.info(f"Calculate {granularity}.{project_id}.{group_id}.{mt['id']}.{mt['metric_alias']}.{tag_name}: Already calculated!")
                                 continue  
 
-                            if 0 in metrics[mt['id']]["tags"] \
-                                and not metrics[mt['id']]["tags"][0]['mindt'] is None and cur_maxdt <= metrics[mt['id']]["tags"][0]['mindt']:
-                                logging.info(f"Calculate {granularity}.{project_id}.{group_id}.{mt['id']}.{mt['metric_alias']}.{tag_name}: Already calculated!")
-                                continue 
-
                             dt_start_gen = cur_mindt # Начальная реальная дата, после которой начнется генерация
                             dt_start_ins = cur_mindt # Начальная реальная дата, после которой начнется генерация (инсерт) НЕ включая ее!!!
                             dt_fin_gen = cur_maxdt # Конечная реальная дата, после которой закончится генерация
