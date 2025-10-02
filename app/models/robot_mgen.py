@@ -187,7 +187,7 @@ class Robot_mgen:
                                                                 granularity=granularity,
                                                                 metric_type='res',
                                                                 project_id=project_id,
-                                                                tz_str=self.tz_str_db)
+                                                                tz_str_db=self.tz_str_db, tz_str=self.tz_str_system)
                                     
 
                 for metric_group in metric_groups:
@@ -219,7 +219,7 @@ class Robot_mgen:
                                                                             granularity=granularity, 
                                                                             metric_id=mt['id'], 
                                                                             project_id=project_id, metric_tag_id=tag_id,
-                                                                            tz_str=self.tz_str_db)
+                                                                            tz_str_db=self.tz_str_db, tz_str=self.tz_str_system)
 
                             # Получим исходные метрики для расчета
                             if mt['metric_modification']=='':
@@ -241,7 +241,7 @@ class Robot_mgen:
                                                                             granularity=granularity, 
                                                                             metric_id=int(smt), 
                                                                             project_id=project_id, metric_tag_id=tag_id,
-                                                                            tz_str=self.tz_str_db)
+                                                                            tz_str_db=self.tz_str_db, tz_str=self.tz_str_system)
                                 if not metrics[smt]["tags"][tag_id]['mindt'] is None:
                                     if cur_mindt is None or metrics[mt['id']]["tags"][tag_id]['mindt'] is None:
                                         cur_mindt = metrics[smt]["tags"][tag_id]['mindt']
@@ -260,7 +260,7 @@ class Robot_mgen:
                                                                             granularity=granularity, 
                                                                             metric_id=int(smt), 
                                                                             project_id=project_id, metric_tag_id=0,
-                                                                            tz_str=self.tz_str_db)                    
+                                                                            tz_str_db=self.tz_str_db, tz_str=self.tz_str_system)                
                                 if not metrics[smt]["tags"][0]['mindt'] is None:
                                     if cur_mindt is None or metrics[mt['id']]["tags"][0]['mindt'] is None:
                                         cur_mindt = metrics[smt]["tags"][0]['mindt']
@@ -306,7 +306,7 @@ class Robot_mgen:
                             if  not last_dt_gen_use_mm['maxdt'] is None and dt_start_ins <= last_dt_gen_use_mm['maxdt']: 
                                 dt_start_ins = last_dt_gen_use_mm['maxdt']          
 
-                            logging.info(f"dt_start_gen: {str(dt_start_gen)}, dt_start_ins: {str(dt_start_ins)}, dt_fin_gen: {str(dt_fin_gen)}")      
+                            # logging.info(f"dt_start_gen: {str(dt_start_gen)}, dt_start_ins: {str(dt_start_ins)}, dt_fin_gen: {str(dt_fin_gen)}")      
                             
                             # Пройдем по метрикам src, в реалтайме заберем данные по нужным источникам, 
                             for smt in metrics[mt['id']]['metric_modification_set']:
@@ -424,7 +424,7 @@ class Robot_mgen:
                                                                             granularity=granularity, 
                                                                             metric_id=int(mt['id']), 
                                                                             project_id=project_id, metric_tag_id=tag_id,
-                                                                            tz_str=self.tz_str_db)    
+                                                                            tz_str_db=self.tz_str_db, tz_str=self.tz_str_system)    
 
                 logging.info(f"Finish {granularity}::{metric_group['metric_group_alias']}::{mt['metric_alias']}")
 
