@@ -218,7 +218,7 @@ class Metric:
         sql += ";"
         result = db.query(sql) 
         if result:
-            print(result[0]['mindt'])
+            # print(result[0]['mindt'])
             if not result[0]['mindt'] is None:
                 # print("get_first_dt:", result[0]['mindt'])
                 # print("get_first_dt_str:", str(result[0]['mindt']))
@@ -250,9 +250,9 @@ class Metric:
         sql = f"SELECT max(mt.dt) as maxdt, min(mt.dt) as mindt from {Metric.data_table}{granularity} mt LEFT JOIN {Metric.table} mmm on mt.metric_id=mmm.id where "
         if metric_id!=0:
             sql += f"mt.metric_id={metric_id} and "
-        if metric_id!=0:
+        if metric_tag_id!=0:
             sql += f" mt.metric_tag_id={metric_tag_id} and "  
-        if metric_id!='':
+        if metric_type!='':
             sql += f" mmm.metric_type='{metric_type}' and "       
         sql += f"mt.metric_project_id={project_id};"
         result = db.query(sql) 

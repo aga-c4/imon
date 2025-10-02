@@ -306,7 +306,7 @@ class Robot_mgen:
                             if  not last_dt_gen_use_mm['maxdt'] is None and dt_start_ins <= last_dt_gen_use_mm['maxdt']: 
                                 dt_start_ins = last_dt_gen_use_mm['maxdt']          
 
-                            # print("dt_start_gen:", dt_start_gen, " dt_start_ins:", dt_start_ins, " dt_fin_gen:", dt_fin_gen)       
+                            logging.info("dt_start_gen:", dt_start_gen, " dt_start_ins:", dt_start_ins, " dt_fin_gen:", dt_fin_gen)      
                             
                             # Пройдем по метрикам src, в реалтайме заберем данные по нужным источникам, 
                             for smt in metrics[mt['id']]['metric_modification_set']:
