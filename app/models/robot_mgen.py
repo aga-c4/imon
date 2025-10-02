@@ -170,7 +170,6 @@ class Robot_mgen:
             
             for metric_project in metric_projects:
                 project_id = metric_project["id"]
-                last_dt_gen_use = metric_project["last_dt_gen_use"]
                 if self.settings['project_id']>0 and int(self.settings['project_id'])!=project_id:
                     continue
                 logging.info(f"Project: {metric_project['metric_project_name']}") 
@@ -182,7 +181,7 @@ class Robot_mgen:
                     metrics[key]["tags"] = {}  
 
                 last_dt_gen_use_mm = {"mindt": None, "maxdt": None}
-                if last_dt_gen_use==1:    
+                if metric_project["last_dt_gen_use"]==1:    
                     last_dt_gen_use_mm = Metric.get_minmax_dt(db=self.db, 
                                                                 granularity=granularity,
                                                                 metric_type='res',
@@ -296,7 +295,6 @@ class Robot_mgen:
                                     if dt_start_ins <= metrics[mt['id']]["tags"][tag_id]['maxdt']:
                                         dt_start_ins = metrics[mt['id']]["tags"][tag_id]['maxdt']
 
-                            # Если last_dt_gen_use==1, то генерацию начинаем после последней метрики res в рамках данного проекта
                             if  not last_dt_gen_use_mm['maxdt'] is None and dt_start_gen <= last_dt_gen_use_mm['maxdt']: 
                                 dt_start_gen = last_dt_gen_use_mm['maxdt']   
                             if  not last_dt_gen_use_mm['maxdt'] is None and dt_start_ins <= last_dt_gen_use_mm['maxdt']: 
