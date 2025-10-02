@@ -188,6 +188,7 @@ class Robot_mgen:
                                                                 metric_type='res',
                                                                 project_id=project_id,
                                                                 tz_str_db=self.tz_str_db, tz_str=self.tz_str_system)
+                logging.info(f"last_dt_gen_use_mm: mindt={str(last_dt_gen_use_mm['mindt'])}, maxdt={str(last_dt_gen_use_mm['maxdt'])}")          
                                     
 
                 for metric_group in metric_groups:
@@ -306,7 +307,7 @@ class Robot_mgen:
                             if  not last_dt_gen_use_mm['maxdt'] is None and dt_start_ins <= last_dt_gen_use_mm['maxdt']: 
                                 dt_start_ins = last_dt_gen_use_mm['maxdt']          
 
-                            # logging.info(f"dt_start_gen: {str(dt_start_gen)}, dt_start_ins: {str(dt_start_ins)}, dt_fin_gen: {str(dt_fin_gen)}")      
+                            logging.info(f"dt_start_gen: {str(dt_start_gen)}, dt_start_ins: {str(dt_start_ins)}, dt_fin_gen: {str(dt_fin_gen)}")      
                             
                             # Пройдем по метрикам src, в реалтайме заберем данные по нужным источникам, 
                             for smt in metrics[mt['id']]['metric_modification_set']:

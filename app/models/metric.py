@@ -243,7 +243,7 @@ class Metric:
             return [{"tag_id":0, "tag": "All"}]
     
     @staticmethod
-    def get_minmax_dt(*, db:Mysqldb, granularity:str='', metric_id:int=0, tz_str:str='', project_id:int=0, metric_tag_id:int=0, metric_type:str='') -> dict:
+    def get_minmax_dt(*, db:Mysqldb, granularity:str='', metric_id:int=0, tz_str:str='', tz_str_db:str='', project_id:int=0, metric_tag_id:int=0, metric_type:str='') -> dict:
         if metric_id==0:
             return {"mindt": None, "maxdt": None}
 
@@ -259,9 +259,9 @@ class Metric:
         res = {"mindt": None, "maxdt": None}
         if result:
             if not result[0]['mindt'] is None:
-                res['mindt'] = SysBf.tzdt(result[0]['mindt'], tz_str)
+                res['mindt'] = SysBf.dt_to_tz(SysBf.tzdt(result[0]['mindt'], tz_str_db), tz_str)
             if not result[0]['maxdt'] is None:
-                res['maxdt'] = SysBf.tzdt(result[0]['maxdt'], tz_str)
+                res['maxdt'] = SysBf.dt_to_tz(SysBf.tzdt(result[0]['maxdt'], tz_str_db), tz_str)
         return res
     
     @staticmethod
