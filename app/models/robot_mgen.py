@@ -107,16 +107,30 @@ class Robot_mgen:
 
         db = self.db
         datetime_now = SysBf.tzdt(datetime.now(), self.tz_str_system)
-        
+        if self.settings['project_id']>0:
+            settings_project_id = int(self.settings['project_id'])
+        else:
+            settings_project_id = 0    
+
         # Запрет дублирования запуска, если зависнет удалите файл!
-        proc_file = f"{self.proc_path}/{self.alias}_{self.settings['pid']}.pid"
-        if os.path.exists(proc_file):
+        proc_file0 = f"{self.proc_path}/{self.alias}_{self.settings['pid']}_{settings_project_id}.pid"
+        proc_file = f"{self.proc_path}/{self.alias}_{self.settings['pid']}_{settings_project_id}.pid"
+        if os.path.exists(proc_file0) or os.path.exists(proc_file):
             last_proc_dt_str = ''
-            try:
-                file = open(proc_file, 'r')
-                last_proc_dt_str = file.readline()
-            except:
-                logging.error(f"Error openning file: {proc_file}")
+            if os.path.exists(proc_file0):
+                try:
+                    file = open(proc_file0, 'r')
+                    last_proc_dt_str0 = file.readline()
+                except:
+                    logging.error(f"Error openning file: {proc_file0}")
+            if os.path.exists(proc_file):    
+                try:
+                    file = open(proc_file, 'r')
+                    last_proc_dt_str = file.readline()
+                except:
+                    logging.error(f"Error openning file: {proc_file}")
+            if last_proc_dt_str0>last_proc_dt_str:
+                last_proc_dt_str = last_proc_dt_str0
 
             if last_proc_dt_str=='' or SysBf.tzdt_fr_str(last_proc_dt_str, self.tz_str_system) > datetime_now - timedelta(seconds=self.proc_ttl):
                 logging.warning("Error: Already running or process file error!")
@@ -125,7 +139,7 @@ class Robot_mgen:
                             "job_execution_sec": run_timer.get_time(), 
                             "job_max_mem_kb": 0},
                         "count": 0,
-                        "comment": "Error: Already running or process file error!"} 
+                        "comment": f"Project {settings_project_id} Error: Already running or process file error!"} 
         
         # Файл устарел или отсутствует, перезапишем
         f = open(proc_file, 'w')
@@ -156,6 +170,7 @@ class Robot_mgen:
             
             for metric_project in metric_projects:
                 project_id = metric_project["id"]
+                last_dt_gen_use = metric_project["last_dt_gen_use"]
                 if self.settings['project_id']>0 and int(self.settings['project_id'])!=project_id:
                     continue
                 logging.info(f"Project: {metric_project['metric_project_name']}") 
@@ -191,9 +206,18 @@ class Robot_mgen:
                                 # Схема не оптимальная, но оставим пока так
                                 continue
    
+                            mt_id = 0      
+                            last_dt_gen_use_mm = {"mindt": None, "maxdt": None}
+                            if last_dt_gen_use==1:    
+                                last_dt_gen_use_mm = Metric.get_minmax_dt(db=self.db, 
+                                                                            granularity=granularity,
+                                                                            metric_type='res',
+                                                                            project_id=project_id, metric_tag_id=tag_id,
+                                                                            tz_str=self.tz_str_db)
+                            
                             metrics[mt['id']]["tags"][tag_id] = Metric.get_minmax_dt(db=self.db, 
                                                                             granularity=granularity, 
-                                                                            metric_id=int(mt['id']), 
+                                                                            metric_id=mt_id, 
                                                                             project_id=project_id, metric_tag_id=tag_id,
                                                                             tz_str=self.tz_str_db)
 
@@ -275,6 +299,12 @@ class Robot_mgen:
                                         dt_start_gen = cur_mindt
                                     if dt_start_ins <= metrics[mt['id']]["tags"][tag_id]['maxdt']:
                                         dt_start_ins = metrics[mt['id']]["tags"][tag_id]['maxdt']
+
+                            # Если last_dt_gen_use==1, то генерацию начинаем после последней метрики res в рамках данного проекта
+                            if  not last_dt_gen_use_mm['maxdt'] is None and dt_start_gen <= last_dt_gen_use_mm['maxdt']: 
+                                dt_start_gen = last_dt_gen_use_mm['maxdt']   
+                            if  not last_dt_gen_use_mm['maxdt'] is None and dt_start_ins <= last_dt_gen_use_mm['maxdt']: 
+                                dt_start_ins = last_dt_gen_use_mm['maxdt']          
 
                             # print("dt_start_gen:", dt_start_gen, " dt_start_ins:", dt_start_ins, " dt_fin_gen:", dt_fin_gen)       
                             
@@ -404,7 +434,7 @@ class Robot_mgen:
         # Удалим блокирующий запуск файл
         os.remove(proc_file)
 
-        self.comment(f"Update: {upd_counter_all}; Insert:{insert_counter_all}")
+        self.comment(f"Project {settings_project_id} Update: {upd_counter_all}; Insert:{insert_counter_all}")
         return {"success": True, 
                       "telemetry": {
                           "job_execution_sec": run_timer.get_time(), 

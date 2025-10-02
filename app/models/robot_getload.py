@@ -122,16 +122,31 @@ class Robot_getload:
         else:
             datetime_to = datetime_now   
         print("datetime_to:", str(datetime_to))
+
+        if self.settings['project_id']>0:
+            settings_project_id = int(self.settings['project_id'])
+        else:
+            settings_project_id = 0  
         
         # Запрет дублирования запуска, если зависнет удалите файл!
-        proc_file = f"{self.proc_path}/{self.alias}_{self.settings['pid']}.pid"
-        if os.path.exists(proc_file):
+        proc_file0 = f"{self.proc_path}/{self.alias}_{self.settings['pid']}_{settings_project_id}.pid"
+        proc_file = f"{self.proc_path}/{self.alias}_{self.settings['pid']}_{settings_project_id}.pid"
+        if os.path.exists(proc_file0) or os.path.exists(proc_file):
             last_proc_dt_str = ''
-            try:
-                file = open(proc_file, 'r')
-                last_proc_dt_str = file.readline()
-            except:
-                logging.error(f"Error openning file: {proc_file}")
+            if os.path.exists(proc_file0):
+                try:
+                    file = open(proc_file0, 'r')
+                    last_proc_dt_str0 = file.readline()
+                except:
+                    logging.error(f"Error openning file: {proc_file0}")
+            if os.path.exists(proc_file):    
+                try:
+                    file = open(proc_file, 'r')
+                    last_proc_dt_str = file.readline()
+                except:
+                    logging.error(f"Error openning file: {proc_file}")
+            if last_proc_dt_str0>last_proc_dt_str:
+                last_proc_dt_str = last_proc_dt_str0
 
             if last_proc_dt_str=='' or SysBf.tzdt_fr_str(last_proc_dt_str, self.tz_str_system) > datetime_now - timedelta(seconds=self.proc_ttl):
                 logging.warning("Error: Already running or process file error!")
@@ -140,7 +155,7 @@ class Robot_getload:
                             "job_execution_sec": run_timer.get_time(), 
                             "job_max_mem_kb": 0},
                         "count": 0,
-                        "comment": "Error: Already running or process file error!"} 
+                        "comment": f"Project {settings_project_id} Error: Already running or process file error!"} 
         
         # Файл устарел или отсутствует, перезапишем
         f = open(proc_file, 'w')

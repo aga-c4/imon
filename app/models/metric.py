@@ -243,11 +243,18 @@ class Metric:
             return [{"tag_id":0, "tag": "All"}]
     
     @staticmethod
-    def get_minmax_dt(*, db:Mysqldb, granularity:str='', metric_id:int, tz_str:str='', project_id:int=0, metric_tag_id:int=0) -> dict:
+    def get_minmax_dt(*, db:Mysqldb, granularity:str='', metric_id:int=0, tz_str:str='', project_id:int=0, metric_tag_id:int=0, metric_type:str='') -> dict:
         if metric_id==0:
             return {"mindt": None, "maxdt": None}
 
-        sql = f"SELECT max(dt) as maxdt, min(dt) as mindt from {Metric.data_table}{granularity} where metric_id={metric_id} and metric_project_id={project_id} and metric_tag_id={metric_tag_id};"
+        sql = f"SELECT max(mt.dt) as maxdt, min(mt.dt) as mindt from {Metric.data_table}{granularity} mt LEFT JOIN {Metric.table} mmm on mt.metric_id=mmm.id where "
+        if metric_id!=0:
+            sql += f"mt.metric_id={metric_id} and "
+        if metric_id!=0:
+            sql += f" mt.metric_tag_id={metric_tag_id} and "  
+        if metric_id!='':
+            sql += f" mmm.metric_type='{metric_type}' and "       
+        sql += f"mt.metric_project_id={project_id};"
         result = db.query(sql) 
         res = {"mindt": None, "maxdt": None}
         if result:

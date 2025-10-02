@@ -49,7 +49,7 @@ metrics_mo1 - по месяцам
 - metric_project_id int идентификатор проекта метрик
 
 Ключ:
-metric_project_id::metric_tag_id::metric_id
+dt::metric_project_id::metric_tag_id
 В теге могут быть варианты:
 - маршруты для нагрузки
 - region_id::device_id::trafsrc_id для екома
