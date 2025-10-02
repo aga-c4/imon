@@ -235,7 +235,7 @@ class Metric:
             sql += f" where mt.metric_project_id={project_id}"
             if metric_id>0:
                 sql += f" and mt.metric_id={metric_id}"
-            sql += " group by tg.id;"
+            sql += " group by tg.id order by tg.id;"
         result = db.query(sql) 
         if type(result) is list:
             return [{"tag_id":0, "tag": "All"}] + result

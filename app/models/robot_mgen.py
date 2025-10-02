@@ -199,7 +199,7 @@ class Robot_mgen:
 
                     # 1. Получим список метрик res и сформируем список метрик от которых они зависят
                     metric_tags = Metric.get_tags(db=db, granularity=granularity, project_id=project_id)
-                    cur_res_metrics = Metric.get_list(db=db, group_id=metric_group['id'], metric_type="res")
+                    cur_res_metrics = Metric.get_list(db=db, group_id=metric_group['id'], metric_type="res", order="id")
                     for cur_tag in metric_tags:
                         if cur_tag["tag_id"] is None:
                             continue
