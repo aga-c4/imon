@@ -441,10 +441,12 @@ class Robot_mgen:
                             # Актуализируем данные по измененной метрике   
                             if not tag_id in mt_minmax:
                                 mt_minmax[tag_id] = {} 
+                            if not mt['id'] in mt_minmax[tag_id]:
+                                mt_minmax[tag_id][mt['id']] = {"mindt": None, "maxdt": None}     
 
-                            if mt_minmax[tag_id][mt['id']]["mindt"] is None or upd_minmax["mindt"] < mt_minmax[tag_id][mt['id']]["mindt"]:
+                            if not upd_minmax["mindt"] is None and (mt_minmax[tag_id][mt['id']]["mindt"] is None or upd_minmax["mindt"] < mt_minmax[tag_id][mt['id']]["mindt"]):
                                 mt_minmax[tag_id][mt['id']]["mindt"] = upd_minmax["mindt"]
-                            if mt_minmax[tag_id][mt['id']]["maxdt"] is None or upd_minmax["maxdt"] > mt_minmax[tag_id][mt['id']]["maxdt"]:
+                            if not upd_minmax["maxdt"] is None and (mt_minmax[tag_id][mt['id']]["maxdt"] is None or upd_minmax["maxdt"] > mt_minmax[tag_id][mt['id']]["maxdt"]):
                                 mt_minmax[tag_id][mt['id']]["maxdt"] = upd_minmax["maxdt"]
                             # До оптимизации было так    
                             # mt_minmax[tag_id][mt['id']] = Metric.get_minmax_dt(db=self.db, 
