@@ -262,6 +262,27 @@ class Metric:
         return res
     
     @staticmethod
+    def get_all_minmax_dt(*, db:Mysqldb, granularity:str='', tz_str:str='', tz_str_db:str='', project_id:int=0) -> dict:
+        sql = f"SELECT mt.metric_tag_id as tag_id, mt.metric_id as metric_id, max(mt.dt) as maxdt, min(mt.dt) as mindt "
+        sql += f"from {Metric.data_table}{granularity} mt LEFT JOIN {Metric.table} mmm on mt.metric_id=mmm.id "
+        sql += f"where mt.metric_project_id={project_id} "
+        sql += f"group by mt.metric_tag_id, mt.metric_id order by mt.metric_tag_id, mt.metric_id;"
+        sqlres = db.query(sql) 
+        result = {}
+        if sqlres and type(sqlres) is list:
+            for mt in sqlres:
+                res_item = {"mindt": None, "maxdt": None}
+                if not mt['mindt'] is None:
+                    res_item['mindt'] = SysBf.dt_to_tz(SysBf.tzdt(mt['mindt'], tz_str_db), tz_str)
+                if not mt['maxdt'] is None:
+                    res_item['maxdt'] = SysBf.dt_to_tz(SysBf.tzdt(mt['maxdt'], tz_str_db), tz_str)
+
+                if not mt["tag_id"] in result:
+                    result[mt["tag_id"]] = {}
+                result[mt["tag_id"]][mt["metric_id"]] = res_item    
+        return result
+    
+    @staticmethod
     def stupdateval(*, db:Mysqldb, granularity:str='', metric_id:int=0, project_id:int=0, metric_tag_id:int=0, metric_dt:datetime, params:dict={}):
         sql = f"UPDATE `{Metric.data_table}{granularity}` SET "
         upd = False

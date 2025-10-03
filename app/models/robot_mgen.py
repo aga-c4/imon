@@ -187,7 +187,13 @@ class Robot_mgen:
                                                                 metric_type='res',
                                                                 project_id=project_id,
                                                                 tz_str_db=self.tz_str_db, tz_str=self.tz_str_system)
-                # logging.info(f"last_dt_gen_use_mm[project_id]: mindt={str(last_dt_gen_use_mm['mindt'])}, maxdt={str(last_dt_gen_use_mm['maxdt'])}")          
+                # logging.info(f"last_dt_gen_use_mm[project_id]: mindt={str(last_dt_gen_use_mm['mindt'])}, maxdt={str(last_dt_gen_use_mm['maxdt'])}")  
+                
+                # Получим оптом все границы метрик
+                mt_minmax = Metric.get_all_minmax_dt(db=self.db, 
+                                                     granularity=granularity,
+                                                     project_id=project_id,
+                                                     tz_str_db=self.tz_str_db, tz_str=self.tz_str_system)         
                                     
 
                 for metric_group in metric_groups:
@@ -215,11 +221,13 @@ class Robot_mgen:
                                 # Схема не оптимальная, но оставим пока так
                                 continue
                             
-                            metrics[mt['id']]["tags"][tag_id] = Metric.get_minmax_dt(db=self.db, 
-                                                                            granularity=granularity, 
-                                                                            metric_id=mt['id'], 
-                                                                            project_id=project_id, metric_tag_id=tag_id,
-                                                                            tz_str_db=self.tz_str_db, tz_str=self.tz_str_system)
+                            metrics[mt['id']]["tags"][tag_id] = mt_minmax.get(tag_id, {}).get(mt['id'],{"mindt": None, "maxdt": None})
+                            # До оптимизации было так
+                            # metrics[mt['id']]["tags"][tag_id] = Metric.get_minmax_dt(db=self.db, 
+                            #                                                 granularity=granularity, 
+                            #                                                 metric_id=mt['id'], 
+                            #                                                 project_id=project_id, metric_tag_id=tag_id,
+                            #                                                 tz_str_db=self.tz_str_db, tz_str=self.tz_str_system)
 
                             # Получим исходные метрики для расчета
                             if mt['metric_modification']=='':
@@ -237,11 +245,13 @@ class Robot_mgen:
                             for smt in metrics[mt['id']]['metric_modification_set']:
                                 smt = int(smt) 
                                 if smt in metrics and (not tag_id in metrics[smt]["tags"] or not 'mindt' in metrics[smt]["tags"][tag_id]): 
-                                    metrics[smt]["tags"][tag_id] = Metric.get_minmax_dt(db=self.db, 
-                                                                            granularity=granularity, 
-                                                                            metric_id=int(smt), 
-                                                                            project_id=project_id, metric_tag_id=tag_id,
-                                                                            tz_str_db=self.tz_str_db, tz_str=self.tz_str_system)
+                                    metrics[smt]["tags"][tag_id] = mt_minmax.get(tag_id, {}).get(smt,{"mindt": None, "maxdt": None})
+                                    # До оптимизации было так
+                                    # metrics[smt]["tags"][tag_id] = Metric.get_minmax_dt(db=self.db, 
+                                    #                                         granularity=granularity, 
+                                    #                                         metric_id=int(smt), 
+                                    #                                         project_id=project_id, metric_tag_id=tag_id,
+                                    #                                         tz_str_db=self.tz_str_db, tz_str=self.tz_str_system)
                                 if not metrics[smt]["tags"][tag_id]['mindt'] is None:
                                     if cur_mindt is None or metrics[mt['id']]["tags"][tag_id]['mindt'] is None:
                                         cur_mindt = metrics[smt]["tags"][tag_id]['mindt']
@@ -255,12 +265,14 @@ class Robot_mgen:
 
                             for smt in metrics[mt['id']]['metric_modification_set_ma']:
                                 smt = int(smt)
-                                if smt in metrics and (not tag_id in metrics[smt]["tags"] or not 'mindt' in metrics[smt]["tags"][0]):
-                                    metrics[smt]["tags"][0] = Metric.get_minmax_dt(db=self.db, 
-                                                                            granularity=granularity, 
-                                                                            metric_id=int(smt), 
-                                                                            project_id=project_id, metric_tag_id=0,
-                                                                            tz_str_db=self.tz_str_db, tz_str=self.tz_str_system)                
+                                if smt in metrics and (not 0 in metrics[smt]["tags"] or not 'mindt' in metrics[smt]["tags"][0]):
+                                    metrics[smt]["tags"][0] = mt_minmax.get(0, {}).get(smt,{"mindt": None, "maxdt": None})
+                                    # До оптимизации было так
+                                    # metrics[smt]["tags"][0] = Metric.get_minmax_dt(db=self.db, 
+                                    #                                         granularity=granularity, 
+                                    #                                         metric_id=int(smt), 
+                                    #                                         project_id=project_id, metric_tag_id=0,
+                                    #                                         tz_str_db=self.tz_str_db, tz_str=self.tz_str_system)                
                                 if not metrics[smt]["tags"][0]['mindt'] is None:
                                     if cur_mindt is None or metrics[mt['id']]["tags"][0]['mindt'] is None:
                                         cur_mindt = metrics[smt]["tags"][0]['mindt']
@@ -368,6 +380,7 @@ class Robot_mgen:
                             ins_mt = []
                             insert_counter = 0
                             upd_counter = 0
+                            upd_minmax = {"mindt": None, "maxdt": None}
                             for mlist_dt, mlist in mlist_src_vals.items():
                                 mlist_dt = SysBf.tzdt(mlist_dt, self.tz_str_db)
                                 # mlist_dt = SysBf.tzdt_fr_str(mlist_dt_str, tz_str) # Нужно, если ключи не объекты detetime
@@ -382,7 +395,11 @@ class Robot_mgen:
                                     
                                     if granularity_settings['update_ts_lag']>0 and mlist_dt >= dt_start_gen and mlist_dt <= dt_start_ins: 
                                         # Есть что обновлять 
-                                        if self.settings["mode"]=="prod": 
+                                        if upd_minmax["mindt"] is None or mlist_dt < upd_minmax["mindt"]:
+                                            upd_minmax["mindt"] = mlist_dt
+                                        if upd_minmax["maxdt"] is None or mlist_dt > upd_minmax["maxdt"]:
+                                            upd_minmax["maxdt"] = mlist_dt    
+                                        if self.settings["maxdt"]=="prod": 
                                             Metric.stupdateval(db=self.db, 
                                                             granularity=granularity, 
                                                             metric_id=mt['id'], 
@@ -395,6 +412,10 @@ class Robot_mgen:
                                         continue
 
                                     if all_insert or mlist_dt > dt_start_ins:
+                                        if upd_minmax["mindt"] is None or mlist_dt < upd_minmax["mindt"]:
+                                            upd_minmax["mindt"] = mlist_dt
+                                        if upd_minmax["maxdt"] is None or mlist_dt > upd_minmax["maxdt"]:
+                                            upd_minmax["maxdt"] = mlist_dt  
                                         ins_mt.append({
                                             "dt": mlist_dt_str, 
                                             "source_id": 0, 
@@ -417,12 +438,21 @@ class Robot_mgen:
                                 logging.info(f"Update {granularity}.{project_id}.{group_id}.{mt['id']}.{mt['metric_alias']}.{tag_name}: Complete "+str(upd_counter)+" items!")
                                 upd_counter_all += upd_counter 
 
-                            # Актуализируем данные по измененной метрике       
-                            metrics[mt['id']]["tags"][tag_id] = Metric.get_minmax_dt(db=self.db, 
-                                                                            granularity=granularity, 
-                                                                            metric_id=int(mt['id']), 
-                                                                            project_id=project_id, metric_tag_id=tag_id,
-                                                                            tz_str_db=self.tz_str_db, tz_str=self.tz_str_system)    
+                            # Актуализируем данные по измененной метрике   
+                            if not tag_id in mt_minmax:
+                                mt_minmax[tag_id] = {} 
+
+                            if mt_minmax[tag_id][mt['id']]["mindt"] is None or upd_minmax["mindt"] < mt_minmax[tag_id][mt['id']]["mindt"]:
+                                mt_minmax[tag_id][mt['id']]["mindt"] = upd_minmax["mindt"]
+                            if mt_minmax[tag_id][mt['id']]["maxdt"] is None or upd_minmax["maxdt"] > mt_minmax[tag_id][mt['id']]["maxdt"]:
+                                mt_minmax[tag_id][mt['id']]["maxdt"] = upd_minmax["maxdt"]
+                            # До оптимизации было так    
+                            # mt_minmax[tag_id][mt['id']] = Metric.get_minmax_dt(db=self.db, 
+                            #                                                 granularity=granularity, 
+                            #                                                 metric_id=int(mt['id']), 
+                            #                                                 project_id=project_id, metric_tag_id=tag_id,
+                            #                                                 tz_str_db=self.tz_str_db, tz_str=self.tz_str_system)    
+                            metrics[mt['id']]["tags"][tag_id] = mt_minmax[tag_id][mt['id']]
 
                 logging.info(f"Finish {granularity}::{metric_group['metric_group_alias']}::{mt['metric_alias']}")
 
