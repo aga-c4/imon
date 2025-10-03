@@ -266,7 +266,7 @@ class Metric:
         sql = f"SELECT mt.metric_tag_id as tag_id, mt.metric_id as metric_id, max(mt.dt) as maxdt, min(mt.dt) as mindt "
         sql += f"from {Metric.data_table}{granularity} mt LEFT JOIN {Metric.table} mmm on mt.metric_id=mmm.id "
         sql += f"where mt.metric_project_id={project_id} "
-        sql += f"group by mt.metric_tag_id, mt.metric_id order by mt.metric_tag_id, mt.metric_id;"
+        sql += f"group by mt.metric_tag_id, mt.metric_id;"
         sqlres = db.query(sql) 
         result = {}
         if sqlres and type(sqlres) is list:

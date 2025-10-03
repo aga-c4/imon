@@ -13,6 +13,11 @@ from models.sysbf import SysBf
 class Robot_getload:
     "Сбор данных по нагрузке через API"
 
+    """
+    Тест на дубли
+    SELECT mt.dt, mt.metric_tag_id, mt.metric_id, count(*) as cnt FROM `metrics_m1` mt LEFT JOIN metrics mm on mt.metric_id=mm.id WHERE mt.metric_project_id=3 and mm.metric_type='src' group by mt.metric_tag_id, mt.metric_id, mt.dt ORDER BY `cnt` DESC
+    """ 
+
     metrics_pkg_qty = 1 # Количество метрик в пачке
     source_id = 0
     source_alias = ''
@@ -228,20 +233,20 @@ class Robot_getload:
                 insert_counter[gran] += res['insert_counter_all']
                 upd_counter_all += res['upd_counter_all']
                 upd_counter[gran] += res['upd_counter_all']
-                if res['insert_counter_all']>0:
-                    print(gran, "Add ", res['insert_counter_all'], "items")
+                # if res['insert_counter_all']>0:
+                #     print(gran, "Add ", res['insert_counter_all'], "items")
                 db_exist_dt_gran = SysBf.dt_to_tz(Metric.get_last_dt(db=db, granularity=gran, tz_str=self.tz_str_db, project_id=self.project_id), tz_str=self.tz_str_system)
                 if db_exist_dt[gran]<db_exist_dt_gran:
                     db_exist_dt[gran] = db_exist_dt_gran
-                    print(f"New db_exist_dt[{gran}]=", db_exist_dt[gran])
+                    # print(f"New db_exist_dt[{gran}]=", db_exist_dt[gran])
                     if db_exist_dt[gran]>max_dt:
                         max_dt = db_exist_dt[gran] 
-                        print(f"New max_dt=", db_exist_dt[gran])
+                        # print(f"New max_dt=", db_exist_dt[gran])
 
                 if max_dt_bk != max_dt:
                     cur_ts_period = SysBf.get_dateframes_by_current_dt(date=max_dt, tpl="%Y-%m-%dT%H:%M:%S")
                     cur_ts_period_dt = SysBf.get_dateframes_by_current_dt(date=max_dt)
-                    print("New cur_ts_period:", cur_ts_period)
+                    # print("New cur_ts_period:", cur_ts_period)
 
             # Запросим список метрики и их сумм по заданной гранулярности, метрикам и тегам
             tags_sum_list = Metric.get_tags_sum_list(db=db, granularity=gran, tz_str_db=self.tz_str_db, project_id=self.project_id, 
@@ -345,6 +350,7 @@ class Robot_getload:
                                 with open(minute_file_full, 'r') as file:  
                                     reader = csv.reader(file)  
                                     upd_metric_minte_all_vals = {}
+                                    exist_tg_mt = {}
                                     for row in reader:  
                                         if not type(row) is list or len(row)<3:
                                             continue
@@ -354,9 +360,17 @@ class Robot_getload:
                                             # Обрабатываются только зарегистрированные метрики
                                             continue
                                         upd_tag =  row[1].strip()
-                                        if upd_tag=="UNKNOWN":
-                                            upd_tag==""
+                                        if upd_tag=="UNKNOWN" or upd_tag=="":
+                                            upd_tag="unknown"
                                         upd_value = float(row[2])
+
+                                        if not upd_tag in exist_tg_mt:
+                                            exist_tg_mt[upd_tag] = []
+                                        if not upd_metric in exist_tg_mt[upd_tag]:
+                                            exist_tg_mt[upd_tag].append(upd_metric) 
+                                        else:
+                                            logging.info(f"{minute_file} Dublicate metrics {upd_metric}:{upd_tag}")
+                                            continue   
 
                                         # Добавление старших таймфреймов в списки их сохранения
                                         for gran in self.add_gran_list:

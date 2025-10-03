@@ -14,6 +14,11 @@ from models.sysbf import SysBf
 class Robot_mgen:
     "Сбор данных с Я.Метрики управление с параметров и из конфига"
 
+    """
+    Тест на дубли
+    SELECT mt.dt, mt.metric_tag_id, mt.metric_id, count(*) as cnt FROM `metrics_m1` mt LEFT JOIN metrics mm on mt.metric_id=mm.id WHERE mt.metric_project_id=3 and mm.metric_type='res' group by mt.metric_tag_id, mt.metric_id, mt.dt ORDER BY `cnt` DESC
+    """
+
     alias = 'mgen'
     settings = {}
     config = {}
