@@ -2,10 +2,10 @@
 -- version 5.2.2
 -- https://www.phpmyadmin.net/
 --
--- Хост: mysql:3306
--- Время создания: Окт 02 2025 г., 09:36
--- Версия сервера: 8.3.0
--- Версия PHP: 8.2.29
+-- Хост: mysql-svc.mysql.svc.cluster.local:3306
+-- Время создания: Окт 03 2025 г., 11:18
+-- Версия сервера: 9.4.0
+-- Версия PHP: 8.2.27
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -170,7 +170,7 @@ CREATE TABLE IF NOT EXISTS `metrics` (
   `metric_region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
   `metric_trafsrc_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1307 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1507 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Дамп данных таблицы `metrics`
@@ -187,9 +187,9 @@ INSERT INTO `metrics` (`id`, `parentid`, `metric_active`, `metric_monitor`, `acc
 (8, 0, 1, 1, 1, 'sysload', 'system_memory_usage', 'system_memory_usage', 1, 'system_memory_usage', '', 2, 'src', '', 'm1,h1,d1,w1,m1', 0, 'avg', 1, 1, 1, 'all', 'all', 'all'),
 (9, 0, 1, 1, 1, 'sysload', 'system_memory_usage_pr', 'system_memory_usage_pr', 1, '', '', 2, 'res', '100*m8/m7', 'm1,h1,d1,w1,m1', 0, 'avg', 1, 1, 1, 'all', 'all', 'all'),
 (20, 0, 1, 1, 1, 'sysload', 'logging_max_memory', 'logging_max_memory', 1, 'logging_max_memory', '', 2, 'src', '', 'm1,h1,d1,w1,m1', 0, 'avg', 1, 1, 1, 'all', 'all', 'all'),
-(21, 0, 1, 1, 1, 'sysload', 'logging_max_memory_by_avg_pr', 'logging_max_memory_by_avg_pr', 1, '', '', 2, 'res', '100*m20/((m201+m301)/m2)', 'm1,h1,d1,w1,m1', 0, 'avg', 1, 1, 1, 'all', 'all', 'all'),
+(21, 0, 1, 1, 1, 'sysload', 'logging_max_memory_by_avg_pr', 'logging_max_memory_by_avg_pr', 1, '', '', 2, 'res', '100*m20/(m201/m2)', 'm1,h1,d1,w1,m1', 0, 'avg', 1, 1, 1, 'all', 'all', 'all'),
 (22, 0, 1, 1, 1, 'sysload', 'logging_execution_time', 'logging_execution_time', 1, 'logging_execution_time', '', 2, 'src', '', 'm1,h1,d1,w1,m1', 0, 'avg', 1, 1, 1, 'all', 'all', 'all'),
-(23, 0, 1, 1, 1, 'sysload', 'logging_execution_time_by_avg_pr', 'logging_execution_time_by_avg_pr', 1, '', '', 2, 'res', '100*m22/((m202+m302)/m2)', 'm1,h1,d1,w1,m1', 0, 'avg', 1, 1, 1, 'all', 'all', 'all'),
+(23, 0, 1, 1, 1, 'sysload', 'logging_execution_time_by_avg_pr', 'logging_execution_time_by_avg_pr', 1, '', '', 2, 'res', '100*m22/(m202/m2)', 'm1,h1,d1,w1,m1', 0, 'avg', 1, 1, 1, 'all', 'all', 'all'),
 (151, 0, 1, 1, 1, 'sysload', 'requests_start_by_hit_pr', 'requests_start_by_hit_pr', 1, '', '', 3, 'res', '100*m2/ma1', 'm1,h1,d1,w1,m1', 0, 'avg', 1, 1, 1, 'all', 'all', 'all'),
 (152, 0, 1, 1, 1, 'sysload', 'requests_finish_success_by_start_pr', 'requests_finish_success_by_start_pr', 1, '', '', 3, 'res', '100*m3/m2', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
 (153, 0, 1, 1, 1, 'sysload', 'requests_finish_exception_by_start_pr', 'requests_finish_exception_by_start_pr', 1, '', '', 3, 'res', '100*m4/m2', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
@@ -199,34 +199,44 @@ INSERT INTO `metrics` (`id`, `parentid`, `metric_active`, `metric_monitor`, `acc
 (204, 0, 1, 1, 1, 'sysload', 'success_db_requests_time', 'success_db_requests_time', 1, 'success_db_requests_time', '', 3, 'src', '', 'm1,h1,d1,w1,m1', 0, 'sum', 0, 1, 1, 'all', 'all', 'all'),
 (205, 0, 1, 1, 1, 'sysload', 'success_api_requests', 'success_api_requests', 1, 'success_api_requests', '', 0, 'src', '', 'm1,h1,d1,w1,m1', 0, 'sum', 0, 1, 1, 'all', 'all', 'all'),
 (206, 0, 1, 1, 1, 'sysload', 'success_api_requests_time', 'success_api_requests_time', 1, 'success_api_requests_time', '', 3, 'src', '', 'm1,h1,d1,w1,m1', 0, 'sum', 0, 1, 1, 'all', 'all', 'all'),
-(207, 0, 1, 1, 1, 'sysload', 'success_db_requests_time_by_request_pr', 'success_db_requests_time_by_request_pr', 1, '', '', 3, 'res', 'm204/m203', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(208, 0, 1, 1, 1, 'sysload', 'success_api_requests_time_by_request_pr', 'success_api_requests_time_by_request_pr', 1, '', '', 3, 'res', 'm206/m205', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
 (301, 0, 1, 1, 1, 'sysload', 'exception_max_memory', 'exception_max_memory', 1, 'exception_max_memory', '', 3, 'src', '', 'm1,h1,d1,w1,m1', 0, 'sum', 0, 1, 1, 'all', 'all', 'all'),
 (302, 0, 1, 1, 1, 'sysload', 'exception_execution_time', 'exception_execution_time', 1, 'exception_execution_time', '', 3, 'src', '', 'm1,h1,d1,w1,m1', 0, 'sum', 0, 1, 1, 'all', 'all', 'all'),
 (303, 0, 1, 1, 1, 'sysload', 'exception_db_requests', 'exception_db_requests', 1, 'exception_db_requests', '', 0, 'src', '', 'm1,h1,d1,w1,m1', 0, 'sum', 0, 1, 1, 'all', 'all', 'all'),
 (304, 0, 1, 1, 1, 'sysload', 'exception_db_requests_time', 'exception_db_requests_time', 1, 'exception_db_requests_time', '', 3, 'src', '', 'm1,h1,d1,w1,m1', 0, 'sum', 0, 1, 1, 'all', 'all', 'all'),
 (305, 0, 1, 1, 1, 'sysload', 'exception_api_requests', 'exception_api_requests', 1, 'exception_api_requests', '', 0, 'src', '', 'm1,h1,d1,w1,m1', 0, 'sum', 0, 1, 1, 'all', 'all', 'all'),
 (306, 0, 1, 1, 1, 'sysload', 'exception_api_requests_time', 'exception_api_requests_time', 1, 'exception_api_requests_time', '', 3, 'src', '', 'm1,h1,d1,w1,m1', 0, 'sum', 0, 1, 1, 'all', 'all', 'all'),
-(307, 0, 1, 1, 1, 'sysload', 'exception_db_requests_time_by_request_pr', 'exception_db_requests_time_by_request_pr', 1, '', '', 3, 'res', 'm304/m303', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(308, 0, 1, 1, 1, 'sysload', 'exception_api_requests_time_by_request_pr', 'exception_api_requests_time_by_request_pr', 1, '', '', 3, 'res', 'm306/m305', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1101, 0, 1, 1, 1, 'sysload', 'max_memory_by_start_pr', 'max_memory_by_start_pr', 1, '', '', 3, 'res', '100*(m201+m301)/m2', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1102, 0, 1, 1, 1, 'sysload', 'execution_time_by_start_pr', 'execution_time_by_start_pr', 1, '', '', 3, 'res', '100*(m202+m302)/m2', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1103, 0, 1, 1, 1, 'sysload', 'db_requests_by_start_pr', 'db_requests_by_start_pr', 1, '', '', 3, 'res', '100*(m203+m303)/m2', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1104, 0, 1, 1, 1, 'sysload', 'db_requests_time_by_start_pr', 'db_requests_time_by_start_pr', 1, '', '', 3, 'res', '100*(m204+m304)/m2', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1105, 0, 1, 1, 1, 'sysload', 'api_requests_by_start_pr', 'api_requests_by_start_pr', 1, '', '', 3, 'res', '100*(m205+m305)/m2', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1106, 0, 1, 1, 1, 'sysload', 'api_requests_time_by_start_pr', 'api_requests_time_by_start_pr', 1, '', '', 3, 'res', '100*(m206+m306)/m2', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1201, 0, 1, 1, 1, 'sysload', 'success_max_memory_by_start_pr', 'success_max_memory_by_start_pr', 1, '', '', 3, 'res', '100*m201/m3', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1202, 0, 1, 1, 1, 'sysload', 'success_execution_time_by_start_pr', 'success_execution_time_by_start_pr', 1, '', '', 3, 'res', '100*m202/m3', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1203, 0, 1, 1, 1, 'sysload', 'success_db_requests_by_start_pr', 'success_db_requests_by_start_pr', 1, '', '', 3, 'res', '100*m203/m3', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1204, 0, 1, 1, 1, 'sysload', 'success_db_requests_time_by_start_pr', 'success_db_requests_time_by_start_pr', 1, '', '', 3, 'res', '100*m204/m3', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1205, 0, 1, 1, 1, 'sysload', 'success_api_requests_by_start_pr', 'success_api_requests_by_start_pr', 1, '', '', 3, 'res', '100*m205/m3', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1206, 0, 1, 1, 1, 'sysload', 'success_api_requests_time_by_start', 'success_api_requests_time_by_start', 1, '', '', 3, 'res', '100*m206/m3', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1301, 0, 1, 1, 1, 'sysload', 'exception_max_memory_by_start_pr', 'exception_max_memory_by_start_pr', 1, '', '', 3, 'res', '100*m301/m4', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1302, 0, 1, 1, 1, 'sysload', 'exception_execution_time_by_start_pr', 'exception_execution_time_by_start_pr', 1, '', '', 3, 'res', '100*m302/m4', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1303, 0, 1, 1, 1, 'sysload', 'exception_db_requests_by_start_pr', 'exception_db_requests_by_start_pr', 1, '', '', 3, 'res', '100*m303/m4', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1304, 0, 1, 1, 1, 'sysload', 'exception_db_requests_time_by_start_pr', 'exception_db_requests_time_by_start_pr', 1, '', '', 3, 'res', '100*m304/m4', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1305, 0, 1, 1, 1, 'sysload', 'exception_api_requests_by_start_pr', 'exception_api_requests_by_start_pr', 1, '', '', 3, 'res', '100*m305/m4', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
-(1306, 0, 1, 1, 1, 'sysload', 'exception_api_requests_time_by_start_pr', 'exception_api_requests_time_by_start_pr', 1, '', '', 3, 'res', '100*m306/m4', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all');
+(1201, 0, 1, 1, 1, 'sysload', 'success_max_memory_by_start', 'success_max_memory_by_start', 1, '', '', 3, 'res', 'm201/m3', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1202, 0, 1, 1, 1, 'sysload', 'success_execution_time_by_start', 'success_execution_time_by_start', 1, '', '', 3, 'res', 'm202/m3', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1203, 0, 1, 1, 1, 'sysload', 'success_db_requests_by_start', 'success_db_requests_by_start', 1, '', '', 3, 'res', 'm203/m3', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1204, 0, 1, 1, 1, 'sysload', 'success_db_requests_time_by_start', 'success_db_requests_time_by_start', 1, '', '', 3, 'res', 'm204/m3', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1205, 0, 1, 1, 1, 'sysload', 'success_api_requests_by_start', 'success_api_requests_by_start', 1, '', '', 3, 'res', 'm205/m3', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1206, 0, 1, 1, 1, 'sysload', 'success_api_requests_time_by_start', 'success_api_requests_time_by_start', 1, '', '', 3, 'res', 'm206/m3', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1207, 0, 1, 1, 1, 'sysload', 'success_db_requests_time_by_request_pr', 'success_db_requests_time_by_request', 1, '', '', 3, 'res', 'm204/m203', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1208, 0, 1, 1, 1, 'sysload', 'success_api_requests_time_by_request_pr', 'success_api_requests_time_by_request', 1, '', '', 3, 'res', 'm206/m205', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1209, 0, 1, 1, 1, 'sysload', 'success_db_requests_time_by_time_pr', 'success_db_requests_time_by_time_pr', 1, '', '', 3, 'res', '100*m204/m202', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1210, 0, 1, 1, 1, 'sysload', 'success_api_requests_time_by_time_pr', 'success_api_requests_time_by_time_pr', 1, '', '', 3, 'res', '100*m206/m202', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1301, 0, 1, 1, 1, 'sysload', 'exception_max_memory_by_start', 'exception_max_memory_by_start', 1, '', '', 3, 'res', 'm301/m4', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1302, 0, 1, 1, 1, 'sysload', 'exception_execution_time_by_start', 'exception_execution_time_by_start', 1, '', '', 3, 'res', 'm302/m4', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1303, 0, 1, 1, 1, 'sysload', 'exception_db_requests_by_start', 'exception_db_requests_by_start', 1, '', '', 3, 'res', 'm303/m4', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1304, 0, 1, 1, 1, 'sysload', 'exception_db_requests_time_by_start', 'exception_db_requests_time_by_start', 1, '', '', 3, 'res', 'm304/m4', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1305, 0, 1, 1, 1, 'sysload', 'exception_api_requests_by_start', 'exception_api_requests_by_start', 1, '', '', 3, 'res', 'm305/m4', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1306, 0, 1, 1, 1, 'sysload', 'exception_api_requests_time_by_start', 'exception_api_requests_time_by_start', 1, '', '', 3, 'res', 'm306/m4', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1307, 0, 1, 1, 1, 'sysload', 'exception_db_requests_time_by_request', 'exception_db_requests_time_by_request', 1, '', '', 3, 'res', 'm304/m303', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1308, 0, 1, 1, 1, 'sysload', 'exception_api_requests_time_by_request', 'exception_api_requests_time_by_request', 1, '', '', 3, 'res', 'm306/m305', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1309, 0, 1, 1, 1, 'sysload', 'exception_db_requests_time_by_time_pr', 'exception_db_requests_time_by_time_pr', 1, '', '', 3, 'res', '100*m304/m302', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1310, 0, 1, 1, 1, 'sysload', 'exception_api_requests_time_by_time_pr', 'exception_api_requests_time_by_time_pr', 1, '', '', 3, 'res', '100*m306/m302', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1401, 0, 1, 1, 1, 'sysload', 'success_max_memory_by_alltg_pr', 'success_max_memory_by_alltg_pr', 1, '', '', 3, 'res', '100*m201/ma201', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1402, 0, 1, 1, 1, 'sysload', 'success_execution_time_by_alltg_pr', 'success_execution_time_by_alltg_pr', 1, '', '', 3, 'res', '100*m202/ma202', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1403, 0, 1, 1, 1, 'sysload', 'success_db_requests_alltg_pr', 'success_db_requests_by_alltg_pr', 1, '', '', 3, 'res', '100*m203/ma203', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1404, 0, 1, 1, 1, 'sysload', 'success_db_requests_time_by_alltg_pr', 'success_db_requests_time_by_alltg_pr', 1, '', '', 3, 'res', '100*m204/ma204', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1405, 0, 1, 1, 1, 'sysload', 'success_api_requests_by_alltg_pr', 'success_api_requests_by_alltg_pr', 1, '', '', 3, 'res', '100*m205/ma205', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1406, 0, 1, 1, 1, 'sysload', 'success_api_requests_time_alltg_pr', 'success_api_requests_time_by_alltg_pr', 1, '', '', 3, 'res', '100*m206/ma206', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1501, 0, 1, 1, 1, 'sysload', 'exception_max_memory_by_alltg_pr', 'exception_max_memory_by_alltg_pr', 1, '', '', 3, 'res', '100*m301/ma301', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1502, 0, 1, 1, 1, 'sysload', 'exception_execution_time_by_alltg_pr', 'exception_execution_time_by_alltg_pr', 1, '', '', 3, 'res', '100*m302/ma302', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1503, 0, 1, 1, 1, 'sysload', 'exception_db_requests_by_alltg_pr', 'exception_db_requests_by_alltg_pr', 1, '', '', 3, 'res', '100*m303/ma303', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1504, 0, 1, 1, 1, 'sysload', 'exception_db_requests_time_by_alltg_pr', 'exception_db_requests_time_by_alltg_pr', 1, '', '', 3, 'res', '100*m304/ma304', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1505, 0, 1, 1, 1, 'sysload', 'exception_api_requests_by_alltg_pr', 'exception_api_requests_alltg_pr', 1, '', '', 3, 'res', '100*m305/ma305', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all'),
+(1506, 0, 1, 1, 1, 'sysload', 'exception_api_requests_time_by_alltg_pr', 'exception_api_requests_time_by_alltg_pr', 1, '', '', 3, 'res', '100*m306/ma306', 'm1,h1,d1,w1,m1', 0, 'avg', 0, 1, 1, 'all', 'all', 'all');
 
 -- --------------------------------------------------------
 
@@ -246,7 +256,7 @@ CREATE TABLE IF NOT EXISTS `metrics_d1` (
   `metric_project_id` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `dt` (`dt`,`metric_project_id`,`metric_tag_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=2501 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=62467 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -266,7 +276,7 @@ CREATE TABLE IF NOT EXISTS `metrics_h1` (
   `metric_project_id` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `dt` (`dt`,`metric_project_id`,`metric_tag_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=40120 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=292649 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -286,7 +296,7 @@ CREATE TABLE IF NOT EXISTS `metrics_m1` (
   `metric_project_id` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `dt` (`dt`,`metric_project_id`,`metric_tag_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=510025 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2039025 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -306,7 +316,7 @@ CREATE TABLE IF NOT EXISTS `metrics_mo1` (
   `metric_project_id` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `dt` (`dt`,`metric_project_id`,`metric_tag_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8933 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -326,7 +336,7 @@ CREATE TABLE IF NOT EXISTS `metrics_w1` (
   `metric_project_id` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `dt` (`dt`,`metric_project_id`,`metric_tag_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=668 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=25381 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -386,7 +396,7 @@ CREATE TABLE IF NOT EXISTS `tags` (
   `project_id` int NOT NULL DEFAULT '0',
   `tag` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=119 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=342 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
