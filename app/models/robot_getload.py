@@ -191,10 +191,11 @@ class Robot_getload:
         max_dt = SysBf.tzdt_fr_str(dt_str='1980-01-01', tz_str=self.tz_str_system)
         for gran in self.all_gran_list:
             granularity_settings = self.granularity_list.get(gran, {})
-            db_exist_dt[gran] = SysBf.dt_to_tz(Metric.get_last_dt(db=db, granularity=gran, tz_str=self.tz_str_db, project_id=self.project_id), tz_str=self.tz_str_system)
+            # есть фильтр по source, т.к. помимо метрик сислоуда в системе могут быть и другие метрики, тогда важны будут их идентификаторы
+            db_exist_dt[gran] = SysBf.dt_to_tz(Metric.get_last_dt(db=db, granularity=gran, tz_str=self.tz_str_db, project_id=self.project_id, source_id=source_id), tz_str=self.tz_str_system)
             if gran in self.prev_gran_list:
                 prev_gran = self.prev_gran_list[gran]  
-                db_first_dt_prev  = SysBf.dt_to_tz(Metric.get_first_dt(db=db, granularity=prev_gran, tz_str=self.tz_str_db, project_id=self.project_id), tz_str=self.tz_str_system)
+                db_first_dt_prev  = SysBf.dt_to_tz(Metric.get_first_dt(db=db, granularity=prev_gran, tz_str=self.tz_str_db, project_id=self.project_id, source_id=source_id), tz_str=self.tz_str_system)
                 if not db_first_dt_prev is None and db_exist_dt[gran]<db_first_dt_prev:
                     db_exist_dt[gran]=db_first_dt_prev
                     # print(f"no data, db_exist_dt[{gran}]=", db_first_dt_prev)
@@ -235,7 +236,7 @@ class Robot_getload:
                 upd_counter[gran] += res['upd_counter_all']
                 # if res['insert_counter_all']>0:
                 #     print(gran, "Add ", res['insert_counter_all'], "items")
-                db_exist_dt_gran = SysBf.dt_to_tz(Metric.get_last_dt(db=db, granularity=gran, tz_str=self.tz_str_db, project_id=self.project_id), tz_str=self.tz_str_system)
+                db_exist_dt_gran = SysBf.dt_to_tz(Metric.get_last_dt(db=db, granularity=gran, tz_str=self.tz_str_db, project_id=self.project_id, source_id=source_id), tz_str=self.tz_str_system)
                 if db_exist_dt[gran]<db_exist_dt_gran:
                     db_exist_dt[gran] = db_exist_dt_gran
                     # print(f"New db_exist_dt[{gran}]=", db_exist_dt[gran])
@@ -288,7 +289,7 @@ class Robot_getload:
             for tag in project_tags:
                 project_tags_ids[tag["tag"]] = tag["tag_id"]
             for dt_file in file_list:
-                if dt_file>max_dt_str and dt_file<end_dt_str:
+                if dt_file>=max_dt_str and dt_file<end_dt_str:
                     logging.info(f'API start get {dt_file}')
                     # Забрать архивы по одному, при этом делая что ниже
                     api_timer_sec = 0
@@ -390,12 +391,13 @@ class Robot_getload:
                                             continue
 
                                         # Сформируем текущие значения
-                                        if not upd_metric in upd_metric_list["m1"]:
-                                            upd_metric_list["m1"][upd_metric] = {}   
-                                        if not upd_tag in upd_metric_list["m1"][upd_metric]:
-                                            upd_metric_list["m1"][upd_metric][upd_tag] = {"ts":[],"vals":[]}
-                                        upd_metric_list["m1"][upd_metric][upd_tag]["ts"].append(cur_ts_period["m1"])
-                                        upd_metric_list["m1"][upd_metric][upd_tag]["vals"].append(upd_value)
+                                        if cur_ts_period["m1"][0]>db_exist_dt_str["m1"]:
+                                            if not upd_metric in upd_metric_list["m1"]:
+                                                upd_metric_list["m1"][upd_metric] = {}   
+                                            if not upd_tag in upd_metric_list["m1"][upd_metric]:
+                                                upd_metric_list["m1"][upd_metric][upd_tag] = {"ts":[],"vals":[]}
+                                            upd_metric_list["m1"][upd_metric][upd_tag]["ts"].append(cur_ts_period["m1"])
+                                            upd_metric_list["m1"][upd_metric][upd_tag]["vals"].append(upd_value)
 
                                         # Добавим в накопитель по текущей минуте
                                         if not upd_metric in upd_metric_minte_all_vals:

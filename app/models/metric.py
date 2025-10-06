@@ -198,7 +198,7 @@ class Metric:
         if id>0:
             sql += f" and metric_id={id}"
         if not source_id is None:
-            sql += f" and metric_source_id={source_id};" 
+            sql += f" and source_id={source_id};" 
         sql += ";"
         result = db.query(sql) 
         if result:
@@ -214,7 +214,7 @@ class Metric:
         if id>0:
             sql += f" and metric_id={id}"
         if not source_id is None:
-            sql += f" and metric_source_id={source_id};" 
+            sql += f" and source_id={source_id};" 
         sql += ";"
         result = db.query(sql) 
         if result:
