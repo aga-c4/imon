@@ -3,6 +3,9 @@
 Для запуска потребуется python 3.9+ (если будете пускать на хостовой машине), Git, Docker
 
 Перед запуском:
+0. Требования:
+- sql_mode не должен содержать ONLY_FULL_GROUP_BY
+- python 3.9+
 
 1. Запустите ./install.sh, в результате будут созданы:
 - docker-compose.yml на базе docker-compose.sample.yml
