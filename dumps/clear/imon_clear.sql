@@ -2,10 +2,10 @@
 -- version 5.2.2
 -- https://www.phpmyadmin.net/
 --
--- Хост: mysql:3306
--- Время создания: Сен 15 2025 г., 21:15
--- Версия сервера: 8.3.0
--- Версия PHP: 8.2.29
+-- Хост: mysql-svc.mysql.svc.cluster.local:3306
+-- Время создания: Окт 07 2025 г., 10:25
+-- Версия сервера: 9.4.0
+-- Версия PHP: 8.2.27
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -27,9 +27,8 @@ SET time_zone = "+00:00";
 -- Структура таблицы `anoms_d1`
 --
 
-DROP TABLE IF EXISTS `anoms_d1`;
-CREATE TABLE `anoms_d1` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `anoms_d1` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `dt` datetime(6) NOT NULL,
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
@@ -37,8 +36,9 @@ CREATE TABLE `anoms_d1` (
   `metric_value` int NOT NULL,
   `posted` tinyint NOT NULL DEFAULT '0',
   `direction` tinyint NOT NULL DEFAULT '0',
-  `metric_group_id` int NOT NULL DEFAULT '0',
-  `metric_project_id` int NOT NULL DEFAULT '0'
+  `metric_project_id` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `dt` (`dt`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -47,9 +47,8 @@ CREATE TABLE `anoms_d1` (
 -- Структура таблицы `anoms_h1`
 --
 
-DROP TABLE IF EXISTS `anoms_h1`;
-CREATE TABLE `anoms_h1` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `anoms_h1` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `dt` datetime(6) NOT NULL,
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
@@ -57,8 +56,9 @@ CREATE TABLE `anoms_h1` (
   `metric_value` int NOT NULL,
   `posted` tinyint NOT NULL DEFAULT '0',
   `direction` tinyint NOT NULL DEFAULT '0',
-  `metric_group_id` int NOT NULL DEFAULT '0',
-  `metric_project_id` int NOT NULL DEFAULT '0'
+  `metric_project_id` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `dt` (`dt`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -67,9 +67,8 @@ CREATE TABLE `anoms_h1` (
 -- Структура таблицы `anoms_m1`
 --
 
-DROP TABLE IF EXISTS `anoms_m1`;
-CREATE TABLE `anoms_m1` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `anoms_m1` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `dt` datetime(6) NOT NULL,
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
@@ -77,8 +76,9 @@ CREATE TABLE `anoms_m1` (
   `metric_value` int NOT NULL,
   `posted` tinyint NOT NULL DEFAULT '0',
   `direction` tinyint NOT NULL DEFAULT '0',
-  `metric_group_id` int NOT NULL DEFAULT '0',
-  `metric_project_id` int NOT NULL DEFAULT '0'
+  `metric_project_id` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `dt` (`dt`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -87,9 +87,8 @@ CREATE TABLE `anoms_m1` (
 -- Структура таблицы `anoms_mo1`
 --
 
-DROP TABLE IF EXISTS `anoms_mo1`;
-CREATE TABLE `anoms_mo1` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `anoms_mo1` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `dt` datetime(6) NOT NULL,
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
@@ -97,8 +96,9 @@ CREATE TABLE `anoms_mo1` (
   `metric_value` int NOT NULL,
   `posted` tinyint NOT NULL DEFAULT '0',
   `direction` tinyint NOT NULL DEFAULT '0',
-  `metric_group_id` int NOT NULL DEFAULT '0',
-  `metric_project_id` int NOT NULL DEFAULT '0'
+  `metric_project_id` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `dt` (`dt`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -107,9 +107,8 @@ CREATE TABLE `anoms_mo1` (
 -- Структура таблицы `anoms_w1`
 --
 
-DROP TABLE IF EXISTS `anoms_w1`;
-CREATE TABLE `anoms_w1` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `anoms_w1` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `dt` datetime(6) NOT NULL,
   `metric_id` int NOT NULL,
   `metric_parentid` int NOT NULL DEFAULT '0',
@@ -117,8 +116,9 @@ CREATE TABLE `anoms_w1` (
   `metric_value` int NOT NULL,
   `posted` tinyint NOT NULL DEFAULT '0',
   `direction` tinyint NOT NULL DEFAULT '0',
-  `metric_group_id` int NOT NULL DEFAULT '0',
-  `metric_project_id` int NOT NULL DEFAULT '0'
+  `metric_project_id` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `dt` (`dt`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -127,16 +127,16 @@ CREATE TABLE `anoms_w1` (
 -- Структура таблицы `jobs`
 --
 
-DROP TABLE IF EXISTS `jobs`;
-CREATE TABLE `jobs` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `jobs` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `dt` datetime(6) NOT NULL,
   `task_id` int NOT NULL,
   `job_execution_sec` int NOT NULL DEFAULT '0',
   `job_max_mem_kb` int NOT NULL DEFAULT '0',
   `job_dt_fin` datetime(6) NOT NULL,
   `job_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'run',
-  `job_comment` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL
+  `job_comment` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -145,10 +145,9 @@ CREATE TABLE `jobs` (
 -- Структура таблицы `metrics`
 --
 
-DROP TABLE IF EXISTS `metrics`;
-CREATE TABLE `metrics` (
-  `id` int NOT NULL,
-  `parentid` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `metrics` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `parentid` int NOT NULL DEFAULT '0',
   `metric_active` int NOT NULL DEFAULT '0',
   `metric_monitor` int NOT NULL DEFAULT '0',
   `accum_items` int NOT NULL DEFAULT '1',
@@ -163,12 +162,15 @@ CREATE TABLE `metrics` (
   `metric_modification` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `metric_ts_types` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `neg_reverce` int NOT NULL DEFAULT '0',
+  `up_dt_funct` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'sum',
+  `notags` int NOT NULL DEFAULT '0',
   `metric_group_id` int NOT NULL DEFAULT '0',
   `metric_project_id` int NOT NULL DEFAULT '0',
   `metric_device_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
   `metric_region_alias` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
-  `metric_trafsrc_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `metric_trafsrc_alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'all',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1507 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -176,9 +178,8 @@ CREATE TABLE `metrics` (
 -- Структура таблицы `metrics_d1`
 --
 
-DROP TABLE IF EXISTS `metrics_d1`;
-CREATE TABLE `metrics_d1` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `metrics_d1` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `dt` datetime(6) NOT NULL,
   `source_id` int NOT NULL DEFAULT '0',
   `metric_id` int NOT NULL,
@@ -186,9 +187,10 @@ CREATE TABLE `metrics_d1` (
   `metric_tag_id` int NOT NULL DEFAULT '0',
   `value` bigint NOT NULL,
   `dp` smallint NOT NULL DEFAULT '0',
-  `metric_group_id` int NOT NULL DEFAULT '0',
-  `metric_project_id` int NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `metric_project_id` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `dt` (`dt`,`metric_project_id`,`metric_tag_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=47361 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -196,9 +198,8 @@ CREATE TABLE `metrics_d1` (
 -- Структура таблицы `metrics_h1`
 --
 
-DROP TABLE IF EXISTS `metrics_h1`;
-CREATE TABLE `metrics_h1` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `metrics_h1` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `dt` datetime(6) NOT NULL,
   `source_id` int NOT NULL DEFAULT '0',
   `metric_id` int NOT NULL,
@@ -206,9 +207,10 @@ CREATE TABLE `metrics_h1` (
   `metric_tag_id` int NOT NULL DEFAULT '0',
   `value` bigint NOT NULL,
   `dp` smallint NOT NULL DEFAULT '0',
-  `metric_group_id` int NOT NULL DEFAULT '0',
-  `metric_project_id` int NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `metric_project_id` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `dt` (`dt`,`metric_project_id`,`metric_tag_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=243333 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -216,9 +218,8 @@ CREATE TABLE `metrics_h1` (
 -- Структура таблицы `metrics_m1`
 --
 
-DROP TABLE IF EXISTS `metrics_m1`;
-CREATE TABLE `metrics_m1` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `metrics_m1` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `dt` datetime(6) NOT NULL,
   `source_id` int NOT NULL DEFAULT '0',
   `metric_id` int NOT NULL,
@@ -226,9 +227,10 @@ CREATE TABLE `metrics_m1` (
   `metric_tag_id` int NOT NULL DEFAULT '0',
   `value` bigint NOT NULL,
   `dp` smallint NOT NULL DEFAULT '0',
-  `metric_group_id` int NOT NULL DEFAULT '0',
-  `metric_project_id` int NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `metric_project_id` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `dt` (`dt`,`metric_project_id`,`metric_tag_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1909947 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -236,9 +238,8 @@ CREATE TABLE `metrics_m1` (
 -- Структура таблицы `metrics_mo1`
 --
 
-DROP TABLE IF EXISTS `metrics_mo1`;
-CREATE TABLE `metrics_mo1` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `metrics_mo1` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `dt` datetime(6) NOT NULL,
   `source_id` int NOT NULL DEFAULT '0',
   `metric_id` int NOT NULL,
@@ -246,9 +247,10 @@ CREATE TABLE `metrics_mo1` (
   `metric_tag_id` int NOT NULL DEFAULT '0',
   `value` bigint NOT NULL,
   `dp` smallint NOT NULL DEFAULT '0',
-  `metric_group_id` int NOT NULL DEFAULT '0',
-  `metric_project_id` int NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `metric_project_id` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `dt` (`dt`,`metric_project_id`,`metric_tag_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=7022 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -256,9 +258,8 @@ CREATE TABLE `metrics_mo1` (
 -- Структура таблицы `metrics_w1`
 --
 
-DROP TABLE IF EXISTS `metrics_w1`;
-CREATE TABLE `metrics_w1` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `metrics_w1` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `dt` datetime(6) NOT NULL,
   `source_id` int NOT NULL DEFAULT '0',
   `metric_id` int NOT NULL,
@@ -266,9 +267,10 @@ CREATE TABLE `metrics_w1` (
   `metric_tag_id` int NOT NULL DEFAULT '0',
   `value` bigint NOT NULL,
   `dp` smallint NOT NULL DEFAULT '0',
-  `metric_group_id` int NOT NULL DEFAULT '0',
-  `metric_project_id` int NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `metric_project_id` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `dt` (`dt`,`metric_project_id`,`metric_tag_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=16289 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -276,12 +278,12 @@ CREATE TABLE `metrics_w1` (
 -- Структура таблицы `metric_groups`
 --
 
-DROP TABLE IF EXISTS `metric_groups`;
-CREATE TABLE `metric_groups` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `metric_groups` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `metric_group_alias` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `metric_group_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT ''
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `metric_group_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Дамп данных таблицы `metric_groups`
@@ -299,21 +301,13 @@ INSERT INTO `metric_groups` (`id`, `metric_group_alias`, `metric_group_name`) VA
 -- Структура таблицы `metric_projects`
 --
 
-DROP TABLE IF EXISTS `metric_projects`;
-CREATE TABLE `metric_projects` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `metric_projects` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `metric_project_alias` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `metric_project_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT ''
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Дамп данных таблицы `metric_projects`
---
-
-INSERT INTO `metric_projects` (`id`, `metric_project_alias`, `metric_project_name`) VALUES
-(1, 'project1', 'Project 1'),
-(2, 'project2', 'Project 2'),
-(3, 'project3', 'Project 3');
+  `metric_project_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `last_dt_gen_use` int NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -321,12 +315,12 @@ INSERT INTO `metric_projects` (`id`, `metric_project_alias`, `metric_project_nam
 -- Структура таблицы `tags`
 --
 
-DROP TABLE IF EXISTS `tags`;
-CREATE TABLE `tags` (
-  `id` int NOT NULL,
-  `metric_id` int NOT NULL DEFAULT '0',
-  `metric_tag` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT ''
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `tags` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `project_id` int NOT NULL DEFAULT '0',
+  `tag` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=349 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -334,9 +328,8 @@ CREATE TABLE `tags` (
 -- Структура таблицы `tasks`
 --
 
-DROP TABLE IF EXISTS `tasks`;
-CREATE TABLE `tasks` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `tasks` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `task_active` int NOT NULL DEFAULT '0',
   `metric_id` int NOT NULL DEFAULT '0',
   `granularity` varchar(6) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
@@ -344,218 +337,10 @@ CREATE TABLE `tasks` (
   `task_comment` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `task_settings` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `task_robot` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `task_max_execution_sec` int NOT NULL DEFAULT '240'
+  `task_max_execution_sec` int NOT NULL DEFAULT '240',
+  `task_project_id` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Индексы сохранённых таблиц
---
-
---
--- Индексы таблицы `anoms_d1`
---
-ALTER TABLE `anoms_d1`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `dt` (`dt`);
-
---
--- Индексы таблицы `anoms_h1`
---
-ALTER TABLE `anoms_h1`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `dt` (`dt`);
-
---
--- Индексы таблицы `anoms_m1`
---
-ALTER TABLE `anoms_m1`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `dt` (`dt`);
-
---
--- Индексы таблицы `anoms_mo1`
---
-ALTER TABLE `anoms_mo1`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `dt` (`dt`);
-
---
--- Индексы таблицы `anoms_w1`
---
-ALTER TABLE `anoms_w1`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `dt` (`dt`);
-
---
--- Индексы таблицы `jobs`
---
-ALTER TABLE `jobs`
-  ADD PRIMARY KEY (`id`);
-
---
--- Индексы таблицы `metrics`
---
-ALTER TABLE `metrics`
-  ADD PRIMARY KEY (`id`);
-
---
--- Индексы таблицы `metrics_d1`
---
-ALTER TABLE `metrics_d1`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `dt` (`dt`);
-
---
--- Индексы таблицы `metrics_h1`
---
-ALTER TABLE `metrics_h1`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `dt` (`dt`);
-
---
--- Индексы таблицы `metrics_m1`
---
-ALTER TABLE `metrics_m1`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `dt` (`dt`);
-
---
--- Индексы таблицы `metrics_mo1`
---
-ALTER TABLE `metrics_mo1`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `dt` (`dt`);
-
---
--- Индексы таблицы `metrics_w1`
---
-ALTER TABLE `metrics_w1`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `dt` (`dt`);
-
---
--- Индексы таблицы `metric_groups`
---
-ALTER TABLE `metric_groups`
-  ADD PRIMARY KEY (`id`);
-
---
--- Индексы таблицы `metric_projects`
---
-ALTER TABLE `metric_projects`
-  ADD PRIMARY KEY (`id`);
-
---
--- Индексы таблицы `tags`
---
-ALTER TABLE `tags`
-  ADD PRIMARY KEY (`id`);
-
---
--- Индексы таблицы `tasks`
---
-ALTER TABLE `tasks`
-  ADD PRIMARY KEY (`id`);
-
---
--- AUTO_INCREMENT для сохранённых таблиц
---
-
---
--- AUTO_INCREMENT для таблицы `anoms_d1`
---
-ALTER TABLE `anoms_d1`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT для таблицы `anoms_h1`
---
-ALTER TABLE `anoms_h1`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT для таблицы `anoms_m1`
---
-ALTER TABLE `anoms_m1`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT для таблицы `anoms_mo1`
---
-ALTER TABLE `anoms_mo1`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT для таблицы `anoms_w1`
---
-ALTER TABLE `anoms_w1`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT для таблицы `jobs`
---
-ALTER TABLE `jobs`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT для таблицы `metrics`
---
-ALTER TABLE `metrics`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT для таблицы `metrics_d1`
---
-ALTER TABLE `metrics_d1`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT для таблицы `metrics_h1`
---
-ALTER TABLE `metrics_h1`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT для таблицы `metrics_m1`
---
-ALTER TABLE `metrics_m1`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT для таблицы `metrics_mo1`
---
-ALTER TABLE `metrics_mo1`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT для таблицы `metrics_w1`
---
-ALTER TABLE `metrics_w1`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT для таблицы `metric_groups`
---
-ALTER TABLE `metric_groups`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
-
---
--- AUTO_INCREMENT для таблицы `metric_projects`
---
-ALTER TABLE `metric_projects`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- AUTO_INCREMENT для таблицы `tags`
---
-ALTER TABLE `tags`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT для таблицы `tasks`
---
-ALTER TABLE `tasks`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
