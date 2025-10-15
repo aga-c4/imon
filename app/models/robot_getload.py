@@ -184,6 +184,8 @@ class Robot_getload:
             # Сформируем дату до которой будем искать данные
             end_dt_str = datetime_to.strftime("%Y-%m-%dT%H")
 
+            last_insert_dt = SysBf.dt_to_tz(Metric.get_last_load_dt(db=db, granularity="m1", tz_str=self.tz_str_db, project_id=self.project_id, source_id=source_id), tz_str=self.tz_str_system)
+
             cur_metric_accum = {}
             dt_insert_from = {}
             db_exist_dt = {}
@@ -208,7 +210,8 @@ class Robot_getload:
                 dt_insert_from[gran] = (datetime_now - timedelta(days=granularity_settings["dblimit"])).strftime("%Y-%m-%d")+"T00:00:00"   
                 # Очистка аккумулятора генерации вышестоящих рядов   
                 cur_metric_accum[gran] = {} 
-
+            if max_dt < last_insert_dt: 
+                max_dt = last_insert_dt
             # Получим дату последних данных в базе
             max_dt_str = max_dt.strftime("%Y-%m-%dT%H")    
             print("max_dt:", str(max_dt), " --> max_dt_str:", max_dt_str)
@@ -398,6 +401,8 @@ class Robot_getload:
                                                     upd_metric_list["m1"][upd_metric][upd_tag] = {"ts":[],"vals":[]}
                                                 upd_metric_list["m1"][upd_metric][upd_tag]["ts"].append(cur_ts_period["m1"])
                                                 upd_metric_list["m1"][upd_metric][upd_tag]["vals"].append(upd_value)
+                                                if last_insert_dt is None or last_insert_dt<cur_ts_period["m1"][0]:
+                                                    last_insert_dt = cur_ts_period["m1"][0]
 
                                             # Добавим в накопитель по текущей минуте
                                             if not upd_metric in upd_metric_minte_all_vals:
@@ -444,7 +449,9 @@ class Robot_getload:
                                                 datetime_to=self.settings['datetime_to'], first_item_enable=True)  
                                     insert_counter_all += res['insert_counter_all'] 
                                     insert_counter["m1"] += res['insert_counter_all'] 
-                        
+
+                        Metric.set_last_load_dt(db=db, granularity="m1",  project_id=self.project_id, source_id=source_id, dt=last_insert_dt, tz_str_db=self.tz_str_db)
+
                         api_timer_sec = api_timer.get_time()
                         if api_timer_sec<self.source_get_api_lag_sec: 
                             # Обеспечение минимального перерыва между запросами TODO - далее брать лаг из базы.

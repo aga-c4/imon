@@ -13,6 +13,7 @@ class Metric:
     anoms_table = 'anoms_' 
     groups_table = 'metric_groups'   
     projects_table = 'metric_projects'
+    upload_dates_table = 'upload_dates'
     tags_table = 'tags'
     id = None
     granularity = None
@@ -207,6 +208,30 @@ class Metric:
                 # print("get_last_dt_str:", str(result[0]['maxdt']))
                 return SysBf.tzdt(result[0]['maxdt'], tz_str)
         return SysBf.tzdt_fr_str(dt_str='1980-01-01', tz_str=tz_str)
+    
+    @staticmethod
+    def get_last_load_dt(*, db:Mysqldb, granularity:str='h1', project_id:int=0, source_id:int=None, tz_str:str='') -> datetime:
+        if granularity=='' or project_id==0:
+            return SysBf.tzdt_fr_str(dt_str='1980-01-01', tz_str=tz_str)
+        sql = f"SELECT max(dt) as maxdt from {Metric.upload_dates_table} where granularity='{granularity}' and metric_project_id={project_id}"
+        if not source_id is None:
+            sql += f" and source_id={source_id};" 
+        sql += ";"
+        result = db.query(sql) 
+        if result:
+            if not result[0]['maxdt'] is None:
+                # print("get_last_dt:", result[0]['maxdt'])
+                # print("get_last_dt_str:", str(result[0]['maxdt']))
+                return SysBf.tzdt(result[0]['maxdt'], tz_str)
+        return SysBf.tzdt_fr_str(dt_str='1980-01-01', tz_str=tz_str)
+    
+    @staticmethod
+    def set_last_load_dt(*, db:Mysqldb, granularity:str='h1', project_id:int=0, source_id:int=None, dt=datetime, tz_str_db:str='') -> bool:
+        'Сохраняет dt последней записи с источника/проекта в базу'
+        dt = SysBf.dt_to_tz(dt, tz_str_db)
+        dt_str = str(dt_str, )
+        sql = f"REPLACE INTO {Metric.upload_dates_table} SET dt='{dt_str}',  granularity={granularity} project_id={project_id}, source_id={source_id};"
+        return db.insert(sql)
     
     @staticmethod
     def get_first_dt(*, db:Mysqldb, granularity:str='h1', id:int=0, tz_str:str='', project_id:int=0, source_id:int=None) -> datetime:
