@@ -184,7 +184,8 @@ class Robot_getload:
             del metrics_dict
 
             # Сформируем дату до которой будем искать данные
-            end_dt_str = datetime_to.strftime("%Y-%m-%dT%H")
+            end_dt_source = SysBf.dt_to_tz(datetime_to, self.tz_str_source)
+            end_dt_source_str = end_dt_source.strftime("%Y-%m-%dT%H")   
             cur_metric_accum = {}
             dt_insert_from = {}
             db_exist_dt = {}
@@ -210,6 +211,8 @@ class Robot_getload:
                 # Очистка аккумулятора генерации вышестоящих рядов   
                 cur_metric_accum[gran] = {} 
             # Получим дату последних данных в базе
+            max_dt_source = SysBf.dt_to_tz(max_dt, self.tz_str_source)
+            max_dt_source_str = max_dt_source.strftime("%Y-%m-%dT%H")    
             max_dt_str = max_dt.strftime("%Y-%m-%dT%H")    
             print("max_dt:", str(max_dt), " --> max_dt_str:", max_dt_str)
             cur_ts_period = SysBf.get_dateframes_by_current_dt(date=max_dt, tpl="%Y-%m-%dT%H:%M:%S")
@@ -289,14 +292,18 @@ class Robot_getload:
                 for tag in project_tags:
                     project_tags_ids[tag["tag"]] = tag["tag_id"]
                 for dt_file in file_list:
-                    if dt_file>max_dt_str and dt_file<end_dt_str:
+                    if dt_file>=max_dt_source_str and dt_file<end_dt_source_str:
                         logging.info(f'API start get {dt_file}')
+
+                        # end_dt_source = SysBf.dt_to_tz(datetime_to, self.tz_str_source)
+                        # end_dt_source_str = end_dt_source.strftime("%Y-%m-%dT%H")   
+
                         # Забрать архивы по одному, при этом делая что ниже
                         api_timer_sec = 0
                         api_timer = SysTimer()
                         minute_file_list = self.api.get_files(file=dt_file, fr_api=self.fr_api)
-                        dt_cur_hour_day = datetime.strptime(dt_file[:10], '%Y-%m-%d')
-                        dt_cur_hour_day_str = dt_cur_hour_day.strftime("%Y-%m-%d")+"T00:00:00" 
+                        dt_cur_hour = SysBf.dt_to_tz(SysBf.tzdt(datetime.strptime(dt_file, '%Y-%m-%dT%H'), self.tz_str_source), self.tz_str_system)
+                        dt_cur_hour_day_str = dt_cur_hour.strftime("%Y-%m-%d")+"T00:00:00"
 
                         # Пройтись по минутам, открыть файлы, записать данные в базу данных с тегами, записать суммарные данные без тега  
                         if minute_file_list!=False and type(minute_file_list["flist"]) is list:    
@@ -304,15 +311,16 @@ class Robot_getload:
                                 # рассчитаем края периода по текущим данным
                                 item_ts_period = ["",""]
                                 if gran=="h1":
-                                    item_ts_period = [dt_file+":00:00", dt_file+":59:59"] 
+                                    dt_cur_hour_str = dt_cur_hour.strftime("%Y-%m-%dT%H")
+                                    item_ts_period = [dt_cur_hour_str+":00:00", dt_cur_hour_str+":59:59"] 
                                 elif gran=="d1":
-                                    base_dt_str = dt_file[:11]
-                                    item_ts_period = [base_dt_str+"00:00:00", base_dt_str+"23:59:59"] 
+                                    base_dt_str = dt_cur_hour.strftime("%Y-%m-%d")
+                                    item_ts_period = [base_dt_str+"T00:00:00", base_dt_str+"T23:59:59"] 
                                 elif gran=="w1":
-                                    days_of_week = SysBf.get_days_of_week(dt_cur_hour_day)
+                                    days_of_week = SysBf.get_days_of_week(dt_cur_hour)
                                     item_ts_period = [days_of_week[0].strftime("%Y-%m-%d")+"T00:00:00", days_of_week[1].strftime("%Y-%m-%d")+"T23:59:59"]     
                                 elif gran=="mo1":
-                                    days_of_month = SysBf.get_days_of_month(dt_cur_hour_day)
+                                    days_of_month = SysBf.get_days_of_month(dt_cur_hour)
                                     item_ts_period = [days_of_month[0].strftime("%Y-%m-%d")+"T00:00:00", days_of_month[1].strftime("%Y-%m-%d")+"T23:59:59"]         
 
                                 if item_ts_period[0]!=cur_ts_period[gran][0]:
@@ -392,6 +400,7 @@ class Robot_getload:
 
                                             # Сформируем текущие значения
                                             if cur_ts_period["m1"][0]>db_exist_dt_str["m1"]:
+                                                print("cur_ts_period_m1:", cur_ts_period["m1"][0], " > db_exist_dt_str_m1:", db_exist_dt_str["m1"])
                                                 if not upd_metric in upd_metric_list["m1"]:
                                                     upd_metric_list["m1"][upd_metric] = {}   
                                                 if not upd_tag in upd_metric_list["m1"][upd_metric]:
@@ -405,13 +414,14 @@ class Robot_getload:
                                             upd_metric_minte_all_vals[upd_metric] += upd_value
 
                                         # По всем минутным метрикам сформируем "all" из накопителя по текущей минуте
-                                        for upd_metric,upd_metric_val in  upd_metric_minte_all_vals.items():
-                                            if not upd_metric in upd_metric_list["m1"]:
-                                                upd_metric_list["m1"][upd_metric] = {}
-                                            if not "all" in upd_metric_list["m1"][upd_metric]:
-                                                upd_metric_list["m1"][upd_metric]["all"] = {"ts":[],"vals":[]}
-                                            upd_metric_list["m1"][upd_metric]["all"]["ts"].append(cur_ts_period["m1"])
-                                            upd_metric_list["m1"][upd_metric]["all"]["vals"].append(upd_metric_val)        
+                                        if cur_ts_period["m1"][0]>db_exist_dt_str["m1"]:
+                                            for upd_metric,upd_metric_val in  upd_metric_minte_all_vals.items():
+                                                if not upd_metric in upd_metric_list["m1"]:
+                                                    upd_metric_list["m1"][upd_metric] = {}
+                                                if not "all" in upd_metric_list["m1"][upd_metric]:
+                                                    upd_metric_list["m1"][upd_metric]["all"] = {"ts":[],"vals":[]}
+                                                upd_metric_list["m1"][upd_metric]["all"]["ts"].append(cur_ts_period["m1"])
+                                                upd_metric_list["m1"][upd_metric]["all"]["vals"].append(upd_metric_val)        
         
                                 # except Exception as err:  
                                 #     logging.info(f'Robot_getload:run: Error open {minute_file_full} Unexpected {err=}, {type(err)=}')
