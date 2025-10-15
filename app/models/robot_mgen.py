@@ -122,6 +122,7 @@ class Robot_mgen:
         proc_file = f"{self.proc_path}/{self.alias}_{self.settings['pid']}_{settings_project_id}.pid"
         if os.path.exists(proc_file0) or os.path.exists(proc_file):
             last_proc_dt_str = ''
+            last_proc_dt_str0 = ''
             if os.path.exists(proc_file0):
                 try:
                     file = open(proc_file0, 'r')

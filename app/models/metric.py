@@ -213,7 +213,7 @@ class Metric:
     def get_last_load_dt(*, db:Mysqldb, granularity:str='h1', project_id:int=0, source_id:int=None, tz_str:str='') -> datetime:
         if granularity=='' or project_id==0:
             return SysBf.tzdt_fr_str(dt_str='1980-01-01', tz_str=tz_str)
-        sql = f"SELECT max(dt) as maxdt from {Metric.upload_dates_table} where granularity='{granularity}' and metric_project_id={project_id}"
+        sql = f"SELECT max(dt) as maxdt from {Metric.upload_dates_table} where granularity='{granularity}' and project_id={project_id}"
         if not source_id is None:
             sql += f" and source_id={source_id};" 
         sql += ";"
@@ -228,10 +228,25 @@ class Metric:
     @staticmethod
     def set_last_load_dt(*, db:Mysqldb, granularity:str='h1', project_id:int=0, source_id:int=None, dt=datetime, tz_str_db:str='') -> bool:
         'Сохраняет dt последней записи с источника/проекта в базу'
+        if granularity=='' or project_id==0:
+            return None
         dt = SysBf.dt_to_tz(dt, tz_str_db)
-        dt_str = str(dt_str, )
-        sql = f"REPLACE INTO {Metric.upload_dates_table} SET dt='{dt_str}',  granularity={granularity} project_id={project_id}, source_id={source_id};"
-        return db.insert(sql)
+        dt_str = str(dt)
+        sql = f"SELECT max(dt) as maxdt from {Metric.upload_dates_table} where granularity='{granularity}' and project_id={project_id}"
+        if not source_id is None:
+            sql += f" and source_id={source_id};" 
+        sql += ";"
+        result = db.query(sql) 
+        if result and not result[0]['maxdt'] is None:
+            sql = f"UPDATE {Metric.upload_dates_table} SET dt='{dt_str}' WHERE  granularity='{granularity}' and project_id={project_id} and source_id={source_id};"
+            print(result)
+            return db.update(sql)    
+        else:
+            exist_dt = SysBf.tzdt(result[0]['maxdt'], tz_str_db)
+            if exist_dt < dt:
+                sql = f"INSERT INTO {Metric.upload_dates_table} (dt,  granularity, project_id, source_id) VALUES ('{dt_str}', '{granularity}', {project_id}, {source_id});"
+                return db.insert(sql)      
+        return None        
     
     @staticmethod
     def get_first_dt(*, db:Mysqldb, granularity:str='h1', id:int=0, tz_str:str='', project_id:int=0, source_id:int=None) -> datetime:

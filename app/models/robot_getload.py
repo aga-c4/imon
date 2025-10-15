@@ -138,6 +138,7 @@ class Robot_getload:
         proc_file = f"{self.proc_path}/{self.alias}_{self.settings['pid']}_{settings_project_id}.pid"
         if os.path.exists(proc_file0) or os.path.exists(proc_file):
             last_proc_dt_str = ''
+            last_proc_dt_str0 = ''
             if os.path.exists(proc_file0):
                 try:
                     file = open(proc_file0, 'r')
@@ -168,7 +169,8 @@ class Robot_getload:
         f.close()
 
         ########################[ Робот ]##########################
-        try:
+        # try:
+        if True:
             metrics_dict = {}
             metrics = Metric.get_list(db=db, metric_type="src")
             # Дадим метрикам ключи - API алиасы метрик    
@@ -183,9 +185,6 @@ class Robot_getload:
 
             # Сформируем дату до которой будем искать данные
             end_dt_str = datetime_to.strftime("%Y-%m-%dT%H")
-
-            last_insert_dt = SysBf.dt_to_tz(Metric.get_last_load_dt(db=db, granularity="m1", tz_str=self.tz_str_db, project_id=self.project_id, source_id=source_id), tz_str=self.tz_str_system)
-
             cur_metric_accum = {}
             dt_insert_from = {}
             db_exist_dt = {}
@@ -210,8 +209,6 @@ class Robot_getload:
                 dt_insert_from[gran] = (datetime_now - timedelta(days=granularity_settings["dblimit"])).strftime("%Y-%m-%d")+"T00:00:00"   
                 # Очистка аккумулятора генерации вышестоящих рядов   
                 cur_metric_accum[gran] = {} 
-            if max_dt < last_insert_dt: 
-                max_dt = last_insert_dt
             # Получим дату последних данных в базе
             max_dt_str = max_dt.strftime("%Y-%m-%dT%H")    
             print("max_dt:", str(max_dt), " --> max_dt_str:", max_dt_str)
@@ -292,7 +289,7 @@ class Robot_getload:
                 for tag in project_tags:
                     project_tags_ids[tag["tag"]] = tag["tag_id"]
                 for dt_file in file_list:
-                    if dt_file>=max_dt_str and dt_file<end_dt_str:
+                    if dt_file>max_dt_str and dt_file<end_dt_str:
                         logging.info(f'API start get {dt_file}')
                         # Забрать архивы по одному, при этом делая что ниже
                         api_timer_sec = 0
@@ -347,7 +344,7 @@ class Robot_getload:
                             # При изменении таймфреймов проведем необохдимые действия по сохранению и т.п.
                             upd_metric_list["m1"] = {}
                             for minute_file in minute_file_list["flist"]:
-                                try:
+                                # try:
                                     cur_minute = minute_file[-2:]   
                                     cur_ts_period["m1"] = [dt_file+f":{cur_minute}:00", dt_file+f":{cur_minute}:59"]
                                     minute_file_full = minute_file_list.get("foldername","")+"/"+minute_file
@@ -401,8 +398,6 @@ class Robot_getload:
                                                     upd_metric_list["m1"][upd_metric][upd_tag] = {"ts":[],"vals":[]}
                                                 upd_metric_list["m1"][upd_metric][upd_tag]["ts"].append(cur_ts_period["m1"])
                                                 upd_metric_list["m1"][upd_metric][upd_tag]["vals"].append(upd_value)
-                                                if last_insert_dt is None or last_insert_dt<cur_ts_period["m1"][0]:
-                                                    last_insert_dt = cur_ts_period["m1"][0]
 
                                             # Добавим в накопитель по текущей минуте
                                             if not upd_metric in upd_metric_minte_all_vals:
@@ -411,13 +406,15 @@ class Robot_getload:
 
                                         # По всем минутным метрикам сформируем "all" из накопителя по текущей минуте
                                         for upd_metric,upd_metric_val in  upd_metric_minte_all_vals.items():
+                                            if not upd_metric in upd_metric_list["m1"]:
+                                                upd_metric_list["m1"][upd_metric] = {}
                                             if not "all" in upd_metric_list["m1"][upd_metric]:
                                                 upd_metric_list["m1"][upd_metric]["all"] = {"ts":[],"vals":[]}
                                             upd_metric_list["m1"][upd_metric]["all"]["ts"].append(cur_ts_period["m1"])
                                             upd_metric_list["m1"][upd_metric]["all"]["vals"].append(upd_metric_val)        
         
-                                except Exception as err:  
-                                    logging.info(f'Robot_getload:run: Error open {minute_file_full} Unexpected {err=}, {type(err)=}')
+                                # except Exception as err:  
+                                #     logging.info(f'Robot_getload:run: Error open {minute_file_full} Unexpected {err=}, {type(err)=}')
 
 
                             granularity_settings = self.granularity_list.get("m1", {})  
@@ -449,8 +446,6 @@ class Robot_getload:
                                                 datetime_to=self.settings['datetime_to'], first_item_enable=True)  
                                     insert_counter_all += res['insert_counter_all'] 
                                     insert_counter["m1"] += res['insert_counter_all'] 
-
-                        Metric.set_last_load_dt(db=db, granularity="m1",  project_id=self.project_id, source_id=source_id, dt=last_insert_dt, tz_str_db=self.tz_str_db)
 
                         api_timer_sec = api_timer.get_time()
                         if api_timer_sec<self.source_get_api_lag_sec: 
@@ -487,7 +482,8 @@ class Robot_getload:
                                         datetime_to=self.settings['datetime_to'], first_item_enable=True)  
                             insert_counter_all += res['insert_counter_all'] 
                             insert_counter[gran] += res['insert_counter_all'] 
-        except Exception as err:
+        else:
+        # except Exception as err:
             errmess = f'Robot:getload:run: {type(err)=} Unexpected {err=}'
             logging.error(errmess)                                  
             self.comment(errmess)
