@@ -15,12 +15,16 @@ class GetLoadAPI:
     def get_list(self):
         headers = {
             'Authorization': f'OAuth {self.token}',
-            'Content-Type': 'application/x-yametrika+json'
+            'Content-Type': 'application/json'
         }
         params = {}
         response = requests.get(self.base_url+'?token='+self.token, params=params, headers=headers)
         if response.status_code == 200:
-            return response.json()
+            try:   
+                return response.json()
+            except:
+                logging.warning(f"GetLoadAPI.get_list: Error parse json")
+                return False
         else:
             return False
                
