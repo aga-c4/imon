@@ -22,7 +22,7 @@ class GetLoadAPI:
             'Content-Type': 'application/json'
         }
         params = {}
-        response = requests.get(self.base_url+'?token='+self.token, params=params, headers=headers)
+        response = requests.get(self.base_url+'?token='+self.token, params=params, headers=headers, verify=self.verify)
         if response.status_code == 200:
             try:   
                 return response.json()
