@@ -6,11 +6,15 @@ import shutil
 
 class GetLoadAPI:
     
-    def __init__(self, *, token:str='', api_url:str='', source:str='', tmp_path:str=''):
+    def __init__(self, *, token:str='', api_url:str='', source:str='', tmp_path:str='', insecure:bool=False):
         self.token = token # API токен
         self.base_url =  api_url # Точка входа в API
         self.source = source # Алиас источника
         self.tmp_path = tmp_path
+        if insecure:
+            self.insecure = True
+        else:
+            self.insecure = False    
 
     def get_list(self):
         headers = {
@@ -52,7 +56,7 @@ class GetLoadAPI:
                     'Authorization': f'OAuth {self.token}',
                     'Content-Type': 'application/json'
                 }
-                response = requests.get(self.base_url+'?file='+file+'&token='+self.token, headers=headers)
+                response = requests.get(self.base_url+'?file='+file+'&token='+self.token, headers=headers, verify=self.insecure)
                 if response.status_code == 200: 
                     with open(zipfilename, 'wb') as file:
                         file.write(response.content)

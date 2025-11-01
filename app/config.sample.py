@@ -111,7 +111,8 @@ config = {
             "timezone": "Europe/Moscow",
             "token": "testtoken",
             "source_get_api_lag_sec": 0,
-            "tmp_path": "tmp/srcget"
+            "tmp_path": "tmp/srcget",
+            "insecure": False
         },        
     },
     "telegram": {
