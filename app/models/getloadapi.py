@@ -12,9 +12,9 @@ class GetLoadAPI:
         self.source = source # Алиас источника
         self.tmp_path = tmp_path
         if insecure:
-            self.insecure = True
+            self.verify = False
         else:
-            self.insecure = False    
+            self.verify = True    
 
     def get_list(self):
         headers = {
@@ -56,7 +56,7 @@ class GetLoadAPI:
                     'Authorization': f'OAuth {self.token}',
                     'Content-Type': 'application/json'
                 }
-                response = requests.get(self.base_url+'?file='+file+'&token='+self.token, headers=headers, verify=self.insecure)
+                response = requests.get(self.base_url+'?file='+file+'&token='+self.token, headers=headers, verify=self.verify)
                 if response.status_code == 200: 
                     with open(zipfilename, 'wb') as file:
                         file.write(response.content)
