@@ -153,8 +153,7 @@ class Robot_mgen:
         f.close()
 
         ########################[ Робот ]##########################
-        # try:
-        if True:
+        try:
             # 1. Получим список ВСЕХ метрик и для res метрик сформируем список метрик от которых они зависят
             metrics_dict = {}
             metrics = Metric.get_list(db=db)
@@ -466,8 +465,8 @@ class Robot_mgen:
                                 metrics[mt['id']]["tags"][tag_id] = mt_minmax[tag_id][mt['id']]
 
                     logging.info(f"Finish {granularity}::{metric_group['metric_group_alias']}::{mt['metric_alias']}")
-        else:
-        # except Exception as err:
+        
+        except Exception as err:
             errmess = f'Robot:mgen:run: {type(err)=} Unexpected {err=}'
             logging.error(errmess)                                  
             self.comment(errmess)

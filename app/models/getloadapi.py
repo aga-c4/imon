@@ -36,7 +36,8 @@ class GetLoadAPI:
                
 
     def get_files(self, *, file:str='', fr_api:bool=False):    
-        try:    
+        try:
+        # if True:        
             zip_foldername = self.tmp_path + '/sysload_arch' 
             zipfilename = zip_foldername + '/' + self.source + '_m1_' + file + '.zip'
             foldername = self.tmp_path + '/' + self.source + '_m1_' + file 
@@ -83,6 +84,7 @@ class GetLoadAPI:
             }  
 
         except:
+        # else:
             logging.warning(f"GetLoadAPI.get_files: Error")
             return False
             

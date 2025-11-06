@@ -171,6 +171,7 @@ class Robot_getload:
 
         ########################[ Робот ]##########################
         try:
+        # if True:
             metrics_dict = {}
             metrics = Metric.get_list(db=db, metric_type="src")
             # Дадим метрикам ключи - API алиасы метрик    
@@ -493,6 +494,7 @@ class Robot_getload:
                             insert_counter_all += res['insert_counter_all'] 
                             insert_counter[gran] += res['insert_counter_all'] 
         except Exception as err:
+        # else:
             errmess = f'Robot:getload:run: {type(err)=} Unexpected {err=}'
             logging.error(errmess)                                  
             self.comment(errmess)
