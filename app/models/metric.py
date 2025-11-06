@@ -168,8 +168,8 @@ class Metric:
     def get_tags_sum_list(*, db:Mysqldb, granularity:str='h1', project_id:int=0, metric_type:str='',
                                tz_str_db:str='', dt_to:datetime, dt_from:datetime) -> list:
         
-        dt_from_str = SysBf.dt_to_tz(dt_from, tz_str_db).strftime('%Y-%m-%d %H:%M:%S')
-        dt_to_str = SysBf.dt_to_tz(dt_to, tz_str_db).strftime('%Y-%m-%d %H:%M:%S')
+        dt_from_str = (SysBf.dt_to_tz(dt_from, tz_str_db)).strftime('%Y-%m-%d %H:%M:%S')
+        dt_to_str = (SysBf.dt_to_tz(dt_to, tz_str_db)).strftime('%Y-%m-%d %H:%M:%S')
         
         sql  = f"SELECT mt.metric_id as metric_id, mmm.metric_alias as metric_alias, mmm.metric_api_alias as metric_api_alias,"
         sql += f" count(mt.value) as val_count, mt.metric_tag_id as tag_id, tg.tag as tag, SUM(mt.value/POW( 10, mt.dp )) as value"
@@ -189,7 +189,7 @@ class Metric:
     @staticmethod
     def clear_table(*, db:Mysqldb, granularity:str='', metric_id:int=0, date_to:datetime, tz_str_db:str=''):
         "Очищает таблицу значений метрик, установите date_to в будущее, удалит все, если не задано metric_id, удалит по всем метрикам"
-        sql = f"DELETE from {Metric.data_table}{granularity} where dt<'" + SysBf.dt_to_tz(date_to, tz_str_db).strftime('%Y-%m-%d %H:%M:%S') +"';"
+        sql = f"DELETE from {Metric.data_table}{granularity} where dt<'" + (SysBf.dt_to_tz(date_to, tz_str_db)).strftime('%Y-%m-%d %H:%M:%S') +"';"
         if metric_id>0:
             sql += f" and metric_id={metric_id}"                                                                                         
         sql += ";" 
@@ -396,14 +396,14 @@ class Metric:
         dt_from_more_str = ''
         dt_to_str = ''
         dt_to_less_str = ''
-        if dt_from is None:
-            dt_from_str = SysBf.dt_to_tz(dt_from, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"),
-        if dt_from_more is None:
-            dt_from_more_str = SysBf.dt_to_tz(dt_from_more, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"),
-        if dt_to is None:
-            dt_to_str = SysBf.dt_to_tz(dt_to, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"), 
-        if dt_to_less is None:
-            dt_to_less_str = SysBf.dt_to_tz(dt_to_less, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"),
+        if not dt_from is None:
+            dt_from_str = (SysBf.dt_to_tz(dt_from, tz_str_db)).strftime("%Y-%m-%d %H:%M:%S")
+        if not dt_from_more is None:
+            dt_from_more_str = (SysBf.dt_to_tz(dt_from_more, tz_str_db)).strftime("%Y-%m-%d %H:%M:%S")
+        if not dt_to is None:
+            dt_to_str = (SysBf.dt_to_tz(dt_to, tz_str_db)).strftime("%Y-%m-%d %H:%M:%S")
+        if not dt_to_less is None:
+            dt_to_less_str = (SysBf.dt_to_tz(dt_to_less, tz_str_db)).strftime("%Y-%m-%d %H:%M:%S")
 
         metric_id_str_all = '' 
         gr_by_str = ""
@@ -461,14 +461,14 @@ class Metric:
         dt_from_more_str = ''
         dt_to_str = ''
         dt_to_less_str = ''
-        if dt_from is None:
-            dt_from_str = SysBf.dt_to_tz(dt_from, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"),
-        if dt_from_more is None:
-            dt_from_more_str = SysBf.dt_to_tz(dt_from_more, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"),
-        if dt_to is None:
-            dt_to_str = SysBf.dt_to_tz(dt_to, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"), 
-        if dt_to_less is None:
-            dt_to_less_str = SysBf.dt_to_tz(dt_to_less, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"),
+        if not dt_from is None:
+            dt_from_str = (SysBf.dt_to_tz(dt_from, tz_str_db)).strftime("%Y-%m-%d %H:%M:%S")
+        if not dt_from_more is None:
+            dt_from_more_str = (SysBf.dt_to_tz(dt_from_more, tz_str_db)).strftime("%Y-%m-%d %H:%M:%S")
+        if not dt_to is None:
+            dt_to_str = (SysBf.dt_to_tz(dt_to, tz_str_db)).strftime("%Y-%m-%d %H:%M:%S")
+        if not dt_to_less is None:
+            dt_to_less_str = (SysBf.dt_to_tz(dt_to_less, tz_str_db)).strftime("%Y-%m-%d %H:%M:%S")
 
         if metric_id>0:
             metric_id_str = 'metric_id'   
@@ -492,7 +492,7 @@ class Metric:
             if orderby!='':                     
                 sql += f" ORDER BY {orderby};"
             else:
-                sql += f" ORDER BY dt;"    
+                sql += f" ORDER BY dt;"       
             result = db.query(sql)   
             found_data = 0
             if type(result) is list:
@@ -512,8 +512,8 @@ class Metric:
         last_items = 0 # Если больше нуля, то берется это количество элементов с конца после даты начала 
         '''
         dt_from_str!=''
-        if dt_from!=None:
-            dt_from_str = SysBf.dt_to_tz(dt_from, tz_str_db).strftime("%Y-%m-%d"),
+        if not dt_from is None:
+            dt_from_str = (SysBf.dt_to_tz(dt_from, tz_str_db)).strftime("%Y-%m-%d")
 
         sql = f"SELECT dt, value, dp from {self.data_table}{self.granularity} where metric_id={self.id} and metric_project_id={self.project_id} and metric_tag_id={self.metric_tag_id}"
         
@@ -598,7 +598,7 @@ class Metric:
         for key, value in anoms.items():
             key_wtz = SysBf.tzdt(key, tz_str)
             if last_anom_dt is None or key_wtz > last_anom_dt:
-                formatted_dt = SysBf.dt_to_tz(key_wtz, tz_str_db).strftime('%Y-%m-%d %H:%M:%S')
+                formatted_dt = (SysBf.dt_to_tz(key_wtz, tz_str_db)).strftime('%Y-%m-%d %H:%M:%S')
                 value = int(value * (10**self.dp))
                 if value>2140000000:
                     logging.warning(f"Anom Very big fin value: {value} dp: {self.dp}!")
@@ -622,8 +622,8 @@ class Metric:
                 metric_id={self.id} and metric_project_id={self.project_id} and metric_tag_id={self.metric_tag_id}"
         
         dt_from_str!=''
-        if dt_from!=None:
-            dt_from_str = SysBf.dt_to_tz(dt_from, tz_str_db).strftime("%Y-%m-%d"),
+        if not dt_from is None:
+            dt_from_str = (SysBf.dt_to_tz(dt_from, tz_str_db)).strftime("%Y-%m-%d")
         
         if dt_from_str:
             sql += f" and dt>='{dt_from_str}'"
@@ -779,7 +779,7 @@ class Metric:
             # Если не апдейт, то соберем пачку на добавление - дата до (не включая начала текущего часа) 
             if cur_item_dt > start_dt and cur_item_dt<datetime_add_to:
                 ins_mt.append({
-                    "dt": SysBf.dt_to_tz(cur_item_dt, tz_str_db).strftime('%Y-%m-%d %H:%M:%S'), 
+                    "dt": (SysBf.dt_to_tz(cur_item_dt, tz_str_db)).strftime('%Y-%m-%d %H:%M:%S'), 
                     "source_id": source_id, 
                     "metric_id": metrics[upd_metric]['id'],  
                     "metric_parentid": metrics[upd_metric]['parentid'], 
