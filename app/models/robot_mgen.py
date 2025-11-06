@@ -153,8 +153,8 @@ class Robot_mgen:
         f.close()
 
         ########################[ Робот ]##########################
-        try:
-
+        # try:
+        if True:
             # 1. Получим список ВСЕХ метрик и для res метрик сформируем список метрик от которых они зависят
             metrics_dict = {}
             metrics = Metric.get_list(db=db)
@@ -174,7 +174,7 @@ class Robot_mgen:
                 logging.info(f"granularity: {granularity}")
 
                 # Почистим базу от лишних записей по данному варианту таймфрейма
-                Metric.clear_table(db=self.db, granularity=granularity, date_to=datetime_now - timedelta(days=granularity_settings['dblimit']))
+                Metric.clear_table(db=self.db, granularity=granularity, date_to=datetime_now - timedelta(days=granularity_settings['dblimit']), tz_str_db=self.tz_str_db)
                 
                 for metric_project in metric_projects:
                     project_id = metric_project["id"]
@@ -195,7 +195,7 @@ class Robot_mgen:
                                                                     metric_type='res',
                                                                     project_id=project_id,
                                                                     tz_str_db=self.tz_str_db, tz_str=self.tz_str_system)
-                    # logging.info(f"last_dt_gen_use_mm[project_id]: mindt={str(last_dt_gen_use_mm['mindt'])}, maxdt={str(last_dt_gen_use_mm['maxdt'])}")  
+                    logging.info(f"last_dt_gen_use_mm[project_id]: mindt={str(last_dt_gen_use_mm['mindt'])}, maxdt={str(last_dt_gen_use_mm['maxdt'])}")  
                     
                     # Получим оптом все границы метрик
                     mt_minmax = Metric.get_all_minmax_dt(db=self.db, 
@@ -466,8 +466,8 @@ class Robot_mgen:
                                 metrics[mt['id']]["tags"][tag_id] = mt_minmax[tag_id][mt['id']]
 
                     logging.info(f"Finish {granularity}::{metric_group['metric_group_alias']}::{mt['metric_alias']}")
-
-        except Exception as err:
+        else:
+        # except Exception as err:
             errmess = f'Robot:mgen:run: {type(err)=} Unexpected {err=}'
             logging.error(errmess)                                  
             self.comment(errmess)

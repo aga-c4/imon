@@ -105,7 +105,8 @@ class Metric:
                             granularity:str='h1', prev_granularity:str='m1', granularity_settings:dict, 
                             project_id:int=0, tz_str_db:str='', tz_str_system:str='', 
                             dt_from:datetime, dt_to:datetime, mode:str="prod",
-                            datetime_to:str='', first_item_enable:bool=False) -> list:
+                            datetime_to:str='', # TODO - поменять тип на datetime
+                            first_item_enable:bool=False) -> list:
         """ dt_from - дата начала НЕ включая,  dt_to - дата окончания НЕ включая. Работает только для src метрик!!! пока"""
 
         if datetime_to!='':
@@ -166,8 +167,10 @@ class Metric:
     @staticmethod
     def get_tags_sum_list(*, db:Mysqldb, granularity:str='h1', project_id:int=0, metric_type:str='',
                                tz_str_db:str='', dt_to:datetime, dt_from:datetime) -> list:
+        
         dt_from_str = SysBf.dt_to_tz(dt_from, tz_str_db).strftime('%Y-%m-%d %H:%M:%S')
         dt_to_str = SysBf.dt_to_tz(dt_to, tz_str_db).strftime('%Y-%m-%d %H:%M:%S')
+        
         sql  = f"SELECT mt.metric_id as metric_id, mmm.metric_alias as metric_alias, mmm.metric_api_alias as metric_api_alias,"
         sql += f" count(mt.value) as val_count, mt.metric_tag_id as tag_id, tg.tag as tag, SUM(mt.value/POW( 10, mt.dp )) as value"
         sql += f" from {Metric.data_table}{granularity} mt" 
@@ -184,9 +187,9 @@ class Metric:
             return []
     
     @staticmethod
-    def clear_table(*, db:Mysqldb, granularity:str='', metric_id:int=0, date_to:datetime):
+    def clear_table(*, db:Mysqldb, granularity:str='', metric_id:int=0, date_to:datetime, tz_str_db:str=''):
         "Очищает таблицу значений метрик, установите date_to в будущее, удалит все, если не задано metric_id, удалит по всем метрикам"
-        sql = f"DELETE from {Metric.data_table}{granularity} where dt<'" + date_to.strftime('%Y-%m-%d %H:%M:%S') +"';"
+        sql = f"DELETE from {Metric.data_table}{granularity} where dt<'" + SysBf.dt_to_tz(date_to, tz_str_db).strftime('%Y-%m-%d %H:%M:%S') +"';"
         if metric_id>0:
             sql += f" and metric_id={metric_id}"                                                                                         
         sql += ";" 
@@ -386,13 +389,21 @@ class Metric:
     @staticmethod
     def get_sum(*, db:Mysqldb, 
                    granularity:str, tz_str_db:str='',  
-                   dt_from:datetime='', dt_to:datetime='', dt_from_more:datetime='', dt_to_less:datetime='',
+                   dt_from:datetime=None, dt_to:datetime=None, dt_from_more:datetime=None, dt_to_less:datetime=None,
                    metric_ids:list=None, metric_parentids:list=None, project_id:int=0, metric_tag_id:int=0) -> dict:
 
-        dt_from_str = SysBf.dt_to_tz(dt_from, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"),
-        dt_from_more_str = SysBf.dt_to_tz(dt_from_more, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"),
-        dt_to_str = SysBf.dt_to_tz(dt_to, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"), 
-        dt_to_less_str = SysBf.dt_to_tz(dt_to_less, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"),
+        dt_from_str = ''
+        dt_from_more_str = ''
+        dt_to_str = ''
+        dt_to_less_str = ''
+        if dt_from is None:
+            dt_from_str = SysBf.dt_to_tz(dt_from, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"),
+        if dt_from_more is None:
+            dt_from_more_str = SysBf.dt_to_tz(dt_from_more, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"),
+        if dt_to is None:
+            dt_to_str = SysBf.dt_to_tz(dt_to, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"), 
+        if dt_to_less is None:
+            dt_to_less_str = SysBf.dt_to_tz(dt_to_less, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"),
 
         metric_id_str_all = '' 
         gr_by_str = ""
@@ -443,13 +454,21 @@ class Metric:
     @staticmethod
     def get_values(*, db:Mysqldb, 
                    granularity:str, tz_str_db:str='',  
-                   dt_from:datetime='', dt_to:datetime='', dt_from_more:datetime='', dt_to_less:datetime='', tz_str:str='', orderby:str='',
+                   dt_from:datetime=None, dt_to:datetime=None, dt_from_more:datetime=None, dt_to_less:datetime=None, tz_str:str='', orderby:str='',
                    metric_id:int=0, metric_parentid:int=0, project_id:int=0, metric_tag_id:int=0) -> dict: 
         
-        dt_from_str = SysBf.dt_to_tz(dt_from, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"),
-        dt_from_more_str = SysBf.dt_to_tz(dt_from_more, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"),
-        dt_to_str = SysBf.dt_to_tz(dt_to, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"), 
-        dt_to_less_str = SysBf.dt_to_tz(dt_to_less, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"),
+        dt_from_str = ''
+        dt_from_more_str = ''
+        dt_to_str = ''
+        dt_to_less_str = ''
+        if dt_from is None:
+            dt_from_str = SysBf.dt_to_tz(dt_from, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"),
+        if dt_from_more is None:
+            dt_from_more_str = SysBf.dt_to_tz(dt_from_more, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"),
+        if dt_to is None:
+            dt_to_str = SysBf.dt_to_tz(dt_to, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"), 
+        if dt_to_less is None:
+            dt_to_less_str = SysBf.dt_to_tz(dt_to_less, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"),
 
         if metric_id>0:
             metric_id_str = 'metric_id'   
@@ -699,7 +718,7 @@ class Metric:
                   tz_str_system:str='',
                   tz_str_db:str='',
                   mode:str='prod',
-                  datetime_to:str='',
+                  datetime_to:str='', # TODO - сменить тип на datetime
                   first_item_enable:bool=False):
 
         insert_counter_all = 0

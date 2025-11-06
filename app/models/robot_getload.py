@@ -205,7 +205,7 @@ class Robot_getload:
                 if db_exist_dt[gran]>max_dt:
                     max_dt = db_exist_dt[gran] 
                     # print(f"new max_dt = db_exist_dt[{gran}]=", db_exist_dt[gran] )
-                Metric.clear_table(db=self.db, granularity=gran, date_to=datetime_now - timedelta(days=granularity_settings['dblimit']))
+                Metric.clear_table(db=self.db, granularity=gran, date_to=datetime_now - timedelta(days=granularity_settings['dblimit']), tz_str_db=self.tz_str_db)
                 # Ограничение по записи в базу
                 dt_insert_from[gran] = (datetime_now - timedelta(days=granularity_settings["dblimit"])).strftime("%Y-%m-%d")+"T00:00:00"   
                 # Очистка аккумулятора генерации вышестоящих рядов   

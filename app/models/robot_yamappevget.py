@@ -142,7 +142,7 @@ class Robot_yamappevget:
             logging.info(f"granularity: {granularity}")
 
             # Почистим базу от лишних записей по данному варианту таймфрейма
-            Metric.clear_table(db=self.db, granularity=granularity, date_to=datetime_now - timedelta(days=granularity_settings['dblimit']))
+            Metric.clear_table(db=self.db, granularity=granularity, date_to=datetime_now - timedelta(days=granularity_settings['dblimit']), tz_str_db=self.tz_str_db)
 
             # Получим группы метрик из базы
             metric_groups = Metric.get_groups(db=db)
