@@ -392,8 +392,8 @@ class Robot_mgen:
                                 for mlist_dt, mlist in mlist_src_vals.items():
                                     # mlist_dt = SysBf.tzdt(mlist_dt, self.tz_str_db) # Неактуально, теперь таймзона устанавливается в get_values()
                                     # mlist_dt = SysBf.tzdt_fr_str(mlist_dt_str, tz_str) # Нужно, если ключи не объекты detetime
-                                    mlist_dt_system_str = str(mlist_dt) # mlist_dt.strftime("%Y-%m-%d %H:%M:%S")
-                                    mlist_dt_db_str = str(SysBf.dt_to_tz(mlist_dt, self.tz_str_db))
+                                    mlist_dt_system_str = mlist_dt.strftime("%Y-%m-%d %H:%M:%S")
+                                    mlist_dt_db_str = SysBf.dt_to_tz(mlist_dt, self.tz_str_db).strftime('%Y-%m-%d %H:%M:%S')
                                     if mlist_dt >= dt_start_gen and mlist_dt <= dt_fin_gen: 
                                         value = Robot_mgen.calculate_formula(mlist, metrics[mt['id']]['metric_modification'])
                                         if value is None:

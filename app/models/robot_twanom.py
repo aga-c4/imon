@@ -80,16 +80,17 @@ class Robot_twanom:
         self.comment_str = ''
         start_time = time.time() 
         datetime_now = SysBf.tzdt(datetime.now(), self.tz_str_system)
+        dt_from_str = self.settings['data'].get('dt_from', '')
+        dt_from = None
+        if dt_from_str!='':
+            dt_from = SysBf.tzdt_fr_str(dt_from_str, self.tz_str_system)
         # print('metric_monitor=', self.metric.info['metric_monitor'])
         if self.metric and self.metric.info['metric_monitor']>0: 
-            # Данные заберем с коррекцией с учетом таймзоны, но не будем это фиксировать.
-            # значения дат будут в timezone БД, но не будет метки  
-            # на этапе добавления инцидентов мы зафиксируем таймзону без изменения времени.
             # Если granularity>"h1", то берем данные за последние пол года
             if self.settings['data']['granularity']!="h1" and self.settings['data']['granularity']!="m1":
-                self.settings['data']['dt_from'] = (datetime_now - timedelta(days=6*30+4)).strftime('%Y-%m-%d')
+                dt_from = datetime_now - timedelta(days=6*30+4)
             reliance = self.metric.get_data(accum_items=self.metric.info['accum_items'], 
-                                            dt_from=self.settings['data']['dt_from'], 
+                                            dt_from=dt_from, 
                                             last_items=self.settings['data']['last_items'], tz_str=self.tz_str_system, tz_str_db=self.tz_str_db)
             res = reliance.squeeze()
             
@@ -111,19 +112,19 @@ class Robot_twanom:
                         self.metric.add_anoms(anoms=anom_dict['anoms'], 
                                             metric_group_id=self.metric.info['metric_group_id'], 
                                             metric_project_id=self.metric.info['metric_project_id'],
-                                            tz_str_to=self.tz_str_db)
+                                            tz_str=self.tz_str_system, tz_str_db=self.tz_str_db)
                     else:
                         if direction in ['neg','both']:
                             self.metric.add_anoms(anoms=anom_dict['anoms_neg'], direction='neg', 
                                             metric_group_id=self.metric.info['metric_group_id'], 
                                             metric_project_id=self.metric.info['metric_project_id'],
-                                            tz_str_to=self.tz_str_db)
+                                            tz_str=self.tz_str_system, tz_str_db=self.tz_str_db)
                             
                         if direction in ['pos','both']:
                             self.metric.add_anoms(anoms=anom_dict['anoms_pos'], direction='pos', 
                                             metric_group_id=self.metric.info['metric_group_id'], 
                                             metric_project_id=self.metric.info['metric_project_id'],
-                                            tz_str_to=self.tz_str_db)    
+                                            tz_str=self.tz_str_system, tz_str_db=self.tz_str_db)    
 
                 except:
                     logging.warning(self.comment(f"metric [{self.settings['data']['metric_id']}] {self.metric.info['metric_name']}: Anomaly Detect ERROR!"))   
@@ -200,9 +201,9 @@ class Robot_twanom:
         anoms_neg = None
         anoms_pos = None
         if output:
-            anoms = self.metric.get_anoms(tz_str=self.tz_str_db, dt_from=self.settings['data']['dt_from'])   
-            anoms_neg = self.metric.get_anoms(direction='neg', tz_str=self.tz_str_db, dt_from=self.settings['data']['dt_from'])   
-            anoms_pos = self.metric.get_anoms(direction='pos', tz_str=self.tz_str_db, dt_from=self.settings['data']['dt_from'])   
+            anoms = self.metric.get_anoms(tz_str=self.tz_str_db, dt_from=dt_from)   
+            anoms_neg = self.metric.get_anoms(direction='neg', tz_str=self.tz_str_db, dt_from=dt_from)   
+            anoms_pos = self.metric.get_anoms(direction='pos', tz_str=self.tz_str_db, dt_from=dt_from)   
         return {"success": True, 
                       "telemetry": {
                           "job_execution_sec": round(time.time() - start_time, 4), 

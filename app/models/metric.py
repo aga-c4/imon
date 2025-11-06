@@ -124,7 +124,7 @@ class Metric:
         insert_counter = 0
         upd_counter = 0
         while cur_dt_to<dt_to:
-            # print("dt_from:", str(dt_from), " cur_dt_to:", str(cur_dt_to), " < dt_to:", str(dt_to))
+            # print("dt_from:", dt_from, " cur_dt_to:", str(cur_dt_to), " < dt_to:", str(dt_to))
             # Получим список тегов и метрик младшего ряда за заданный период   
             # print("dt_from=", cur_dt_from, "dt_to=", cur_dt_to, "cur_dt_from=", cur_dt_from)
             # По тегам и метрикам посчитаем функцию объединения и запишем данные в текущий период
@@ -166,8 +166,8 @@ class Metric:
     @staticmethod
     def get_tags_sum_list(*, db:Mysqldb, granularity:str='h1', project_id:int=0, metric_type:str='',
                                tz_str_db:str='', dt_to:datetime, dt_from:datetime) -> list:
-        dt_from_str = str(SysBf.dt_to_tz(dt_from, tz_str_db))
-        dt_to_str = str(SysBf.dt_to_tz(dt_to, tz_str_db))  
+        dt_from_str = SysBf.dt_to_tz(dt_from, tz_str_db).strftime('%Y-%m-%d %H:%M:%S')
+        dt_to_str = SysBf.dt_to_tz(dt_to, tz_str_db).strftime('%Y-%m-%d %H:%M:%S')
         sql  = f"SELECT mt.metric_id as metric_id, mmm.metric_alias as metric_alias, mmm.metric_api_alias as metric_api_alias,"
         sql += f" count(mt.value) as val_count, mt.metric_tag_id as tag_id, tg.tag as tag, SUM(mt.value/POW( 10, mt.dp )) as value"
         sql += f" from {Metric.data_table}{granularity} mt" 
@@ -186,7 +186,7 @@ class Metric:
     @staticmethod
     def clear_table(*, db:Mysqldb, granularity:str='', metric_id:int=0, date_to:datetime):
         "Очищает таблицу значений метрик, установите date_to в будущее, удалит все, если не задано metric_id, удалит по всем метрикам"
-        sql = f"DELETE from {Metric.data_table}{granularity} where dt<'" + str(date_to)+"';"
+        sql = f"DELETE from {Metric.data_table}{granularity} where dt<'" + date_to.strftime('%Y-%m-%d %H:%M:%S') +"';"
         if metric_id>0:
             sql += f" and metric_id={metric_id}"                                                                                         
         sql += ";" 
@@ -231,7 +231,7 @@ class Metric:
         if granularity=='' or project_id==0:
             return None
         dt = SysBf.dt_to_tz(dt, tz_str_db)
-        dt_str = str(dt)
+        dt_str = dt.strftime('%Y-%m-%d %H:%M:%S')
         sql = f"SELECT max(dt) as maxdt from {Metric.upload_dates_table} where granularity='{granularity}' and project_id={project_id}"
         if not source_id is None:
             sql += f" and source_id={source_id};" 
@@ -327,7 +327,7 @@ class Metric:
         sql = f"UPDATE `{Metric.data_table}{granularity}` SET "
         upd = False
         dt = SysBf.dt_to_tz(metric_dt, tz_str_db)
-        dt_str = str(dt) # datetime.datetime.strftime(dt, '%Y-%m-%d %H:%M:%S')
+        dt_str = dt.strftime('%Y-%m-%d %H:%M:%S')
         for key, value in params.items():
             if key!='dt':
                 if upd:   
@@ -487,16 +487,19 @@ class Metric:
                     res[SysBf.dt_to_tz(SysBf.tzdt(row['dt'], tz_str_db), tz_str)] = value
         return res
 
-    def get_data(self, *, accum_items:int=1, dt_from:str='', last_items:int=0, tz_str_db:str='', tz_str:str='') -> pd.DataFrame:
-        '''Вернет данные по метрике, ключ - datetime в timezone базы данных
+    def get_data(self, *, accum_items:int=1, dt_from:datetime=None, last_items:int=0, tz_str_db:str='', tz_str:str='') -> pd.DataFrame:
+        '''Вернет данные по метрике, ключ - datetime в timezone tz_str
         accum_items = '24' # Количество значений в аккумуляторе (1 - не используем, 7 - для дней по неделям, 24 - для суток по часам)
         last_items = 0 # Если больше нуля, то берется это количество элементов с конца после даты начала 
         '''
+        dt_from_str!=''
+        if dt_from!=None:
+            dt_from_str = SysBf.dt_to_tz(dt_from, tz_str_db).strftime("%Y-%m-%d"),
 
         sql = f"SELECT dt, value, dp from {self.data_table}{self.granularity} where metric_id={self.id} and metric_project_id={self.project_id} and metric_tag_id={self.metric_tag_id}"
         
-        if dt_from!='':
-            sql += f" and dt>='{dt_from}'"
+        if dt_from_str!='':
+            sql += f" and dt>='{dt_from_str}'"
             
         if last_items:
             if dt_from:
@@ -543,7 +546,7 @@ class Metric:
 
         return reliance
 
-    def get_last_anom_dt(self, * , direction:int=0, tz_str:str='') -> dict:
+    def get_last_anom_dt(self, * , direction:int=0, tz_str_db:str='', tz_str:str='') -> dict:
         sql = f"SELECT dt, metric_value from {self.anoms_table}{self.granularity} where \
                 metric_id={self.id} and metric_project_id={self.project_id} and metric_tag_id={self.metric_tag_id}"
         if direction != 0:
@@ -551,13 +554,14 @@ class Metric:
         sql += " ORDER BY dt DESC LIMIT 0,1;"
         result = self.db.query(sql) 
         if result:
-            return SysBf.tzdt(result[0]['dt'], tz_str)
+            return SysBf.dt_to_tz(SysBf.tzdt(result[0]['dt'], tz_str_db), tz_str)
         return None
 
     def add_anoms(self, *, 
                   anoms:pd.Series=pd.Series(), 
                   direction:str='',  
-                  tz_str_to:str='') -> int:
+                  tz_str_db:str='',
+                  tz_str:str='') -> int:
         'Метки времени ожидаются в timezone базы данных без маркировки таймозны'
 
         if direction=='pos':
@@ -571,11 +575,11 @@ class Metric:
         anoms = anoms.to_dict()
         counter_all = 0
         counter = 0
-        last_anom_dt = self.get_last_anom_dt(direction=direction_val, tz_str=tz_str_to)
+        last_anom_dt = self.get_last_anom_dt(direction=direction_val, tz_str_db=tz_str_db, tz_str=tz_str)
         for key, value in anoms.items():
-            key_wtz = SysBf.tzdt(key, tz_str_to)
+            key_wtz = SysBf.tzdt(key, tz_str)
             if last_anom_dt is None or key_wtz > last_anom_dt:
-                formatted_dt = str(key_wtz)
+                formatted_dt = SysBf.dt_to_tz(key_wtz, tz_str_db).strftime('%Y-%m-%d %H:%M:%S')
                 value = int(value * (10**self.dp))
                 if value>2140000000:
                     logging.warning(f"Anom Very big fin value: {value} dp: {self.dp}!")
@@ -594,18 +598,23 @@ class Metric:
         else:
             return 0    
 
-    def get_anoms(self, *, dt_from:str='', last_items:int=0, direction:str='', tz_str:str='') -> pd.Series:
+    def get_anoms(self, *, dt_from:datetime=None, last_items:int=0, direction:str='', tz_str:str='', tz_str_db:str='') -> pd.Series:
         sql = f"SELECT dt, metric_value, posted from {self.anoms_table}{self.granularity} where \
                 metric_id={self.id} and metric_project_id={self.project_id} and metric_tag_id={self.metric_tag_id}"
-        if dt_from:
-            sql += f" and dt>='{dt_from}'"
+        
+        dt_from_str!=''
+        if dt_from!=None:
+            dt_from_str = SysBf.dt_to_tz(dt_from, tz_str_db).strftime("%Y-%m-%d"),
+        
+        if dt_from_str:
+            sql += f" and dt>='{dt_from_str}'"
         if direction=='pos':
             direction_val = 1
         if direction=='neg':
             direction_val = -1
         else:       
             direction_val = 0    
-        if direction!=0:
+        if direction_val!=0:
             sql += f" and direction='{direction}'"    
         if last_items:
             if dt_from:
@@ -621,15 +630,15 @@ class Metric:
         pd_val = []
         for row in result: 
             value = row['metric_value']/(10**self.dp)
-            pd_index.append(SysBf.tzdt(row['dt'], tz_str))
+            pd_index.append(SysBf.dt_to_tz(SysBf.tzdt(row['dt'], tz_str_db), tz_str))
             pd_val.append(value)
         return  pd.Series(pd_val, index=pd_index)  
 
-    def get_actual_anom(self, *, message_dt_lag_sec:int=86400, tz_str:str='') -> dict:
+    def get_actual_anom(self, *, message_dt_lag_sec:int=86400, tz_str:str='', tz_str_db:str='') -> dict:
         dt_start = SysBf.tzdt(datetime.datetime.now() - datetime.timedelta(seconds=message_dt_lag_sec), tz_str)
 
         direction = None
-        formatted_dt_start = str(dt_start)
+        formatted_dt_start = dt_start.strftime('%Y-%m-%d %H:%M:%S')
         sql = f"SELECT id, dt, metric_value, direction, posted from {self.anoms_table}{self.granularity} where \
                 dt>'{formatted_dt_start}' \
                 and metric_id={self.id}  and metric_project_id={self.project_id} and metric_tag_id={self.metric_tag_id} \
@@ -641,7 +650,7 @@ class Metric:
             direction = result[0]['direction']
 
         dt_start2 = SysBf.tzdt(datetime.datetime.now() - datetime.timedelta(seconds=10800), tz_str) # За последние 3 часа
-        formatted_dt_start2 = str(dt_start2)
+        formatted_dt_start2 = dt_start2.strftime('%Y-%m-%d %H:%M:%S')
         sql = f"SELECT id, dt, metric_value, direction, posted from {self.anoms_table}{self.granularity} where \
                 dt>'{formatted_dt_start2}' \
                 and metric_id={self.id} and metric_project_id={self.project_id} and metric_tag_id={self.metric_tag_id} \
@@ -654,7 +663,7 @@ class Metric:
                 if direction is None or (row['direction']!=direction):
                     return {
                         "id": row["id"],
-                        "dt": SysBf.tzdt(row["dt"], tz_str),
+                        "dt": SysBf.dt_to_tz(SysBf.tzdt(row["dt"], tz_str_db), tz_str),
                         "direction": row["direction"]
                     }
         return None
@@ -693,6 +702,8 @@ class Metric:
                   datetime_to:str='',
                   first_item_enable:bool=False):
 
+        print("add_fr_ym: tz_str_source=", tz_str_source, " tz_str_system:", tz_str_system, " tz_str_db=", tz_str_db)
+
         insert_counter_all = 0
         upd_counter_all = 0
         if datetime_to!='':
@@ -723,8 +734,8 @@ class Metric:
 
             tsStr1 = upd_metric_time_intervals[itemKey][0] # Начальная дата интервала, иногда со временем "2024-09-15 00:00:00"
             real_value = round(updValue*(10**int(metrics[upd_metric]['metric_dp'])))
-            cur_item_dt = SysBf.tzdt_fr_str(tsStr1, tz_str_source) # $curItemTs
-            cur_item_dt_str = str(cur_item_dt) # datetime.strftime(cur_item_dt,'%Y-%m-%d %H:%M:%S') #$curItemDate
+            cur_item_dt = SysBf.dt_to_tz(SysBf.tzdt_fr_str(tsStr1, tz_str_source), tz_str_system) # $curItemTs
+            cur_item_dt_str = cur_item_dt.strftime('%Y-%m-%d %H:%M:%S') #$curItemDate
 
             # Проапдейтем несколько последних метрик
             upd_max_dt = SysBf.tzdt_fr_str('', tz_str_system)
@@ -741,7 +752,7 @@ class Metric:
                     Metric.stupdateval(db=db, 
                                     granularity=granularity, 
                                     metric_id=metrics[upd_metric]['id'], 
-                                    metric_dt = cur_item_dt,
+                                    metric_dt = cur_item_dt, tz_str_db=tz_str_db,
                                     project_id=project_id, metric_tag_id=metric_tag_id, 
                                     params={"value": real_value, "dp": metrics[upd_metric]['metric_dp']})
                 logging.info(f"Update {granularity}.[{metrics[upd_metric]['id']}.{metrics[upd_metric]['metric_alias']}.{project_id}.{metric_tag_id}: [{cur_item_dt_str}] = {real_value}")
@@ -751,7 +762,7 @@ class Metric:
             # Если не апдейт, то соберем пачку на добавление - дата до (не включая начала текущего часа) 
             if cur_item_dt > start_dt and cur_item_dt<datetime_add_to:
                 ins_mt.append({
-                    "dt": cur_item_dt_str, 
+                    "dt": SysBf.dt_to_tz(cur_item_dt, tz_str_db).strftime('%Y-%m-%d %H:%M:%S'), 
                     "source_id": source_id, 
                     "metric_id": metrics[upd_metric]['id'],  
                     "metric_parentid": metrics[upd_metric]['parentid'], 
