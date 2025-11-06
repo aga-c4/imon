@@ -194,7 +194,7 @@ class Metric:
         return result   
 
     @staticmethod
-    def get_last_dt(*, db:Mysqldb, granularity:str='h1', id:int=0, tz_str:str='', project_id:int=0, source_id:int=None) -> datetime:
+    def get_last_dt(*, db:Mysqldb, granularity:str='h1', id:int=0, tz_str_db:str='', project_id:int=0, source_id:int=None) -> datetime:
         sql = f"SELECT max(dt) as maxdt from {Metric.data_table}{granularity} where metric_project_id={project_id}"
         if id>0:
             sql += f" and metric_id={id}"
@@ -206,13 +206,13 @@ class Metric:
             if not result[0]['maxdt'] is None:
                 # print("get_last_dt:", result[0]['maxdt'])
                 # print("get_last_dt_str:", str(result[0]['maxdt']))
-                return SysBf.tzdt(result[0]['maxdt'], tz_str)
-        return SysBf.tzdt_fr_str(dt_str='1980-01-01', tz_str=tz_str)
+                return SysBf.tzdt(result[0]['maxdt'], tz_str_db)
+        return SysBf.tzdt_fr_str(dt_str='1980-01-01', tz_str=tz_str_db)
     
     @staticmethod
-    def get_last_load_dt(*, db:Mysqldb, granularity:str='h1', project_id:int=0, source_id:int=None, tz_str:str='') -> datetime:
+    def get_last_load_dt(*, db:Mysqldb, granularity:str='h1', project_id:int=0, source_id:int=None, tz_str_db:str='') -> datetime:
         if granularity=='' or project_id==0:
-            return SysBf.tzdt_fr_str(dt_str='1980-01-01', tz_str=tz_str)
+            return SysBf.tzdt_fr_str(dt_str='1980-01-01', tz_str=tz_str_db)
         sql = f"SELECT max(dt) as maxdt from {Metric.upload_dates_table} where granularity='{granularity}' and project_id={project_id}"
         if not source_id is None:
             sql += f" and source_id={source_id};" 
@@ -222,8 +222,8 @@ class Metric:
             if not result[0]['maxdt'] is None:
                 # print("get_last_dt:", result[0]['maxdt'])
                 # print("get_last_dt_str:", str(result[0]['maxdt']))
-                return SysBf.tzdt(result[0]['maxdt'], tz_str)
-        return SysBf.tzdt_fr_str(dt_str='1980-01-01', tz_str=tz_str)
+                return SysBf.tzdt(result[0]['maxdt'], tz_str_db)
+        return SysBf.tzdt_fr_str(dt_str='1980-01-01', tz_str=tz_str_db)
     
     @staticmethod
     def set_last_load_dt(*, db:Mysqldb, granularity:str='h1', project_id:int=0, source_id:int=None, dt=datetime, tz_str_db:str='') -> bool:
@@ -249,7 +249,7 @@ class Metric:
         return None        
     
     @staticmethod
-    def get_first_dt(*, db:Mysqldb, granularity:str='h1', id:int=0, tz_str:str='', project_id:int=0, source_id:int=None) -> datetime:
+    def get_first_dt(*, db:Mysqldb, granularity:str='h1', id:int=0, tz_str_db:str='', project_id:int=0, source_id:int=None) -> datetime:
         sql = f"SELECT min(dt) as mindt from {Metric.data_table}{granularity} where metric_project_id={project_id}"
         if id>0:
             sql += f" and metric_id={id}"
@@ -262,7 +262,7 @@ class Metric:
             if not result[0]['mindt'] is None:
                 # print("get_first_dt:", result[0]['mindt'])
                 # print("get_first_dt_str:", str(result[0]['mindt']))
-                return SysBf.tzdt(result[0]['mindt'], tz_str)
+                return SysBf.tzdt(result[0]['mindt'], tz_str_db)
         return None
     
     @staticmethod
@@ -323,10 +323,11 @@ class Metric:
         return result
     
     @staticmethod
-    def stupdateval(*, db:Mysqldb, granularity:str='', metric_id:int=0, project_id:int=0, metric_tag_id:int=0, metric_dt:datetime, params:dict={}):
+    def stupdateval(*, db:Mysqldb, granularity:str='', metric_id:int=0, project_id:int=0, metric_tag_id:int=0, metric_dt:datetime, tz_str_db:str='', params:dict={}):
         sql = f"UPDATE `{Metric.data_table}{granularity}` SET "
         upd = False
-        dt_str = str(metric_dt) # datetime.datetime.strftime(metric_dt, '%Y-%m-%d %H:%M:%S')
+        dt = SysBf.dt_to_tz(metric_dt, tz_str_db)
+        dt_str = str(dt) # datetime.datetime.strftime(dt, '%Y-%m-%d %H:%M:%S')
         for key, value in params.items():
             if key!='dt':
                 if upd:   
@@ -347,7 +348,7 @@ class Metric:
 
     @staticmethod
     def insert_list(*, db:Mysqldb, granularity:str='', params:list=[]):
-        "Состав полей должен быть одинаковым, иначе будет все добавляться по первому элементу!"
+        "Состав полей должен быть одинаковым, иначе будет все добавляться по первому элементу! Учитывайте таймзону БД в датасете"
         sql = f"INSERT INTO {Metric.data_table}{granularity}"
         key_str = ''
         val_str = ''
@@ -384,9 +385,14 @@ class Metric:
     
     @staticmethod
     def get_sum(*, db:Mysqldb, 
-                   granularity:str, 
-                   dt_from:str='', dt_to:str='', dt_from_more:str='', dt_to_less:str='', tz_str:str='',
+                   granularity:str, tz_str_db:str='',  
+                   dt_from:datetime='', dt_to:datetime='', dt_from_more:datetime='', dt_to_less:datetime='',
                    metric_ids:list=None, metric_parentids:list=None, project_id:int=0, metric_tag_id:int=0) -> dict:
+
+        dt_from_str = SysBf.dt_to_tz(dt_from, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"),
+        dt_from_more_str = SysBf.dt_to_tz(dt_from_more, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"),
+        dt_to_str = SysBf.dt_to_tz(dt_to, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"), 
+        dt_to_less_str = SysBf.dt_to_tz(dt_to_less, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"),
 
         metric_id_str_all = '' 
         gr_by_str = ""
@@ -416,14 +422,14 @@ class Metric:
 
         if metric_id_str_all!="":   
             sql = f"SELECT metric_id as metric_id, sum(value/POW( 10, dp )) as value from {Metric.data_table}{granularity} where {metric_id_str_all} and metric_project_id={project_id} and metric_tag_id={metric_tag_id}"
-            if dt_from!='':
-                sql += f" and dt>='{dt_from}'"
-            if dt_to!='':
-                sql += f" and dt<='{dt_to}'"   
-            if dt_from_more!='':
-                sql += f" and dt>'{dt_from_more}'"
-            if dt_to_less!='':
-                sql += f" and dt<'{dt_to_less}'"  
+            if dt_from_str!='':
+                sql += f" and dt>='{dt_from_str}'"
+            if dt_to_str!='':
+                sql += f" and dt<='{dt_to_str}'"   
+            if dt_from_more_str!='':
+                sql += f" and dt>'{dt_from_more_str}'"
+            if dt_to_less_str!='':
+                sql += f" and dt<'{dt_to_less_str}'"  
             if gr_by_str!='':    
                 sql += f" GROUP BY {gr_by_str}" 
             sql += ";"      
@@ -436,9 +442,15 @@ class Metric:
 
     @staticmethod
     def get_values(*, db:Mysqldb, 
-                   granularity:str, 
-                   dt_from:str='', dt_to:str='', dt_from_more:str='', dt_to_less:str='', tz_str:str='', orderby:str='',
+                   granularity:str, tz_str_db:str='',  
+                   dt_from:datetime='', dt_to:datetime='', dt_from_more:datetime='', dt_to_less:datetime='', tz_str:str='', orderby:str='',
                    metric_id:int=0, metric_parentid:int=0, project_id:int=0, metric_tag_id:int=0) -> dict: 
+        
+        dt_from_str = SysBf.dt_to_tz(dt_from, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"),
+        dt_from_more_str = SysBf.dt_to_tz(dt_from_more, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"),
+        dt_to_str = SysBf.dt_to_tz(dt_to, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"), 
+        dt_to_less_str = SysBf.dt_to_tz(dt_to_less, tz_str_db).strftime("%Y-%m-%d %H:%M:%S"),
+
         if metric_id>0:
             metric_id_str = 'metric_id'   
             metric_id_val = metric_id   
@@ -450,14 +462,14 @@ class Metric:
         res = {} 
         if metric_id_val>0:  
             sql = f"SELECT dt, value, dp from {Metric.data_table}{granularity} where {metric_id_str}={metric_id_val} and metric_project_id={project_id} and metric_tag_id={metric_tag_id}"
-            if dt_from!='':
-                sql += f" and dt>='{dt_from}'"
-            if dt_to!='':
-                sql += f" and dt<='{dt_to}'"   
-            if dt_from_more!='':
-                sql += f" and dt>'{dt_from_more}'"
-            if dt_to_less!='':
-                sql += f" and dt<'{dt_to_less}'"  
+            if dt_from_str!='':
+                sql += f" and dt>='{dt_from_str}'"
+            if dt_to_str!='':
+                sql += f" and dt<='{dt_to_str}'"   
+            if dt_from_more_str!='':
+                sql += f" and dt>'{dt_from_more_str}'"
+            if dt_to_less_str!='':
+                sql += f" and dt<'{dt_to_less_str}'"  
             if orderby!='':                     
                 sql += f" ORDER BY {orderby};"
             else:
@@ -472,10 +484,10 @@ class Metric:
                     value = 0
                     if not row['value'] is None and row['value']:
                         value = row['value']/(10**row['dp'])
-                    res[SysBf.tzdt(row['dt'], tz_str)] = value
+                    res[SysBf.dt_to_tz(SysBf.tzdt(row['dt'], tz_str_db), tz_str)] = value
         return res
 
-    def get_data(self, *, accum_items:int=1, dt_from:str='', last_items:int=0, tz_str:str='') -> pd.DataFrame:
+    def get_data(self, *, accum_items:int=1, dt_from:str='', last_items:int=0, tz_str_db:str='', tz_str:str='') -> pd.DataFrame:
         '''Вернет данные по метрике, ключ - datetime в timezone базы данных
         accum_items = '24' # Количество значений в аккумуляторе (1 - не используем, 7 - для дней по неделям, 24 - для суток по часам)
         last_items = 0 # Если больше нуля, то берется это количество элементов с конца после даты начала 
@@ -516,12 +528,13 @@ class Metric:
                     accum.pop(0)
                 accum.append(value)
                 accum_len = len(accum)
+                cur_dt = SysBf.dt_to_tz(SysBf.tzdt(row['dt'], tz_str_db), tz_str)
                 if accum_len>=accum_items:
                     res["count"].append(sum(accum)/accum_len)
-                    res["date_time"].append(row['dt'])
+                    res["date_time"].append(cur_dt)
             else:
                 res["count"].append(value)
-                res["date_time"].append(row['dt'])
+                res["date_time"].append(cur_dt)
 
         del(result)       
 

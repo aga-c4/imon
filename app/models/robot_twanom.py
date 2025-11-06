@@ -90,7 +90,7 @@ class Robot_twanom:
                 self.settings['data']['dt_from'] = (datetime_now - timedelta(days=6*30+4)).strftime('%Y-%m-%d')
             reliance = self.metric.get_data(accum_items=self.metric.info['accum_items'], 
                                             dt_from=self.settings['data']['dt_from'], 
-                                            last_items=self.settings['data']['last_items'], tz_str=self.tz_str_db)
+                                            last_items=self.settings['data']['last_items'], tz_str=self.tz_str_system, tz_str_db=self.tz_str_db)
             res = reliance.squeeze()
             
             if len(res)>0:

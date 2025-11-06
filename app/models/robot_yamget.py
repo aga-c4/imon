@@ -202,7 +202,7 @@ class Robot_yamget:
                     # Конец добавления пачки    
                     
                     # Дата-время последнего значения метики в БД
-                    max_dt = Metric.get_last_dt(db=db, granularity=granularity, id=int(metric['id']), tz_str=self.tz_str_db)
+                    max_dt = Metric.get_last_dt(db=db, granularity=granularity, id=int(metric['id']), tz_str_db=self.tz_str_db)
                     metrics[upd_metric]['max_dt'] = max_dt
                     
                     if max_dt < datetime_to:

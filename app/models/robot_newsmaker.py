@@ -202,10 +202,10 @@ class Robot_newsmaker:
 
         data_funnel = {}
         data_funnel["stage"] = settings["metric_title"]
-        data_funnel["number"] = Metric.get_sum(db=self.db, 
+        data_funnel["number"] = Metric.get_sum(db=self.db, tz_str_db=self.tz_str_db, 
                 granularity=settings["granularity"], 
-                dt_from=settings["dt_from"].strftime("%Y-%m-%d %H:%M:%S"), 
-                dt_to_less=settings["dt_to_less"].strftime("%Y-%m-%d %H:%M:%S"), 
+                dt_from=settings["dt_from"],
+                dt_to_less=settings["dt_to_less"], 
                 device_alias=device_alias, 
                 trafsrc_alias=trafsrc_alias,
                 metric_ids=settings["metric_ids"])
@@ -277,14 +277,13 @@ class Robot_newsmaker:
  
         figure_data = []
         for metric_pos, metric_id in enumerate(settings["metric_ids"]):
-            res = Metric.get_values(db=self.db, 
+            res = Metric.get_values(db=self.db, tz_str_db=self.tz_str_db, 
                 granularity=settings["granularity"], 
-                dt_from=settings["dt_from"].strftime("%Y-%m-%d %H:%M:%S"), 
-                dt_to_less=settings["dt_to_less"].strftime("%Y-%m-%d %H:%M:%S"), 
+                dt_from=settings["dt_from"], 
+                dt_to_less=settings["dt_to_less"], 
                 device_alias=device_alias, 
                 trafsrc_alias=trafsrc_alias,
-                metric_id=metric_id)
-            
+                metric_id=metric_id)  
             x = []
             y = []
             for dt,value in res.items():
@@ -347,10 +346,10 @@ class Robot_newsmaker:
         
         fig = go.Figure()
         for metric_pos, metric_id in enumerate(settings["metric_ids"]):
-            res = Metric.get_values(db=self.db, 
+            res = Metric.get_values(db=self.db, tz_str_db=self.tz_str_db, 
                 granularity=settings["granularity"], 
-                dt_from=settings["dt_from"].strftime("%Y-%m-%d %H:%M:%S"), 
-                dt_to_less=settings["dt_to_less"].strftime("%Y-%m-%d %H:%M:%S"), 
+                dt_from=settings["dt_from"], 
+                dt_to_less=settings["dt_to_less"], 
                 device_alias=device_alias, 
                 trafsrc_alias=trafsrc_alias,
                 metric_id=metric_id)    

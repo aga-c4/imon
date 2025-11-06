@@ -173,7 +173,7 @@ class Robot_mysql1get:
                     metrics_fstr += '_m' + str(metric['id'])
 
                     # Дата-время последнего значения метики в БД
-                    max_dt = Metric.get_last_dt(db=db, granularity=granularity, id=int(metric['id']), tz_str=self.tz_str_db)
+                    max_dt = Metric.get_last_dt(db=db, granularity=granularity, id=int(metric['id']), tz_str_db=self.tz_str_db)
                     metrics[metric_api_alias]['max_dt'] = max_dt
 
                     # Минимальная последняя дата метрик из пачки, надо для формирования начальной даты забора через API

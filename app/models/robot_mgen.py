@@ -341,10 +341,10 @@ class Robot_mgen:
                                             m_src_dt[smt][tag_id] = {"mindt": None, "maxdt": None}       
                                         m_src_dt[smt][tag_id]["mindt"] = dt_start_gen
                                         m_src_dt[smt][tag_id]["maxdt"] = cur_maxdt                                  
-                                        m_src_vals[smt][tag_id] = Metric.get_values(db=db, 
+                                        m_src_vals[smt][tag_id] = Metric.get_values(db=db, tz_str_db=self.tz_str_db, tz_str=self.tz_str_system, 
                                                                     granularity=granularity, 
-                                                                    dt_from=dt_start_gen.strftime("%Y-%m-%d %H:%M:%S"), 
-                                                                    dt_to=dt_fin_gen.strftime("%Y-%m-%d %H:%M:%S"), 
+                                                                    dt_from=dt_start_gen, 
+                                                                    dt_to=dt_fin_gen, 
                                                                     project_id=project_id, metric_tag_id=tag_id,
                                                                     metric_id=smt)
                                         
@@ -361,10 +361,10 @@ class Robot_mgen:
                                             m_src_dt[smt][tag_id] = {"mindt": None, "maxdt": None}               
                                         m_src_dt[smt][0]["mindt"] = dt_start_gen
                                         m_src_dt[smt][0]["maxdt"] = cur_maxdt                                  
-                                        m_src_vals[smt][0] = Metric.get_values(db=db, 
+                                        m_src_vals[smt][0] = Metric.get_values(db=db, tz_str_db=self.tz_str_db, tz_str=self.tz_str_system, 
                                                                     granularity=granularity, 
-                                                                    dt_from=dt_start_gen.strftime("%Y-%m-%d %H:%M:%S"), 
-                                                                    dt_to=dt_fin_gen.strftime("%Y-%m-%d %H:%M:%S"), 
+                                                                    dt_from=dt_start_gen, 
+                                                                    dt_to=dt_fin_gen, 
                                                                     project_id=project_id, metric_tag_id=0,
                                                                     metric_id=smt)        
                                         
@@ -390,9 +390,10 @@ class Robot_mgen:
                                 upd_counter = 0
                                 upd_minmax = {"mindt": None, "maxdt": None}
                                 for mlist_dt, mlist in mlist_src_vals.items():
-                                    mlist_dt = SysBf.tzdt(mlist_dt, self.tz_str_db)
+                                    # mlist_dt = SysBf.tzdt(mlist_dt, self.tz_str_db) # Неактуально, теперь таймзона устанавливается в get_values()
                                     # mlist_dt = SysBf.tzdt_fr_str(mlist_dt_str, tz_str) # Нужно, если ключи не объекты detetime
-                                    mlist_dt_str = str(mlist_dt) # mlist_dt.strftime("%Y-%m-%d %H:%M:%S")
+                                    mlist_dt_system_str = str(mlist_dt) # mlist_dt.strftime("%Y-%m-%d %H:%M:%S")
+                                    mlist_dt_db_str = str(SysBf.dt_to_tz(mlist_dt, self.tz_str_db))
                                     if mlist_dt >= dt_start_gen and mlist_dt <= dt_fin_gen: 
                                         value = Robot_mgen.calculate_formula(mlist, metrics[mt['id']]['metric_modification'])
                                         if value is None:
@@ -415,7 +416,7 @@ class Robot_mgen:
                                                                 project_id=self.project_id,
                                                                 metric_tag_id=tag_id,
                                                                 params={"value": real_value, "dp": mt['metric_dp']})
-                                            logging.info(f"Update {granularity}.{project_id}.{group_id}.{mt['id']}.{mt['metric_alias']}: [{mlist_dt_str}] = {round_value}")
+                                            logging.info(f"Update {granularity}.{project_id}.{group_id}.{mt['id']}.{mt['metric_alias']}: [{mlist_dt_system_str}] = {round_value}")
                                             upd_counter += 1
                                             continue
 
@@ -425,7 +426,7 @@ class Robot_mgen:
                                             if upd_minmax["maxdt"] is None or mlist_dt > upd_minmax["maxdt"]:
                                                 upd_minmax["maxdt"] = mlist_dt  
                                             ins_mt.append({
-                                                "dt": mlist_dt_str, 
+                                                "dt": mlist_dt_db_str,  # С учетом временной зоны БД!
                                                 "source_id": 0, 
                                                 "metric_id": mt['id'], 
                                                 "metric_parentid": mt['parentid'], 
@@ -434,7 +435,7 @@ class Robot_mgen:
                                                 "dp": mt['metric_dp'], 
                                                 "metric_project_id": project_id
                                             })
-                                            logging.info(f"Insert {granularity}.{project_id}.{group_id}.{mt['id']}.{mt['metric_alias']}.{tag_name}: [{mlist_dt_str}] = {round_value}")
+                                            logging.info(f"Insert {granularity}.{project_id}.{group_id}.{mt['id']}.{mt['metric_alias']}.{tag_name}: [{mlist_dt_system_str}] = {round_value}")
                                             insert_counter += len(ins_mt)
                                 # Если есть, что добавлять, добавляем
                                 if len(ins_mt):
