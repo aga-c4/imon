@@ -702,8 +702,6 @@ class Metric:
                   datetime_to:str='',
                   first_item_enable:bool=False):
 
-        print("add_fr_ym: tz_str_source=", tz_str_source, " tz_str_system:", tz_str_system, " tz_str_db=", tz_str_db)
-
         insert_counter_all = 0
         upd_counter_all = 0
         if datetime_to!='':
