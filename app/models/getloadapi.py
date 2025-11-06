@@ -23,6 +23,8 @@ class GetLoadAPI:
         }
         params = {}
         response = requests.get(self.base_url+'?token='+self.token, params=params, headers=headers, verify=self.verify)
+        # print("GetLoadAPI::get_list::response: ", self.verify)
+        # print(response)
         if response.status_code == 200:
             try:   
                 return response.json()
