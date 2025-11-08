@@ -183,20 +183,28 @@ elif namespace.action == 'newsmaker':
     print(message_str)    
 
 elif namespace.action == 'monitor':
-    task_list = Task.get_list(db=db, active=1)
+    task_list = Task.get_list(db=db, active=1, project_id=namespace.project_id)
     task_counter = 0
-    all_comment = ''
+    all_comment = ''   
     for task_info in task_list:
         task = Task.get_task(db=db, id=task_info['id'])
         if task:
-            if namespace.granularity!="" and task.info['task_settings']['data']['granularity']!=namespace.granularity:
+            if namespace.granularity!="" and task.info['granularity']!=namespace.granularity:
                 continue
 
             if namespace.task_id!=0 and task.id!=namespace.task_id:
                 continue
 
-            if namespace.metric_id!=0 and namespace.metric_id!=task.info['task_settings']['data']['metric_id']:
-                continue       
+            if namespace.metric_id!=0 and namespace.metric_id!=task.info['metric_id']:
+                continue             
+            
+            if not 'data' in task.info['task_settings']:
+                task.info['task_settings']['data'] = {}       
+            task.info['task_settings']['data']['project_id'] = task.project_id
+            task.info['task_settings']['data']['metric_tag_id'] = 0
+            task.info['task_settings']['data']['metric_id'] = task.info['metric_id']
+            task.info['task_settings']['data']['granularity'] = task.info['granularity']
+            task.info['task_settings']['message_lvl'] = task.info['message_lvl']
 
             job_id = task.create_job()
             logging.info(f"Create job [{job_id}] for task [{task.id}] with robot {task.info['task_robot']}")
@@ -273,7 +281,7 @@ elif namespace.action == 'delete_jobs':
     task.delete_jobs(status=namespace.job_status)
 
 elif namespace.action == 'create_tasks_for_all_metrics':
-    print('Create tasks: ', Task.create_tasks_for_metrics(db=db, group_id=namespace.group_id))
+    print('Create tasks: ', Task.create_tasks_for_metrics(db=db, group_id=namespace.group_id, project_id=namespace.project_id))
 
 else:
     print("""
@@ -334,7 +342,7 @@ Examples:
     imon.sh newsmaker --granularity d1 --project_id 1                 
     imon.sh newsmaker --granularity w1 --project_id 1                 
     imon.sh newsmaker --granularity m1 --project_id 1     
-    imon.sh create_tasks_for_all_metrics  
+    imon.sh create_tasks_for_all_metrics --project_id 1 
     ./dockerimon.sh runrobot --log_view INFO --robot getload --source sysload --datetime_to 2025-02-01 --project_id 1                 
 """)
     

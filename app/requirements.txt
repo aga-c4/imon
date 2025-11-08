@@ -9,3 +9,4 @@ pytz
 requests
 matplotlib
 python-resources
+statsmodels

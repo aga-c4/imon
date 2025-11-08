@@ -17,7 +17,7 @@ class Robot_twanom:
     """
     Robot settings example: 
     {
-        "data":{"metric_id":21, "granularity":"h1", "region_alias": "", "device_alias": "","accum_items": 24}, 
+        "data":{"region_alias": "", "device_alias": ""}, 
         "anoms":{"direction": "neg", "max_anoms": 0.2, "alpha": 0.01, "piecewise_median_period_weeks": 2}
     }
     """
@@ -34,7 +34,7 @@ class Robot_twanom:
     tz_str_db = ''
 
     def __init__(self, *, settings:None, config:dict={}):
-        data_settings = {"metric_id":0, "granularity":"", "region_alias": "", "device_alias":"", "accum_items":1, "dt_from":"", "last_items":0}
+        data_settings = {"metric_id":0, "project_id":0, "metric_tag_id":0, "granularity":"", "region_alias": "", "device_alias":"", "accum_items":1, "dt_from":"", "last_items":0}
         anom_settings = {"max_anoms":0.1, "direction":"both", "direction_reverce":False, "alpha":0.05, "only_last":None,
                       "threshold":None, "e_value":False, "longterm":False, "piecewise_median_period_weeks":2,
                       "y_log":False, "verbose":False, "resampling":False, "period_override":None}
@@ -53,8 +53,10 @@ class Robot_twanom:
         self.message_dt_lag_sec = int(config['system'].get('message_dt_lag_sec', self.message_dt_lag_sec))
         self.message_dt_lag_sec = int(config['granularity_list'][self.settings['data']['granularity']].get('message_dt_lag_sec', self.message_dt_lag_sec))
         self.metric = Metric.get_metric(db=self.db, id=self.settings['data']['metric_id'], 
-                              granularity=self.settings['data']['granularity'], 
-                              region_alias=self.settings['data']['region_alias'])
+                              project_id=self.settings['data']['project_id'], 
+                              metric_tag_id=self.settings['data']['metric_tag_id'],          
+                              granularity=self.settings['data']['granularity'], # region_alias=self.settings['data']['region_alias']
+                              )
         self.granularity = self.settings['data']['granularity']
         self.tz_str_db = config['db'].get('timezone', self.tz_str_db)
 
@@ -98,7 +100,8 @@ class Robot_twanom:
                 # direction: 'pos', 'neg', 'both', 'bothsplit'
 
                 anom_dict = {'anoms': pd.Series(), 'anoms_pos': pd.Series(), 'anoms_neg': pd.Series(), 'expected': None}
-                try:
+                # try:
+                if True:
                     anoms_settings = dict(self.settings['anoms'])
                     direction = anoms_settings['direction']
                     if self.settings['anoms']['direction'] == 'bothsplit':
@@ -107,26 +110,20 @@ class Robot_twanom:
                         anoms_settings['direction_reverce'] = True   
                     # anoms_settings['direction_reverce'] = True # TODO - для теста         
                     anom_dict = anomaly_detect(res, **anoms_settings) # Всегда отдает {"anoms":pd.Series, ...} Не проверяем
-                    
                     if direction == 'bothsplit':
                         self.metric.add_anoms(anoms=anom_dict['anoms'], 
-                                            metric_group_id=self.metric.info['metric_group_id'], 
-                                            metric_project_id=self.metric.info['metric_project_id'],
                                             tz_str=self.tz_str_system, tz_str_db=self.tz_str_db)
                     else:
                         if direction in ['neg','both']:
                             self.metric.add_anoms(anoms=anom_dict['anoms_neg'], direction='neg', 
-                                            metric_group_id=self.metric.info['metric_group_id'], 
-                                            metric_project_id=self.metric.info['metric_project_id'],
                                             tz_str=self.tz_str_system, tz_str_db=self.tz_str_db)
                             
                         if direction in ['pos','both']:
                             self.metric.add_anoms(anoms=anom_dict['anoms_pos'], direction='pos', 
-                                            metric_group_id=self.metric.info['metric_group_id'], 
-                                            metric_project_id=self.metric.info['metric_project_id'],
                                             tz_str=self.tz_str_system, tz_str_db=self.tz_str_db)    
 
-                except:
+                # except:
+                else:
                     logging.warning(self.comment(f"metric [{self.settings['data']['metric_id']}] {self.metric.info['metric_name']}: Anomaly Detect ERROR!"))   
 
                 # Отошлем сообщения о последней неповторяющейся аномалии в течении message_dt_lag_sec

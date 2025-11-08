@@ -137,7 +137,7 @@ class Robot_getload:
             logging.info(f"granularity: {granularity}")
 
             # Почистим базу от лишних записей по данному варианту таймфрейма
-            Metric.clear_table(db=self.db, granularity=granularity, date_to=datetime_now - timedelta(days=granularity_settings['dblimit']), tz_str_db=self.tz_str_db)
+            Metric.clear_table(db=self.db, granularity=granularity, date_to=SysBf.tzdt(datetime_now - timedelta(days=granularity_settings['dblimit']), self.tz_str_system), tz_str_db=self.tz_str_db)
 
             print("Робот работает!")
             

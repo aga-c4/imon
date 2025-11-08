@@ -63,13 +63,15 @@ class SysBf:
             return None
         if dt.tzinfo == tz_str:
             return dt
+        if not dt.tzinfo is None:
+            return SysBf.dt_to_tz(dt, tz_str)
         tzdt = dt
         if tz_str!='':
             try:
                 timezone = pytz.timezone(tz_str)
                 tzdt = timezone.localize(tzdt)
             except:
-                logging.error(f'SysBf:tzdt: Timezone format error [{tz_str}] type:' + str(type(tz_str)) + ' time: ' + str(dt))    
+                logging.error(f'SysBf:tzdt: Timezone format error [{tz_str}] type:' + str(type(tz_str)) + ' time: ' + str(dt) + ' time_tipe:' + str(type(dt)))    
 
         return tzdt
 

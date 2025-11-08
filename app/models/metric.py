@@ -511,7 +511,7 @@ class Metric:
         accum_items = '24' # Количество значений в аккумуляторе (1 - не используем, 7 - для дней по неделям, 24 - для суток по часам)
         last_items = 0 # Если больше нуля, то берется это количество элементов с конца после даты начала 
         '''
-        dt_from_str!=''
+        dt_from_str=''
         if not dt_from is None:
             dt_from_str = (SysBf.dt_to_tz(dt_from, tz_str_db)).strftime("%Y-%m-%d")
 
@@ -543,6 +543,7 @@ class Metric:
                     found_data = 1
             
             value = 0
+            cur_dt = SysBf.dt_to_tz(SysBf.tzdt(row['dt'], tz_str_db), tz_str)
             if not row['value'] is None and row['value']:
                 value = row['value']/(10**self.dp)
             if accum_items>1:
@@ -550,7 +551,6 @@ class Metric:
                     accum.pop(0)
                 accum.append(value)
                 accum_len = len(accum)
-                cur_dt = SysBf.dt_to_tz(SysBf.tzdt(row['dt'], tz_str_db), tz_str)
                 if accum_len>=accum_items:
                     res["count"].append(sum(accum)/accum_len)
                     res["date_time"].append(cur_dt)
@@ -585,18 +585,19 @@ class Metric:
 
         if direction=='pos':
             direction_val = 1
-        if direction=='neg':
+        elif direction=='neg':
             direction_val = -1
         else:       
             direction_val = 0
-        sql = f"INSERT INTO {self.anoms_table}{self.granularity} (dt, metric_id, metric_parentid, metric_value, region_alias, device_alias, trafsrc_alias, direction, metric_project_id, metric_tag_id) VALUES "
+        sql = f"INSERT INTO {self.anoms_table}{self.granularity} (dt, metric_id, metric_parentid, metric_value, direction, metric_project_id, metric_tag_id) VALUES "
 
+        
         anoms = anoms.to_dict()
         counter_all = 0
         counter = 0
         last_anom_dt = self.get_last_anom_dt(direction=direction_val, tz_str_db=tz_str_db, tz_str=tz_str)
         for key, value in anoms.items():
-            key_wtz = SysBf.tzdt(key, tz_str)
+            key_wtz = SysBf.tzdt(key.to_pydatetime(), tz_str)
             if last_anom_dt is None or key_wtz > last_anom_dt:
                 formatted_dt = (SysBf.dt_to_tz(key_wtz, tz_str_db)).strftime('%Y-%m-%d %H:%M:%S')
                 value = int(value * (10**self.dp))
@@ -605,7 +606,7 @@ class Metric:
                     value = 2140000000
                 if counter>0:
                     sql += ','
-                sql += f"('{formatted_dt}', {self.id}, {self.parentid}, {value}, '{self.region_alias}', '{self.device_alias}', '{self.trafsrc_alias}', {direction_val}, {self.project_id}, {self.metric_tag_id})"
+                sql += f"('{formatted_dt}', {self.id}, {self.parentid}, {value}, {direction_val}, {self.project_id}, {self.metric_tag_id})"
                 counter += 1
             counter_all += 1    
         sql += ';'

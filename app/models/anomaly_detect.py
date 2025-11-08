@@ -379,7 +379,9 @@ def anomaly_detect(x, max_anoms=0.1, direction="both", direction_reverce=False, 
     # validation
     assert isinstance(x, pd.Series), 'Data must be a series(Pandas.Series)'
     assert x.values.dtype in [int, float], 'Values of the series must be number'
-    assert x.index.dtype == np.dtype('datetime64[ns]'), 'Index of the series must be datetime'
+    # print("x.index.dtype:", str(x.index.dtype))
+    assert str(x.index.dtype).startswith("datetime64[ns"), 'Index of the series must be datetime'
+    # assert x.index.dtype == np.dtype('datetime64[ns]'), 'Index of the series must be datetime'
     assert max_anoms <= 0.49 and max_anoms >= 0, 'max_anoms must be non-negative and less than 50% '
     assert direction in ['pos', 'neg', 'both'], 'direction options: pos | neg | both'
     assert only_last in [None, 'day', 'hr'], 'only_last options: None | day | hr'
