@@ -11,12 +11,14 @@ class Task:
     info = None
     job = None
     id = None
+    project_id=0
 
     def __init__(self, *, db:Mysqldb, id:int):
         assert id > 0, 'Task.__init__: Tasks id is not set'
         self.db = db
         self.id = int(id)
         self.info = self.get_info()
+        self.project_id = self.info["task_project_id"]
 
     @staticmethod
     def get_task(*, db:Mysqldb, id:int=0):
@@ -28,11 +30,16 @@ class Task:
         return task
 
     @staticmethod
-    def get_list(*, db:Mysqldb, active:int=-1) -> list:
+    def get_list(*, db:Mysqldb, active:int=-1, project_id:int=0) -> list:
         active = int(active)
         sql = f"SELECT * from {Task.table}"
+        sql_where = " WHERE 1=1"       
         if active>=0:
-            sql += f" WHERE task_active={active}"     
+            sql_where += f" and task_active={active}"     
+        if project_id>=0:
+            sql_where += f" and task_project_id={project_id}"         
+        if sql_where != " WHERE 1=1":    
+            sql += sql_where  
         sql += ";"        
         result = db.query(sql)
         return result  
@@ -47,41 +54,47 @@ class Task:
         return info 
     
     def get_jobs_list(self, *, limit:int=0, status:str='') -> list:
-        return Job.get_list(db=self.db, task_id=self.id, limit=limit, status=status)
+        return Job.get_list(db=self.db, task_id=self.id, limit=limit, status=status, 
+                            project_id=self.project_id)
     
     def get_run(self) -> int:
-        return  Job.get_run(db=self.db, task_id=self.id, max_execution_sec=self.info['task_max_execution_sec'])
+        return  Job.get_run(db=self.db, task_id=self.id, max_execution_sec=self.info['task_max_execution_sec'], 
+                            project_id=self.project_id)
 
     def create_job(self) -> Job:
         if not self.job and not self.get_run():
-            self.job = Job.create_job(db=self.db, task_id=self.id)
+            self.job = Job.create_job(db=self.db, task_id=self.id, project_id=self.project_id)
             return self.job
         logging.warning(f"Task[{self.id}] already have the job!")
         return None
 
-    def update_job(self, *, job_execution_sec=0, job_max_mem_kb=0, job_dt_fin='', job_status='', job_comment='') -> int:
+    def update_job(self, *, job_execution_sec:int=0, job_max_mem_kb:int=0,
+                   job_dt_fin='', job_status='', job_comment='') -> int:
         if self.job:
-            job = Job(db=self.db, id=self.job)
+            job = Job(db=self.db, id=self.job, project_id=self.project_id)
             return job.update_job(
-                job_execution_sec=job_execution_sec,
-                job_max_mem_kb=job_max_mem_kb, 
-                job_dt_fin=job_dt_fin, 
-                job_status=job_status, 
-                job_comment=job_comment)
+                job_execution_sec = job_execution_sec,
+                job_max_mem_kb = job_max_mem_kb, 
+                job_dt_fin = job_dt_fin, 
+                job_status = job_status, 
+                job_comment = job_comment)
         return 0
     
     def delete_jobs(self, *, status:str='') -> int:
         self.job = None
-        return Job.delete_jobs(db=self.db, status=status, task_id=self.id)
+        return Job.delete_jobs(db=self.db, status=status, task_id=self.id, project_id=self.project_id)
 
     @staticmethod
-    def create_tasks_for_metrics(*, db:Mysqldb, group_id:int=0) -> int:
+    def create_tasks_for_metrics(*, db:Mysqldb, group_id:int=0, project_id:int=0) -> int:
         'Добавляет задачи по метрикам без задач'
         
         counter = 0
+        if project_id==0:
+            return 0
+        
         metric_list = Metric.get_list(db=db, group_id=group_id)
         print('len metric_list:', len(metric_list))
-        tasks_list = Task.get_list(db=db)
+        tasks_list = Task.get_list(db=db, project_id=project_id)
         tasks_list2 = []
         if type(tasks_list) is list or len(tasks_list)>0:
             for task in tasks_list:
@@ -100,8 +113,12 @@ class Task:
                     accum_items = 1
                     if message_lvl == 4:
                         accum_items = 8
-                    task_settings_str = '{"data":{"metric_id":'+str(metric['id'])+', "granularity":"h1", "region_alias": "", "device_alias": "","accum_items": '+str(accum_items)+'}, "anoms":{"direction": "both", "max_anoms": 0.2, "alpha": 0.01, "piecewise_median_period_weeks": 2},"message_lvl":"'+str(message_lvl)+'"}'
-                    sql = f"INSERT INTO {Task.table} (task_active, task_comment, task_settings, task_robot) VALUES (1, 'anom_{metric['metric_alias']}_h1', '{task_settings_str}', 'twanom');"    
+                    task_active = 0
+                    if metric['metric_monitor']==1:
+                        task_active = 1     
+                    cur_metric_id = metric['id']    
+                    task_settings_str = '{"data":{"region_alias": "", "device_alias": ""}, "anoms":{"direction": "both", "max_anoms": 0.2, "alpha": 0.01, "piecewise_median_period_weeks": 2}}'
+                    sql = f"INSERT INTO {Task.table} (task_active, metric_id, granularity, message_lvl, task_comment, task_settings, task_robot, task_project_id) VALUES ({task_active}, {cur_metric_id}, 'h1', '{message_lvl}', 'anom_{metric['metric_alias']}_h1', '{task_settings_str}', 'twanom', {project_id});"    
                     db.insert(sql)
                     counter += 1
 
