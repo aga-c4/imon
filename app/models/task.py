@@ -29,6 +29,7 @@ class Task:
             return None
         return task
 
+
     @staticmethod
     def get_list(*, db:Mysqldb, active:int=-1, project_id:int=0) -> list:
         active = int(active)
