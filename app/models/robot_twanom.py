@@ -164,9 +164,9 @@ class Robot_twanom:
 
                     project_id = self.settings['data']['project_id']
                     project_name = f"[{project_id}]"
-                    project = Project.get_project(db=self.db, id=project_id)
+                    project = Project(db=self.db, id=project_id)
                     if not project is None:
-                        project_name = project["metric_project_name"]
+                        project_name = project.info["metric_project_name"]
                     
                     msg_anom_pos = config['message_str'].get('msg_anom_pos', "{project_name} - {metric_name}: Превышение нормы!").format(metric_name=metric_name, project_name=project_name)
                     msg_anom_neg = config['message_str'].get('msg_anom_neg', "{project_name} - {metric_name}: Ниже нормы!").format(metric_name=metric_name, project_name=project_name)

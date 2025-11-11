@@ -11,15 +11,13 @@ class Project:
         self.db = db
         self.id = int(id)
         self.info = self.get_info()
-
-    @staticmethod
-    def get_project(*, db:Mysqldb, id:int=0):
-        if not id:
-            return None
-        project = Project(db=db, id=id)
-        if not project.info:
-            return None
-        return project
+        if self.info is None:
+            self.id = 0
+            self.info = {
+                "id": 0,
+                "metric_project_alias": "Def",
+                "metric_project_name": "Def"
+            }
 
     @staticmethod
     def get_list(*, db:Mysqldb) -> list:
