@@ -23,7 +23,7 @@ class GetLoadAPI:
         }
         params = {}
         url = self.base_url
-        if self.base_url[-1]=='?':
+        if self.base_url.find('?') == -1:
             url += '?'
         url += '?token='+self.token        
         response = requests.get(url, params=params, headers=headers, verify=self.verify)
@@ -64,7 +64,7 @@ class GetLoadAPI:
                     'Content-Type': 'application/json'
                 }
                 url = self.base_url
-                if self.base_url[-1]=='?':
+                if self.base_url.find('?') == -1:
                     url += '?'
                 url += '?token='+self.token  
                 response = requests.get(url, headers=headers, verify=self.verify)
