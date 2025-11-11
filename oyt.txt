@@ -1,0 +1,44 @@
+path: /usr/src/app
+action:  runrobot
+Traceback (most recent call last):
+  File [35m"/usr/local/lib/python3.13/site-packages/mysql/connector/network.py"[0m, line [35m795[0m, in [35mopen_connection[0m
+    [31mself.sock.connect[0m[1;31m(sockaddr)[0m
+    [31m~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^^^^^[0m
+[1;35mConnectionRefusedError[0m: [35m[Errno 111] Connection refused[0m
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File [35m"/usr/src/app/imon.py"[0m, line [35m75[0m, in [35m<module>[0m
+    db = Mysqldb(config['db'])
+  File [35m"/usr/src/app/models/mysqldb.py"[0m, line [35m66[0m, in [35m__init__[0m
+    [31mself.connect[0m[1;31m()[0m
+    [31m~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/usr/src/app/models/mysqldb.py"[0m, line [35m44[0m, in [35mconnect[0m
+    self.connection = [31mmysql.connector.connect[0m[1;31m([0m
+                      [31m~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^[0m
+        [1;31mhost=self.config_db['host'],[0m
+        [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+    ...<3 lines>...
+        [1;31mdatabase=self.config_db['db'][0m
+        [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+    [1;31m)[0m
+    [1;31m^[0m
+  File [35m"/usr/local/lib/python3.13/site-packages/mysql/connector/pooling.py"[0m, line [35m323[0m, in [35mconnect[0m
+    return MySQLConnection(*args, **kwargs)
+  File [35m"/usr/local/lib/python3.13/site-packages/mysql/connector/connection.py"[0m, line [35m185[0m, in [35m__init__[0m
+    [31mself.connect[0m[1;31m(**kwargs)[0m
+    [31m~~~~~~~~~~~~[0m[1;31m^^^^^^^^^^[0m
+  File [35m"/usr/local/lib/python3.13/site-packages/mysql/connector/abstracts.py"[0m, line [35m1604[0m, in [35mconnect[0m
+    [31mself._open_connection[0m[1;31m()[0m
+    [31m~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/usr/local/lib/python3.13/site-packages/mysql/connector/connection.py"[0m, line [35m411[0m, in [35m_open_connection[0m
+    raise err
+  File [35m"/usr/local/lib/python3.13/site-packages/mysql/connector/connection.py"[0m, line [35m382[0m, in [35m_open_connection[0m
+    [31mself._socket.open_connection[0m[1;31m()[0m
+    [31m~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/usr/local/lib/python3.13/site-packages/mysql/connector/network.py"[0m, line [35m806[0m, in [35mopen_connection[0m
+    raise InterfaceError(
+    ...<2 lines>...
+    ) from err
+[1;35mmysql.connector.errors.InterfaceError[0m: [35m2003: Can't connect to MySQL server on '127.0.0.1:3306' (Errno 111: Connection refused)[0m

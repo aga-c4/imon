@@ -622,7 +622,7 @@ class Metric:
         sql = f"SELECT dt, metric_value, posted from {self.anoms_table}{self.granularity} where \
                 metric_id={self.id} and metric_project_id={self.project_id} and metric_tag_id={self.metric_tag_id}"
         
-        dt_from_str!=''
+        dt_from_str=''
         if not dt_from is None:
             dt_from_str = (SysBf.dt_to_tz(dt_from, tz_str_db)).strftime("%Y-%m-%d")
         
