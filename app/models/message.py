@@ -16,11 +16,20 @@ class Message():
     all_channel = None
     news_channel = None
 
-    def __init__(self):
+    def __init__(self, *, project_id:int=0):
+            
         Message.status = True
-        telegram_conf = config.get('telegram', None)
-        if telegram_conf is None:
+        telegram_conf_dict = config.get('telegram', None)
+        if telegram_conf_dict is None:
             Message.status = False
+
+        telegram_conf_def = telegram_conf_dict[0]
+        project_id = project_id
+        if project_id==0:    
+            telegram_conf = telegram_conf_def
+        else:
+            telegram_conf_prj = telegram_conf_dict.get(0, {})
+            telegram_conf = {**telegram_conf_prj, **telegram_conf_def}
         
         if self.status:
             telegram_api_token = telegram_conf.get('api_token', None)
@@ -32,7 +41,7 @@ class Message():
             if channels is None:
                 Message.status = False
             
-        if Message.status:  
+        if Message.status:      
             if telegram_api_token!='':
                 Message.bot = telebot.TeleBot(telegram_api_token)
 
@@ -44,14 +53,14 @@ class Message():
             self.news_channel = channels.get('news', '')
 
     @staticmethod
-    def send(message_str:str, *, lvl:str='all', img_buf=None) -> int:
+    def send(message_str:str, *, lvl:str='all', img_buf=None, project_id:int=0) -> int:
         "lvl: log | error | critical | important | all (default) | news"
         
         if not Message.status:
             return 0
         
         if Message.obj is None:
-            Message.obj = Message()
+            Message.obj = Message(project_id=project_id)
         message = Message.obj    
 
         res = 0

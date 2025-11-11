@@ -22,7 +22,11 @@ class GetLoadAPI:
             'Content-Type': 'application/json'
         }
         params = {}
-        response = requests.get(self.base_url+'?token='+self.token, params=params, headers=headers, verify=self.verify)
+        url = self.base_url
+        if self.base_url[-1]=='?':
+            url += '?'
+        url += '?token='+self.token        
+        response = requests.get(url, params=params, headers=headers, verify=self.verify)
         # print("GetLoadAPI::get_list::response: ", self.verify)
         # print(response)
         if response.status_code == 200:
@@ -59,7 +63,11 @@ class GetLoadAPI:
                     'Authorization': f'OAuth {self.token}',
                     'Content-Type': 'application/json'
                 }
-                response = requests.get(self.base_url+'?file='+file+'&token='+self.token, headers=headers, verify=self.verify)
+                url = self.base_url
+                if self.base_url[-1]=='?':
+                    url += '?'
+                url += '?token='+self.token  
+                response = requests.get(url, headers=headers, verify=self.verify)
                 if response.status_code == 200: 
                     with open(zipfilename, 'wb') as file:
                         file.write(response.content)

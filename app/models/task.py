@@ -11,7 +11,7 @@ class Task:
     info = None
     job = None
     id = None
-    project_id=0
+    project_id = 0
 
     def __init__(self, *, db:Mysqldb, id:int):
         assert id > 0, 'Task.__init__: Tasks id is not set'

@@ -9,6 +9,7 @@ from models.anomaly_detect import anomaly_detect
 from models.mysqldb import Mysqldb
 from models.metric import Metric
 from models.message import Message
+from models.project import Project
 from models.sysbf import SysBf
 
 class Robot_twanom:
@@ -161,9 +162,15 @@ class Robot_twanom:
                     msg_metric_id = self.metric.info['id']
                     msg_granularity = self.granularity 
 
-                    msg_anom_pos = config['message_str'].get('msg_anom_pos', "{metric_name}: Превышение нормы!").format(metric_name=metric_name)
-                    msg_anom_neg = config['message_str'].get('msg_anom_neg', "{metric_name}: Ниже нормы!").format(metric_name=metric_name)
-                    msg_anom_all = config['message_str'].get('msg_anom_all', "{metric_name}: Аномальное значение!").format(metric_name=metric_name)
+                    project_id = self.settings['data']['project_id']
+                    project_name = f"[{project_id}]"
+                    project = Project.get_project(db=self.db, id=project_id)
+                    if not project is None:
+                        project_name = project["metric_project_name"]
+                    
+                    msg_anom_pos = config['message_str'].get('msg_anom_pos', "{project_name} - {metric_name}: Превышение нормы!").format(metric_name=metric_name, project_name=project_name)
+                    msg_anom_neg = config['message_str'].get('msg_anom_neg', "{project_name} - {metric_name}: Ниже нормы!").format(metric_name=metric_name, project_name=project_name)
+                    msg_anom_all = config['message_str'].get('msg_anom_all', "{project_name} - {metric_name}: Аномальное значение!").format(metric_name=metric_name, project_name=project_name)
                     msg_link = config['message_str']['msg_link'].get(f"{self.metric.info['metric_project_id']}", "")
                     if msg_link!="":
                         msg_link = config['message_str']['msg_link'].get("default", "")    
@@ -184,7 +191,7 @@ class Robot_twanom:
                                 message_lvl = 'important'  
                     else:    
                         message_str = "\U0001F7E1 " + msg_anom_all + msg_link_str
-                    tg_status = Message.send(message_str, lvl=message_lvl, img_buf=img_buf) 
+                    tg_status = Message.send(message_str, lvl=message_lvl, img_buf=img_buf, project_id=project_id) 
                     if tg_status>0:
                         self.metric.set_anom_posted(actual_anom['id'])   
                     else:    
