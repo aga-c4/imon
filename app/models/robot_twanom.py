@@ -175,14 +175,14 @@ class Robot_twanom:
                     if msg_link!="":
                         msg_link = config['message_str']['msg_link'].get("default", "")    
                     msg_link_str = msg_link.format(msg_metric_id=msg_metric_id, msg_granularity=msg_granularity)
-                    if actual_anom['direction']=='pos':
+                    if actual_anom['direction']==1:
                         if self.metric.info['neg_reverce']==0:
                             message_str = "\U0001F7E2 " + msg_anom_pos + msg_link_str
                             if message_lvl == 'critical':
                                 message_lvl = 'important'
                         else:
                             message_str = "\U0001F7E2 " + msg_anom_neg + msg_link_str    
-                    elif actual_anom['direction']=='neg':
+                    elif actual_anom['direction']==-1:
                         if self.metric.info['neg_reverce']==0:
                             message_str = "\U0001F534 " + msg_anom_neg + msg_link_str
                         else:
