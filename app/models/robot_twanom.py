@@ -138,7 +138,7 @@ class Robot_twanom:
                     anoms_pos = anom_dict['anoms_pos']
                     anoms_neg = anom_dict['anoms_neg']
 
-                    datetime_from = datetime.now() - timedelta(days=15)
+                    datetime_from = SysBf.tzdt(datetime.now() - timedelta(days=15), self.tz_str_system)
                     res2 = SysBf.filter_series_by_datetime(res, datetime_from)
                     fig, ax = plt.subplots(1, figsize=(15,5))
                     res2.plot(ax=ax)
