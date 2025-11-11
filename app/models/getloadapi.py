@@ -24,8 +24,9 @@ class GetLoadAPI:
         params = {}
         url = self.base_url
         if self.base_url.find('?') == -1:
-            url += '?'
-        url += '?token='+self.token        
+            url += '?token='+self.token   
+        else:    
+            url += '&token='+self.token        
         response = requests.get(url, params=params, headers=headers, verify=self.verify)
         # print("GetLoadAPI::get_list::response: ", self.verify)
         # print(response)
@@ -65,8 +66,9 @@ class GetLoadAPI:
                 }
                 url = self.base_url
                 if self.base_url.find('?') == -1:
-                    url += '?'
-                url += '?token='+self.token  
+                    url += '?token='+self.token   
+                else:    
+                    url += '&token='+self.token 
                 response = requests.get(url, headers=headers, verify=self.verify)
                 if response.status_code == 200: 
                     with open(zipfilename, 'wb') as file:
