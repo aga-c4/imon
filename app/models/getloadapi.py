@@ -66,9 +66,10 @@ class GetLoadAPI:
                 }
                 url = self.base_url
                 if self.base_url.find('?') == -1:
-                    url += '?token='+self.token   
+                    url += '?token='
                 else:    
-                    url += '&token='+self.token 
+                    url += '&token='
+                url += self.token + '&file=' + file   
                 response = requests.get(url, headers=headers, verify=self.verify)
                 if response.status_code == 200: 
                     with open(zipfilename, 'wb') as file:
