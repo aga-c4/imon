@@ -136,9 +136,9 @@ config = {
             "1": " <a href='http://.../site-metrics?orgId=1&var-metric_id={msg_metric_id}&var-granularity={msg_granularity}'>Подробнее</a>",
             "2": " <a href='http://.../app-metrics?orgId=1&var-metric_id={msg_metric_id}&var-granularity={msg_granularity}'>Подробнее</a>"
         },
-        "msg_anom_pos": "{metric_name}: Превышение нормы!",
-        "msg_anom_neg": "{metric_name}: Ниже нормы!",
-        "msg_anom_all": "{metric_name}: Аномальное значение!"
+        "msg_anom_pos": "{project_name} - {metric_name}: Превышение нормы!",
+        "msg_anom_neg": "{project_name} - {metric_name}: Ниже нормы!",
+        "msg_anom_all": "{project_name} - {metric_name}: Аномальное значение!"
     },
 
     # Пример настройки новостей
