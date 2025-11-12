@@ -506,7 +506,7 @@ class Metric:
                     res[SysBf.dt_to_tz(SysBf.tzdt(row['dt'], tz_str_db), tz_str)] = value
         return res
 
-    def get_data(self, *, accum_items:int=1, dt_from:datetime=None, last_items:int=0, tz_str_db:str='', tz_str:str='') -> pd.DataFrame:
+    def get_data(self, *, accum_items:int=1, dt_from:datetime=None, last_items:int=0, tz_str_db:str='', tz_str:str='', drop_tz:bool=False) -> pd.DataFrame:
         '''Вернет данные по метрике, ключ - datetime в timezone tz_str
         accum_items = '24' # Количество значений в аккумуляторе (1 - не используем, 7 - для дней по неделям, 24 - для суток по часам)
         last_items = 0 # Если больше нуля, то берется это количество элементов с конца после даты начала 
@@ -544,6 +544,8 @@ class Metric:
             
             value = 0
             cur_dt = SysBf.dt_to_tz(SysBf.tzdt(row['dt'], tz_str_db), tz_str)
+            if drop_tz:
+                cur_dt = SysBf.dt_to_tz(cur_dt, 'notz')
             if not row['value'] is None and row['value']:
                 value = row['value']/(10**self.dp)
             if accum_items>1:
@@ -577,10 +579,8 @@ class Metric:
         return None
 
     def add_anoms(self, *, 
-                  anoms:pd.Series=pd.Series(), 
-                  direction:str='',  
-                  tz_str_db:str='',
-                  tz_str:str='') -> int:
+                  anoms:pd.Series=pd.Series(), direction:str='',  
+                  tz_str_db:str='', tz_str:str='') -> int:
         'Метки времени ожидаются в timezone базы данных без маркировки таймозны'
 
         if direction=='pos':
@@ -618,7 +618,7 @@ class Metric:
         else:
             return 0    
 
-    def get_anoms(self, *, dt_from:datetime=None, last_items:int=0, direction:str='', tz_str:str='', tz_str_db:str='') -> pd.Series:
+    def get_anoms(self, *, dt_from:datetime=None, last_items:int=0, direction:str='', tz_str:str='', tz_str_db:str='', drop_tz:bool=False) -> pd.Series:
         sql = f"SELECT dt, metric_value, posted from {self.anoms_table}{self.granularity} where \
                 metric_id={self.id} and metric_project_id={self.project_id} and metric_tag_id={self.metric_tag_id}"
         
@@ -650,7 +650,10 @@ class Metric:
         pd_val = []
         for row in result: 
             value = row['metric_value']/(10**self.dp)
-            pd_index.append(SysBf.dt_to_tz(SysBf.tzdt(row['dt'], tz_str_db), tz_str))
+            cur_dt = SysBf.dt_to_tz(SysBf.tzdt(row['dt'], tz_str_db), tz_str)
+            if drop_tz:
+                cur_dt = SysBf.dt_to_tz(cur_dt, 'notz')
+            pd_index.append(cur_dt)
             pd_val.append(value)
         return  pd.Series(pd_val, index=pd_index)  
 

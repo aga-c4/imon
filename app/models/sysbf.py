@@ -77,14 +77,17 @@ class SysBf:
 
     @staticmethod
     def dt_to_tz(dt:datetime, tz_str:str='') -> datetime:
+        '''tz_str - пустая строка - возвращаем dt, notz - удаляем таймзону, оставляем текущее время'''
         if dt is None:
             return None
         if dt.tzinfo == tz_str:
             return dt
-        if tz_str!='':
+        if tz_str=='notz':
+            return dt.replace(tzinfo=None)
+        elif tz_str!='':
             timezone = pytz.timezone(tz_str)
             return  dt.astimezone(timezone)  
-        return dt.astimezone(pytz.utc)    
+        return dt  
 
     @staticmethod
     def get_dateframes_by_current_dt(date:datetime, granularity:str="", tpl:str=""):    
