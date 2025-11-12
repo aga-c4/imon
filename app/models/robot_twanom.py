@@ -210,11 +210,10 @@ class Robot_twanom:
             anoms = self.metric.get_anoms(tz_str=self.tz_str_db, dt_from=dt_from, drop_tz=True)   
             anoms_neg = self.metric.get_anoms(direction='neg', tz_str=self.tz_str_db, dt_from=dt_from, drop_tz=True)   
             anoms_pos = self.metric.get_anoms(direction='pos', tz_str=self.tz_str_db, dt_from=dt_from, drop_tz=True)   
-
-        anoms.sort_index(inplace=True)
-        anoms.sort_index(inplace=True)
-        anoms_neg.sort_index(inplace=True)
-        anoms_pos.sort_index(inplace=True)
+            res.sort_index(inplace=True)
+            anoms.sort_index(inplace=True)
+            anoms_neg.sort_index(inplace=True)
+            anoms_pos.sort_index(inplace=True)
         return {"success": True, 
                       "telemetry": {
                           "job_execution_sec": round(time.time() - start_time, 4), 
