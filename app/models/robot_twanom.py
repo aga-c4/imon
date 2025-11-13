@@ -140,6 +140,12 @@ class Robot_twanom:
                     anoms_pos = anom_dict['anoms_pos']
                     anoms_neg = anom_dict['anoms_neg']
 
+                    project_id = self.settings['data']['project_id']
+                    project_name = f"[{project_id}]"
+                    project = Project(db=self.db, id=project_id)
+                    if not project is None:
+                        project_name = project.info["metric_project_name"]
+
                     datetime_from = datetime.now() - timedelta(days=15)
                     res2 = SysBf.filter_series_by_datetime(res, datetime_from)
                     fig, ax = plt.subplots(1, figsize=(15,5))
@@ -155,7 +161,7 @@ class Robot_twanom:
                         ax.scatter(anoms2.index.values, anoms2, color='yellow')    
                     ax.set_xlabel('Date time')
                     ax.set_ylabel('Count')
-                    ax.set_title(self.metric.info['metric_name'] + ' [accum_items=' + str(self.metric.info['accum_items']) + ']')
+                    ax.set_title(project_name + ' - ' + self.metric.info['metric_name'] + ' [accum_items=' + str(self.metric.info['accum_items']) + ']')
                     img_buf = io.BytesIO()
                     fig.savefig(img_buf, format='png')
                     img_buf.seek(0)
@@ -163,12 +169,6 @@ class Robot_twanom:
                     metric_name = self.metric.info.get('metric_name', self.metric.info['metric_alias'])
                     msg_metric_id = self.metric.info['id']
                     msg_granularity = self.granularity 
-
-                    project_id = self.settings['data']['project_id']
-                    project_name = f"[{project_id}]"
-                    project = Project(db=self.db, id=project_id)
-                    if not project is None:
-                        project_name = project.info["metric_project_name"]
                     
                     msg_anom_pos = config['message_str'].get('msg_anom_pos', "{project_name} - {metric_name}: Превышение нормы!").format(metric_name=metric_name, project_name=project_name)
                     msg_anom_neg = config['message_str'].get('msg_anom_neg', "{project_name} - {metric_name}: Ниже нормы!").format(metric_name=metric_name, project_name=project_name)
