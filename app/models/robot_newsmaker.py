@@ -64,7 +64,8 @@ class Robot_newsmaker:
         def_settings = {
             "title":"", 
             "message_lvl": "news", 
-            "messages": []
+            "messages": [],
+            "project_id": 0
         }
 
         self.config = config
@@ -108,14 +109,16 @@ class Robot_newsmaker:
             granularity = 'd1'    
 
         # Определение даты-времени первой секунды текущего granularity
+        SysBf.get_dateframes_by_current_dt()
         if granularity=='m1':
             datetime_to = SysBf.tzdt_fr_str(datetime_now.strftime("%Y-%m-%d %H:%M:00"), self.tz_str_system)  
-        if granularity=='h1':
+        elif granularity=='h1':
             datetime_to = SysBf.tzdt_fr_str(datetime_now.strftime("%Y-%m-%d %H:00:00"), self.tz_str_system)  
         elif granularity=='d1':    
             datetime_to = SysBf.tzdt_fr_str(datetime_now.strftime("%Y-%m-%d 00:00:00"), self.tz_str_system)  
-        elif granularity=='w1':        
-            datetime_to = SysBf.tzdt_fr_str(datetime_now.strftime("%Y-%m-%d 00:00:00"), self.tz_str_system)  
+        elif granularity=='w1':      
+            datetime_to_dict = SysBf.get_days_of_week(datetime_now, "%Y-%m-%d 00:00:00")  
+            datetime_to = SysBf.tzdt_fr_str(datetime_to_dict[0], self.tz_str_system)  
             datetime_to = datetime_to - timedelta(days=datetime_to.weekday() % 7)
         elif granularity=='mo1':            
             datetime_to = SysBf.tzdt_fr_str(datetime_now.strftime("%Y-%m-01 00:00:00"), self.tz_str_system)  
@@ -153,7 +156,9 @@ class Robot_newsmaker:
             "message_lvl": self.settings["message_lvl"],
             "granularity": self.settings["granularity"],
             "dt_to": self.settings["dt_to"],
-            "dt_delta_fr": self.settings["dt_delta_fr"],    
+            "dt_delta_fr": self.settings["dt_delta_fr"],   
+            "project_id": 0,
+            "metric_tag_id":0 
         }
         for message in self.settings['messages']:
             settings={**message_def, **message}
@@ -167,7 +172,11 @@ class Robot_newsmaker:
             elif message['type']=='trace':
                 res = self.get_trace(settings=settings)
             elif message['type']=='stack':
-                res = self.get_stack(settings=settings)    
+                res = self.get_stack(settings=settings)   
+            elif message['type']=='pie':
+                res = self.get_pie(settings=settings)  
+            elif message['type']=='tagspie':
+                res = self.get_tagspie(settings=settings)           
 
         Message.send(self.settings['bottom'], lvl=self.message_lvl)         
 
@@ -189,9 +198,6 @@ class Robot_newsmaker:
             or len(settings["metric_ids"]) != len(settings["metric_title"]):
             return {}
         
-        device_alias = settings.get("metric_device_alias", "") 
-        trafsrc_alias = settings.get("metric_trafsrc_alias", "")
-        
         dt_to = settings["dt_to_less"] -timedelta(seconds=1)
         dt1_str = settings["dt_from"].strftime("%Y-%m-%d")
         dt2_str= dt_to.strftime("%Y-%m-%d")
@@ -206,9 +212,9 @@ class Robot_newsmaker:
                 granularity=settings["granularity"], 
                 dt_from=settings["dt_from"],
                 dt_to_less=settings["dt_to_less"], 
-                device_alias=device_alias, 
-                trafsrc_alias=trafsrc_alias,
-                metric_ids=settings["metric_ids"])
+                metric_ids=settings["metric_ids"],
+                project_id=settings["project_id"],
+                metric_tag_id=settings["metric_tag_id"])
 
         df_funnel = pd.DataFrame(data_funnel)
 
@@ -219,7 +225,7 @@ class Robot_newsmaker:
                                     texttemplate='Всего: %{value:,d} <br> Доля от пред. шага: %{percentPrevious:.1%} <br> Доля от всех: %{percentInitial:.2%}',
                                     orientation='v',
                                     marker={"color": ['#dc143c','#ff0000','#ff4500','#FF6347','#ff7F50'],
-                                                "colorscale": 'Hot',
+                                            "colorscale": 'Hot',
                                             "colorbar": {"bgcolor": None}}
                                     ))
             
@@ -263,9 +269,6 @@ class Robot_newsmaker:
             or len(settings["metric_ids"])==0 \
             or len(settings["metric_ids"]) != len(settings["metric_title"]):
             return {}
-        
-        device_alias = settings.get("metric_device_alias", "") 
-        trafsrc_alias = settings.get("metric_trafsrc_alias", "")
 
         dt_to = settings["dt_to_less"] -timedelta(seconds=1)
         dt1_str = settings["dt_from"].strftime("%Y-%m-%d")
@@ -281,9 +284,9 @@ class Robot_newsmaker:
                 granularity=settings["granularity"], 
                 dt_from=settings["dt_from"], 
                 dt_to_less=settings["dt_to_less"], 
-                device_alias=device_alias, 
-                trafsrc_alias=trafsrc_alias,
-                metric_id=metric_id)  
+                metric_id=metric_id,
+                project_id=settings["project_id"],
+                metric_tag_id=settings["metric_tag_id"])  
             x = []
             y = []
             for dt,value in res.items():
@@ -332,9 +335,6 @@ class Robot_newsmaker:
             or len(settings["metric_ids"])==0 \
             or len(settings["metric_ids"]) != len(settings["metric_title"]):
             return {}
-        
-        device_alias = settings.get("metric_device_alias", "") 
-        trafsrc_alias = settings.get("metric_trafsrc_alias", "")
 
         dt_to = settings["dt_to_less"] -timedelta(seconds=1)
         dt1_str = settings["dt_from"].strftime("%Y-%m-%d")
@@ -350,9 +350,9 @@ class Robot_newsmaker:
                 granularity=settings["granularity"], 
                 dt_from=settings["dt_from"], 
                 dt_to_less=settings["dt_to_less"], 
-                device_alias=device_alias, 
-                trafsrc_alias=trafsrc_alias,
-                metric_id=metric_id)    
+                metric_id=metric_id,
+                project_id=settings["project_id"],
+                metric_tag_id=settings["metric_tag_id"])    
             x = []
             y = []
             for dt,value in res.items():
@@ -381,3 +381,73 @@ class Robot_newsmaker:
         stack_object.close()
 
         return {}
+
+
+    def get_pie(self, *, settings:dict):
+
+        """
+        {
+            "title": "Пользователи сайта",
+            "type": "stack",
+            "metric_ids": [201,200], 
+            "metric_title": ["Вернувшиеся", "Новые"]
+        }
+        """
+
+        if not "metric_ids" in settings \
+            or not "metric_title" in settings \
+            or not type(settings["metric_ids"]) is list \
+            or not type(settings["metric_title"]) is list \
+            or len(settings["metric_ids"])==0 \
+            or len(settings["metric_ids"]) != len(settings["metric_title"]):
+            return {}
+
+        dt_to = settings["dt_to_less"] -timedelta(seconds=1)
+        dt1_str = settings["dt_from"].strftime("%Y-%m-%d")
+        dt2_str= dt_to.strftime("%Y-%m-%d")
+        if dt1_str==dt2_str:
+            dt_diapazone_str = dt1_str
+        else:
+            dt_diapazone_str = dt1_str + ' - ' + dt2_str 
+ 
+        figure_data = []
+        for metric_pos, metric_id in enumerate(settings["metric_ids"]):
+            res = Metric.get_values(db=self.db, tz_str_db=self.tz_str_db, 
+                granularity=settings["granularity"], 
+                dt_from=settings["dt_from"], 
+                dt_to_less=settings["dt_to_less"], 
+                metric_id=metric_id,
+                project_id=settings["project_id"],
+                metric_tag_id=settings["metric_tag_id"])  
+            x = []
+            y = []
+            for dt,value in res.items():
+                x.append(dt)
+                y.append(value)
+            
+            figure_data.append(go.Bar(
+                name = settings["metric_title"][metric_pos],
+                x = x,
+                y = y
+            ))
+        
+        fig = go.Figure(figure_data)
+        
+        fig.update_layout(barmode='stack')
+        fig.update_layout(autosize=False, height=700, width=1800)
+        fig.update_layout(plot_bgcolor='#ffffff')
+        fig.update_layout(title_text=f'{settings["title"]} {dt_diapazone_str}')
+
+        stack_object = io.BytesIO()
+        fig.write_image(stack_object)
+        stack_object.name = f'stack_{datetime.now().strftime("%Y%m%d%H%M%S")}.png'
+        stack_object.seek(0)
+
+        Message.send('', img_buf=stack_object, lvl=self.message_lvl)
+
+        stack_object.close()
+
+        return {}
+                
+    def get_tagspie(self, *, settings:dict):     
+        return {}    

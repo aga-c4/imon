@@ -167,11 +167,12 @@ elif namespace.action == 'newsmaker':
     for cur_news_alias, news in config["newsmaker"].items():
         if (namespace.news_alias!='' and cur_news_alias==namespace.news_alias) or ( \
                 (namespace.group=='' or news["group"]==namespace.group) \
+                and (namespace.project_id==0 or news["project_id"]==namespace.project_id) \
                 and (news["granularity"]==namespace.granularity) \
             ):
 
             if namespace.message_lvl!='':
-                news["message_lvl"] = namespace.message_lvl
+                news["message_lvl"] = namespace.message_lvl   
 
             robot = Robot_newsmaker(settings=news, config=config)
             res = robot.run()

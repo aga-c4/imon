@@ -222,6 +222,14 @@ config = {
                     "type": "trace",
                     "metric_ids": [161], 
                     "metric_title": ["Полнота передачи, %"]
+                },
+                {
+                    "title": "Время исполнения",
+                    "type": "pie",
+                    "metric_ids": [201,200], 
+                    "total_metric_id": 202,
+                    "add_other": True,
+                    "metric_title": ["База", "API"]
                 }
             ]
         },
