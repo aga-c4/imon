@@ -181,6 +181,28 @@ config = {
                     "title": "Маршруты",
                     "type": "tagspie",
                     "metric_id": 2
+                },
+                {
+                    "title": "Маршруты",
+                    "type": "tagspie",
+                    "metric_id": 2
+                },
+                {
+                    "title": "Время исполнения",
+                    "type": "stack",
+                    "metric_ids": [201,200], 
+                    "total_metric_id": 202,
+                    "add_other": True,
+                    "metric_title": ["База", "API"]
+                },
+                {
+                    "title": "Время исполнения",
+                    "type": "pie",
+                    "metric_ids": [201,200], 
+                    "total_metric_id": 202,
+                    "add_other": True,
+                    "metric_title": ["База", "API"],
+                    "other_title": "Остальное"
                 }
             ]
         },
