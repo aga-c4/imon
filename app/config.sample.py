@@ -143,6 +143,49 @@ config = {
 
     # Пример настройки новостей
     "newsmaker": {
+        "imon_digest_d1": {
+            "active": True,
+            "title": "===[ ⏰ Good morning DIGEST ]===",
+            "bottom": "===[ End of the Morning DIGEST ]===",
+            "project_id": 3,
+            "metric_tag_id":0,
+            "group": "digest",
+            "message_lvl": "news",
+            "device_alias": "", 
+            "trafsrc_alias": "",
+            "granularity": "d1", # Грануляция отчета, от нее зависят ряд параметров
+            "dt_to": "2025-11-06 00:00:00", # Дата от которой строится отчет, может быть текущая current или строка даты-времени с таймзоной
+            "dt_delta_fr": { # На сколько единиц времени назад начнется отчет, учитывается только одно наибольшее отклонение, значение 0 - не учитывается. Отсчет ведется от первой секунды начала текущего периода
+                "month": 0,
+                "days": 15,
+                "hours": 0
+            },    
+            "messages": [
+                {
+                    "title": "Воронка",
+                    "type": "funnel",
+                    "granularity": "d1",
+                    "dt_delta_fr": { 
+                        "days": 1
+                    },  
+                    "metric_ids": [1, 2, 3],
+                    "metric_title": ["Вызовы", "Роутинг", "Успешное окончание"]
+                },
+                {
+                    "title": "Нагрузка",
+                    "type": "trace",
+                    "metric_ids": [1,2], 
+                    "metric_title": ["Вызовы","Старты маршрута"]
+                },
+                {
+                    "title": "Маршруты",
+                    "type": "tagspie",
+                    "metric_id": 2
+                }
+            ]
+        },
+
+
         "gm_digest_d1": {
             "active": True,
             "title": "===[ ⏰ Good morning DIGEST ]===",
