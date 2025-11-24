@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import io
 import pandas as pd
 from plotly import graph_objects as go
+import plotly.express as px  
 from time import sleep
 
 from models.mysqldb import Mysqldb
@@ -109,7 +110,6 @@ class Robot_newsmaker:
             granularity = 'd1'    
 
         # Определение даты-времени первой секунды текущего granularity
-        SysBf.get_dateframes_by_current_dt()
         if granularity=='m1':
             datetime_to = SysBf.tzdt_fr_str(datetime_now.strftime("%Y-%m-%d %H:%M:00"), self.tz_str_system)  
         elif granularity=='h1':
@@ -157,8 +157,8 @@ class Robot_newsmaker:
             "granularity": self.settings["granularity"],
             "dt_to": self.settings["dt_to"],
             "dt_delta_fr": self.settings["dt_delta_fr"],   
-            "project_id": 0,
-            "metric_tag_id":0 
+            "project_id": self.settings["project_id"],
+            "metric_tag_id": 0 
         }
         for message in self.settings['messages']:
             settings={**message_def, **message}
@@ -449,5 +449,18 @@ class Robot_newsmaker:
 
         return {}
                 
-    def get_tagspie(self, *, settings:dict):     
+    def get_tagspie(self, *, settings:dict):   
+        values = [100, 200, 300]  
+        labels = ["A", "B", "C"]  
+        fig = px.pie(values=values, names=labels, width=400, height=400)  
+
+        tagspie_object = io.BytesIO()
+        fig.write_image(tagspie_object)
+        tagspie_object.name = f'stack_{datetime.now().strftime("%Y%m%d%H%M%S")}.png'
+        tagspie_object.seek(0)
+
+        Message.send('', img_buf=tagspie_object, lvl=self.message_lvl)
+
+        tagspie_object.close()   
+        
         return {}    
