@@ -7,6 +7,7 @@ import io
 import pandas as pd
 from plotly import graph_objects as go
 import plotly.express as px  
+from models.project import Project
 from time import sleep
 
 from models.mysqldb import Mysqldb
@@ -144,39 +145,41 @@ class Robot_newsmaker:
     def run(self, *, output:bool=False) -> dict:
         ######################[ Monitor ]######################### 
         config = self.config
-        logging.info(f"Robot {self.alias} run")   
-
         res = None
         self.comment_str = ''
         start_time = time.time() 
-
+        logging.info(f"Robot {self.alias} run")   
         Message.send(self.settings['title'], lvl=self.message_lvl) 
 
-        message_def = {
-            "message_lvl": self.settings["message_lvl"],
-            "granularity": self.settings["granularity"],
-            "dt_to": self.settings["dt_to"],
-            "dt_delta_fr": self.settings["dt_delta_fr"],   
-            "project_id": self.settings["project_id"],
-            "metric_tag_id": 0 
-        }
-        for message in self.settings['messages']:
-            settings={**message_def, **message}
-            dt_diapazone = self.get_date_diapazone(granularity=settings["granularity"], 
-                                                   dt_to=settings["dt_to"], 
-                                                   dt_delta_fr=settings["dt_delta_fr"])
-            settings["dt_from"] = dt_diapazone["dt_from"]
-            settings["dt_to_less"] = dt_diapazone["dt_to_less"]
-            if message['type']=='funnel':
-                res = self.get_funnel(settings=settings)
-            elif message['type']=='trace':
-                res = self.get_trace(settings=settings)
-            elif message['type']=='stack':
-                res = self.get_stack(settings=settings)   
-            elif message['type']=='pie':
-                res = self.get_pie(settings=settings)  
-            elif message['type']=='tagspie':
-                res = self.get_tagspie(settings=settings)           
+        project_id = int(self.settings.get("project_id", 0))
+        project = Project(db=self.db, id=project_id)
+        if project.info["active"]>0:
+
+            message_def = {
+                "message_lvl": self.settings["message_lvl"],
+                "granularity": self.settings["granularity"],
+                "dt_to": self.settings["dt_to"],
+                "dt_delta_fr": self.settings["dt_delta_fr"],   
+                "project_id": project_id,
+                "metric_tag_id": 0 
+            }
+            for message in self.settings['messages']:
+                settings={**message_def, **message}
+                dt_diapazone = self.get_date_diapazone(granularity=settings["granularity"], 
+                                                    dt_to=settings["dt_to"], 
+                                                    dt_delta_fr=settings["dt_delta_fr"])
+                settings["dt_from"] = dt_diapazone["dt_from"]
+                settings["dt_to_less"] = dt_diapazone["dt_to_less"]
+                if message['type']=='funnel':
+                    res = self.get_funnel(settings=settings)
+                elif message['type']=='trace':
+                    res = self.get_trace(settings=settings)
+                elif message['type']=='stack':
+                    res = self.get_stack(settings=settings)   
+                elif message['type']=='pie':
+                    res = self.get_pie(settings=settings)  
+                elif message['type']=='tagspie':
+                    res = self.get_tagspie(settings=settings)           
 
         Message.send(self.settings['bottom'], lvl=self.message_lvl)         
 
