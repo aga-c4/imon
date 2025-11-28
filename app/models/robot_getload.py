@@ -99,7 +99,8 @@ class Robot_getload:
             self.api = GetLoadAPI(token=config['sources'][self.source_alias]['token'], 
                             api_url=config['sources'][self.source_alias]['api_url'], 
                             source=self.settings['source'], tmp_path=self.tmp_path,
-                            insecure=config['sources'][self.source_alias].get("insecure", False))
+                            insecure=config['sources'][self.source_alias].get("insecure", False),
+                            headers=config['sources'][self.source_alias].get("headers", None))
         print("Robot_getload.__init__: Ok!")
         
     def run(self, *, output:bool=False) -> dict:
