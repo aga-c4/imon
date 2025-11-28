@@ -6,7 +6,7 @@ import shutil
 
 class GetLoadAPI:
     
-    def __init__(self, *, token:str='', api_url:str='', source:str='', tmp_path:str='', insecure:bool=False):
+    def __init__(self, *, token:str='', api_url:str='', source:str='', tmp_path:str='', insecure:bool=False, headers:dict=None):
         self.token = token # API токен
         self.base_url =  api_url # Точка входа в API
         self.source = source # Алиас источника
@@ -15,19 +15,21 @@ class GetLoadAPI:
             self.verify = False
         else:
             self.verify = True    
-
-    def get_list(self):
-        headers = {
+        self.headers = {
             'Authorization': f'OAuth {self.token}',
             'Content-Type': 'application/json'
-        }
+        }    
+        if not headers is None:
+            self.headers.update(headers) 
+
+    def get_list(self):
         params = {}
         url = self.base_url
         if self.base_url.find('?') == -1:
             url += '?token='+self.token   
         else:    
             url += '&token='+self.token        
-        response = requests.get(url, params=params, headers=headers, verify=self.verify)
+        response = requests.get(url, params=params, headers=self.headers, verify=self.verify)
         # print("GetLoadAPI::get_list::response: ", self.verify)
         # print(response)
         if response.status_code == 200:
@@ -60,17 +62,13 @@ class GetLoadAPI:
                 os.makedirs(zip_foldername)  
 
             if not os.path.exists(zipfilename):  
-                headers = {
-                    'Authorization': f'OAuth {self.token}',
-                    'Content-Type': 'application/json'
-                }
                 url = self.base_url
                 if self.base_url.find('?') == -1:
                     url += '?token='
                 else:    
                     url += '&token='
                 url += self.token + '&file=' + file   
-                response = requests.get(url, headers=headers, verify=self.verify)
+                response = requests.get(url, headers=self.headers, verify=self.verify)
                 if response.status_code == 200: 
                     with open(zipfilename, 'wb') as file:
                         file.write(response.content)

@@ -15,6 +15,7 @@ class Project:
             self.id = 0
             self.info = {
                 "id": 0,
+                "active": 0,
                 "metric_project_alias": "Def",
                 "metric_project_name": "Def"
             }
