@@ -10,3 +10,6 @@ requests
 matplotlib
 python-resources
 statsmodels
+
+kaleido
+nbformat

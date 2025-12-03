@@ -17,6 +17,14 @@ class GetLoadAPI:
             self.verify = True    
 
     def get_list(self):
+        # Выдадим то, что есть в папке архивов по данному источнику и в выдаче из API источника, объединим, уберем дубли и отсортируем по дате
+        zip_foldername = self.tmp_path + '/source_arch/' + self.source + '/' 
+        if os.path.exists(zip_foldername):  
+            result = os.listdir(zip_foldername)
+            result.sort()   
+        else:
+            result = []        
+
         headers = {
             'Authorization': f'OAuth {self.token}',
             'Content-Type': 'application/json'
@@ -32,25 +40,35 @@ class GetLoadAPI:
         # print(response)
         if response.status_code == 200:
             try:   
-                return response.json()
+                flist = response.json()
             except:
                 logging.warning(f"GetLoadAPI.get_list: Error parse json")
-                return False
-        else:
-            return False
+                flist = False
+        
+        if not flist is False:
+            result.extend(flist)
+            result = list(set(result))
+
+        if len(result)>0:
+            return result.sort()   
+        
+        return False
                
 
     def get_files(self, *, file:str='', fr_api:bool=False):    
         try:
         # if True:        
-            zip_foldername = self.tmp_path + '/sysload_arch' 
-            zipfilename = zip_foldername + '/' + self.source + '_m1_' + file + '.zip'
-            foldername = self.tmp_path + '/' + self.source + '_m1_' + file 
+            zip_foldername = self.tmp_path + '/source_arch' 
+            tmp_foldername = self.tmp_path + '/source_tmp'  
+            zipfilename = zip_foldername + '/' + self.source + '/' + file + '.zip'
+            foldername = tmp_foldername + '/' + self.source + '/' + file 
 
             if fr_api:
                 # Для принудительного перезабора удалим имеющиеся файлы и папки
                 if os.path.exists(zip_foldername): 
                     shutil.rmtree(zip_foldername)
+                if os.path.exists(tmp_foldername): 
+                    shutil.rmtree(tmp_foldername)    
                 if os.path.exists(zipfilename): 
                     os.remove(zipfilename)
                 if os.path.exists(foldername): 
@@ -58,6 +76,8 @@ class GetLoadAPI:
                     
             if not os.path.exists(zip_foldername):  
                 os.makedirs(zip_foldername)  
+            if not os.path.exists(tmp_foldername):  
+                os.makedirs(tmp_foldername)      
 
             if not os.path.exists(zipfilename):  
                 headers = {
