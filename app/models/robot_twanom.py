@@ -146,59 +146,60 @@ class Robot_twanom:
                     if not project is None:
                         project_name = project.info["metric_project_name"]
 
-                    datetime_from = datetime.now() - timedelta(days=15)
-                    res2 = SysBf.filter_series_by_datetime(res, datetime_from)
-                    fig, ax = plt.subplots(1, figsize=(15,5))
-                    res2.plot(ax=ax)
-                    if len(anoms_pos)>0:
-                        anoms_pos2 = SysBf.filter_series_by_datetime(anoms_pos, datetime_from)
-                        ax.scatter(anoms_pos2.index.values, anoms_pos2, color='green')
-                    if len(anoms_neg)>0:
-                        anoms_neg2 = SysBf.filter_series_by_datetime(anoms_neg, datetime_from)
-                        ax.scatter(anoms_neg2.index.values, anoms_neg2, color='red')
-                    if self.settings['anoms']['direction']=='bothsplit' and len(anoms)>0:
-                        anoms2 = SysBf.filter_series_by_datetime(anoms, datetime_from)
-                        ax.scatter(anoms2.index.values, anoms2, color='yellow')    
-                    ax.set_xlabel('Date time')
-                    ax.set_ylabel('Count')
-                    ax.set_title(project_name + ' - ' + self.metric.info['metric_name'] + ' [accum_items=' + str(self.metric.info['accum_items']) + ']')
-                    img_buf = io.BytesIO()
-                    fig.savefig(img_buf, format='png')
-                    img_buf.seek(0)
+                    if project.info["active"]>0: 
+                        datetime_from = datetime.now() - timedelta(days=15)
+                        res2 = SysBf.filter_series_by_datetime(res, datetime_from)
+                        fig, ax = plt.subplots(1, figsize=(15,5))
+                        res2.plot(ax=ax)
+                        if len(anoms_pos)>0:
+                            anoms_pos2 = SysBf.filter_series_by_datetime(anoms_pos, datetime_from)
+                            ax.scatter(anoms_pos2.index.values, anoms_pos2, color='green')
+                        if len(anoms_neg)>0:
+                            anoms_neg2 = SysBf.filter_series_by_datetime(anoms_neg, datetime_from)
+                            ax.scatter(anoms_neg2.index.values, anoms_neg2, color='red')
+                        if self.settings['anoms']['direction']=='bothsplit' and len(anoms)>0:
+                            anoms2 = SysBf.filter_series_by_datetime(anoms, datetime_from)
+                            ax.scatter(anoms2.index.values, anoms2, color='yellow')    
+                        ax.set_xlabel('Date time')
+                        ax.set_ylabel('Count')
+                        ax.set_title(project_name + ' - ' + self.metric.info['metric_name'] + ' [accum_items=' + str(self.metric.info['accum_items']) + ']')
+                        img_buf = io.BytesIO()
+                        fig.savefig(img_buf, format='png')
+                        img_buf.seek(0)
 
-                    metric_name = self.metric.info.get('metric_name', self.metric.info['metric_alias'])
-                    msg_metric_id = self.metric.info['id']
-                    msg_granularity = self.granularity 
-                    
-                    msg_anom_pos = config['message_str'].get('msg_anom_pos', "{project_name} - {metric_name}: Превышение нормы!").format(metric_name=metric_name, project_name=project_name)
-                    msg_anom_neg = config['message_str'].get('msg_anom_neg', "{project_name} - {metric_name}: Ниже нормы!").format(metric_name=metric_name, project_name=project_name)
-                    msg_anom_all = config['message_str'].get('msg_anom_all', "{project_name} - {metric_name}: Аномальное значение!").format(metric_name=metric_name, project_name=project_name)
-                    msg_link = config['message_str']['msg_link'].get(f"{self.metric.info['metric_project_id']}", "")
-                    if msg_link!="":
-                        msg_link = config['message_str']['msg_link'].get("default", "")    
-                    msg_link_str = msg_link.format(msg_metric_id=msg_metric_id, msg_granularity=msg_granularity, project_id=project_id)
-                    if actual_anom['direction']==1:
-                        if self.metric.info['neg_reverce']==0:
-                            message_str = "\U0001F7E2 " + msg_anom_pos + msg_link_str
-                            if message_lvl == 'critical':
-                                message_lvl = 'important'
-                        else:
-                            message_str = "\U0001F7E2 " + msg_anom_neg + msg_link_str    
-                    elif actual_anom['direction']==-1:
-                        if self.metric.info['neg_reverce']==0:
-                            message_str = "\U0001F534 " + msg_anom_neg + msg_link_str
-                        else:
-                            message_str = "\U0001F534 " + msg_anom_pos + msg_link_str  
-                            if message_lvl == 'critical':
-                                message_lvl = 'important'  
-                    else:    
-                        message_str = "\U0001F7E1 " + msg_anom_all + msg_link_str
-                    tg_status = Message.send(message_str, lvl=message_lvl, img_buf=img_buf, project_id=project_id) 
-                    if tg_status>0:
-                        self.metric.set_anom_posted(actual_anom['id'])   
-                    else:    
-                        pass
-                    plt.clf()
+                        metric_name = self.metric.info.get('metric_name', self.metric.info['metric_alias'])
+                        msg_metric_id = self.metric.info['id']
+                        msg_granularity = self.granularity 
+                        
+                        msg_anom_pos = config['message_str'].get('msg_anom_pos', "{project_name} - {metric_name}: Превышение нормы!").format(metric_name=metric_name, project_name=project_name)
+                        msg_anom_neg = config['message_str'].get('msg_anom_neg', "{project_name} - {metric_name}: Ниже нормы!").format(metric_name=metric_name, project_name=project_name)
+                        msg_anom_all = config['message_str'].get('msg_anom_all', "{project_name} - {metric_name}: Аномальное значение!").format(metric_name=metric_name, project_name=project_name)
+                        msg_link = config['message_str']['msg_link'].get(f"{self.metric.info['metric_project_id']}", "")
+                        if msg_link!="":
+                            msg_link = config['message_str']['msg_link'].get("default", "")    
+                        msg_link_str = msg_link.format(msg_metric_id=msg_metric_id, msg_granularity=msg_granularity, project_id=project_id)
+                        if actual_anom['direction']==1:
+                            if self.metric.info['neg_reverce']==0:
+                                message_str = "\U0001F7E2 " + msg_anom_pos + msg_link_str
+                                if message_lvl == 'critical':
+                                    message_lvl = 'important'
+                            else:
+                                message_str = "\U0001F7E2 " + msg_anom_neg + msg_link_str    
+                        elif actual_anom['direction']==-1:
+                            if self.metric.info['neg_reverce']==0:
+                                message_str = "\U0001F534 " + msg_anom_neg + msg_link_str
+                            else:
+                                message_str = "\U0001F534 " + msg_anom_pos + msg_link_str  
+                                if message_lvl == 'critical':
+                                    message_lvl = 'important'  
+                        else:    
+                            message_str = "\U0001F7E1 " + msg_anom_all + msg_link_str
+                        tg_status = Message.send(message_str, lvl=message_lvl, img_buf=img_buf, project_id=project_id) 
+                        if tg_status>0:
+                            self.metric.set_anom_posted(actual_anom['id'])   
+                        else:    
+                            pass
+                        plt.clf()
             else:
                 metric_name = self.metric.info.get('metric_name', self.metric.info['metric_alias'])
                 logging.warning(self.comment(f"No Data for metric [{self.settings['data']['metric_id']}] {metric_name}!"))    
