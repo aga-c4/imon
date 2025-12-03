@@ -273,7 +273,6 @@ class Robot_getload:
 
             # Получить список доступных архивов
             file_list = self.api.get_list()
-            
             if file_list!=False and len(file_list)>0:
                 upd_metric_list = {
                     "m1": {},

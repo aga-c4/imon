@@ -26,34 +26,37 @@ class GetLoadAPI:
         # Выдадим то, что есть в папке архивов по данному источнику и в выдаче из API источника, объединим, уберем дубли и отсортируем по дате
         zip_foldername = self.tmp_path + '/source_arch/' + self.source + '/' 
         if os.path.exists(zip_foldername):  
-            result = os.listdir(zip_foldername)
-            result.sort()   
+            result = os.listdir(zip_foldername)  
         else:
-            result = []        
-        params = {}
-        url = self.base_url
-        if self.base_url.find('?') == -1:
-            url += '?token='+self.token   
-        else:    
-            url += '&token='+self.token        
-        response = requests.get(url, params=params, headers=self.headers, verify=self.verify)
-        # print("GetLoadAPI::get_list::response: ", self.verify)
-        # print(response)
-        if response.status_code == 200:
-            try:   
-                flist = response.json()
-            except:
-                logging.warning(f"GetLoadAPI.get_list: Error parse json")
-                flist = False
-        
+            result = []           
+
+        flist = False
+        try:     
+            params = {}
+            url = self.base_url
+            if self.base_url.find('?') == -1:
+                url += '?token='+self.token   
+            else:    
+                url += '&token='+self.token        
+            response = requests.get(url, params=params, headers=self.headers, verify=self.verify)
+            # print("GetLoadAPI::get_list::response: ", self.verify)
+            # print(response)
+            if response.status_code == 200:
+                try:   
+                    flist = response.json()
+                except:
+                    logging.warning(f"GetLoadAPI.get_list: Error parse json")
+        except:
+            logging.warning(f"GetLoadAPI.get_list: Error get files")
+
         if not flist is False:
             result.extend(flist)
             result = list(set(result))
-
         if len(result)>0:
-            return result.sort()   
-        
-        return result
+            result.sort()
+            return list(map(lambda name: name.replace('.zip', ''), result)) 
+        else:
+            return False
                
 
     def get_files(self, *, file:str='', fr_api:bool=False):    
