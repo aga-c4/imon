@@ -136,8 +136,8 @@ class Robot_getload:
             settings_project_id = 0  
         
         # Запрет дублирования запуска, если зависнет удалите файл!
-        proc_file0 = f"{self.proc_path}/{self.alias}_{self.settings['pid']}_0.pid"
-        proc_file = f"{self.proc_path}/{self.alias}_{self.settings['pid']}_{settings_project_id}.pid"
+        proc_file0 = f"{self.proc_path}/{self.alias}_{self.settings['pid']}_{self.settings['granularity']}_0.pid"
+        proc_file = f"{self.proc_path}/{self.alias}_{self.settings['pid']}_{self.settings['granularity']}_{settings_project_id}.pid"
         if os.path.exists(proc_file0) or os.path.exists(proc_file):
             last_proc_dt_str = ''
             last_proc_dt_str0 = ''
