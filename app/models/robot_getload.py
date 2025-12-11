@@ -32,6 +32,7 @@ class Robot_getload:
     debug = False
     pid = ''
     source_get_api_lag_sec = 1 # Задержка между запросами к API
+    source_tag_exceptions = []
     api = None
     fr_api = False
     tz_str_source = ''
@@ -96,6 +97,7 @@ class Robot_getload:
             self.metrics_pkg_qty = int(config['sources'][self.source_alias].get('metrics_pkg_qty', self.metrics_pkg_qty))
             self.source_get_api_lag_sec = int(config['sources'][self.source_alias].get('source_get_api_lag_sec', self.source_get_api_lag_sec))
             self.tz_str_source = config['sources'][self.source_alias].get('timezone', self.tz_str_source)
+            self.source_tag_exceptions = config['sources'][self.source_alias].get('tags_exceptions', [])
             self.api = GetLoadAPI(token=config['sources'][self.source_alias]['token'], 
                             api_url=config['sources'][self.source_alias]['api_url'], 
                             source=self.settings['source'], tmp_path=self.tmp_path,
@@ -329,6 +331,8 @@ class Robot_getload:
                                     granularity_settings = self.granularity_list.get(gran, {})    
                                     for upd_metric,metric_data in cur_metric_accum[gran].items():
                                         for metric_tag, metric_tag_vals in metric_data.items():
+                                            if metric_tag in self.source_tag_exceptions:
+                                                continue
                                             if cur_ts_period[gran][0]>=dt_insert_from[gran] and cur_ts_period[gran][0]>db_exist_dt_str[gran]:
                                                 if not upd_metric in upd_metric_list[gran]:
                                                     upd_metric_list[gran][upd_metric] = {}   
