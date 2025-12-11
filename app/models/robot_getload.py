@@ -136,7 +136,7 @@ class Robot_getload:
             settings_project_id = int(self.settings['project_id'])
         else:
             settings_project_id = 0  
-        self.comment(f"getload::{self.alias}::{settings_project_id}")    
+        self.comment(f"project_id={settings_project_id}")    
         
         # Запрет дублирования запуска, если зависнет удалите файл!
         proc_file0 = f"{self.proc_path}/{self.alias}_{self.settings['pid']}_{self.settings['granularity']}_0.pid"
