@@ -475,6 +475,8 @@ class Robot_getload:
                     granularity_settings = self.granularity_list.get(gran, {})  
                     for upd_metric,metric_data in upd_metric_list[gran].items():
                         for metric_tag, metric_tag_data in metric_data.items():
+                            if metric_tag in self.source_tag_exceptions:
+                                continue
                             if metric_tag=="all" or metric_tag=="UNKNOWN":
                                 metric_tag = ""   
                             if metric_tag == "":
