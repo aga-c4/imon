@@ -378,6 +378,8 @@ class Robot_getload:
                                             upd_tag =  row[1].strip()
                                             if upd_tag=="UNKNOWN" or upd_tag=="":
                                                 upd_tag="unknown"
+                                            if upd_tag in self.source_tag_exceptions:
+                                                continue       
                                             upd_value = float(row[2])
 
                                             if not upd_tag in exist_tg_mt:
@@ -386,7 +388,7 @@ class Robot_getload:
                                                 exist_tg_mt[upd_tag].append(upd_metric) 
                                             else:
                                                 logging.info(f"{minute_file} Dublicate metrics {upd_metric}:{upd_tag}")
-                                                continue   
+                                                continue
 
                                             # Добавление старших таймфреймов в списки их сохранения
                                             for gran in self.add_gran_list:
@@ -437,6 +439,8 @@ class Robot_getload:
                             granularity_settings = self.granularity_list.get("m1", {})  
                             for upd_metric,metric_data in upd_metric_list["m1"].items():
                                 for metric_tag, metric_tag_data in metric_data.items():
+                                    if metric_tag in self.source_tag_exceptions:
+                                        continue
                                     if metric_tag=="all" or metric_tag=="UNKNOWN":
                                         metric_tag = ""   
                                     if metric_tag == "":
