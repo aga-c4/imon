@@ -136,6 +136,7 @@ class Robot_getload:
             settings_project_id = int(self.settings['project_id'])
         else:
             settings_project_id = 0  
+        self.comment(f"getload::{self.alias}::{settings_project_id}")    
         
         # Запрет дублирования запуска, если зависнет удалите файл!
         proc_file0 = f"{self.proc_path}/{self.alias}_{self.settings['pid']}_{self.settings['granularity']}_0.pid"
@@ -160,12 +161,13 @@ class Robot_getload:
 
             if last_proc_dt_str=='' or SysBf.tzdt_fr_str(last_proc_dt_str, self.tz_str_system) > (datetime_now - timedelta(seconds=self.proc_ttl)):
                 logging.warning("Error: Already running or process file error!")
+                self.comment(f"Project {settings_project_id} Error: Already running or process file error!")  
                 return {"success": False, 
                         "telemetry": {
                             "job_execution_sec": run_timer.get_time(), 
                             "job_max_mem_kb": 0},
                         "count": 0,
-                        "comment": f"Project {settings_project_id} Error: Already running or process file error!"} 
+                        "comment": self.comment_str} 
         
         # Файл устарел или отсутствует, перезапишем
         f = open(proc_file, 'w')
