@@ -387,15 +387,16 @@ class Metric:
         return 0
     
     @staticmethod
-    def get_sum(*, db:Mysqldb, 
+    def get_sum_by_metric_ids(*, db:Mysqldb, 
                    granularity:str, tz_str_db:str='',  
                    dt_from:datetime=None, dt_to:datetime=None, dt_from_more:datetime=None, dt_to_less:datetime=None,
-                   metric_ids:list=None, metric_parentids:list=None, project_id:int=0, metric_tag_id:int=0) -> dict:
+                   metric_ids:list=None, metric_parentids:list=None, project_id:int=0, metric_tag_id:int=0, order_by:str='pos', limit:int=0) -> dict:
 
         dt_from_str = ''
         dt_from_more_str = ''
         dt_to_str = ''
         dt_to_less_str = ''
+        limit = int(limit)
         if not dt_from is None:
             dt_from_str = (SysBf.dt_to_tz(dt_from, tz_str_db)).strftime("%Y-%m-%d %H:%M:%S")
         if not dt_from_more is None:
@@ -426,10 +427,6 @@ class Metric:
                 metric_id_str_all = f"metric_parentid in ({metric_parent_ids_str})"      
         
         res = [] 
-        items = {}
-        for item, id in enumerate(ids):
-            items[str(id)] = int(item)
-            res.append(0)    
 
         if metric_id_str_all!="":   
             sql = f"SELECT metric_id as metric_id, sum(value/POW( 10, dp )) as value from {Metric.data_table}{granularity} where {metric_id_str_all} and metric_project_id={project_id} and metric_tag_id={metric_tag_id}"
@@ -443,11 +440,73 @@ class Metric:
                 sql += f" and dt<'{dt_to_less_str}'"  
             if gr_by_str!='':    
                 sql += f" GROUP BY {gr_by_str}" 
+            if order_by=='value':
+                sql += " order by value desc"   
+            if limit>0:
+                sql += f" limit 0,{limit}"                
             sql += ";"      
             result = db.query(sql)  
+
             if type(result) is list:
-                for row in result: 
-                    res[items[str(row['metric_id'])]] = row['value'] 
+                return result
+            else:
+                return res      
+                    
+        return res
+    
+    @staticmethod
+    def get_sum_by_metric_tags(*, db:Mysqldb, 
+                   granularity:str, tz_str_db:str='',  
+                   dt_from:datetime=None, dt_to:datetime=None, dt_from_more:datetime=None, dt_to_less:datetime=None,
+                   metric_id:int=None, project_id:int=0, limit:int=0) -> dict:
+        
+        if metric_id is None:
+            return []
+        
+        limit = int(limit)
+        
+        metric_id = int(metric_id)
+        if metric_id == 0:
+            return []
+
+        dt_from_str = ''
+        dt_from_more_str = ''
+        dt_to_str = ''
+        dt_to_less_str = ''
+        if not dt_from is None:
+            dt_from_str = (SysBf.dt_to_tz(dt_from, tz_str_db)).strftime("%Y-%m-%d %H:%M:%S")
+        if not dt_from_more is None:
+            dt_from_more_str = (SysBf.dt_to_tz(dt_from_more, tz_str_db)).strftime("%Y-%m-%d %H:%M:%S")
+        if not dt_to is None:
+            dt_to_str = (SysBf.dt_to_tz(dt_to, tz_str_db)).strftime("%Y-%m-%d %H:%M:%S")
+        if not dt_to_less is None:
+            dt_to_less_str = (SysBf.dt_to_tz(dt_to_less, tz_str_db)).strftime("%Y-%m-%d %H:%M:%S")
+
+        metric_id_str_all = f"metric_id={metric_id}"      
+        
+        res = []    
+        if metric_id_str_all!="":   
+            sql = f"SELECT mt.metric_tag_id as tag_id, tg.tag as tag_name, sum(mt.value/POW( 10, mt.dp )) as value from {Metric.data_table}{granularity} mt"
+            sql += f" LEFT JOIN {Metric.tags_table} tg on tg.id=mt.metric_tag_id"
+            sql += f" where metric_id={metric_id} and metric_project_id={project_id}"
+            if dt_from_str!='':
+                sql += f" and mt.dt>='{dt_from_str}'"
+            if dt_to_str!='':
+                sql += f" and mt.dt<='{dt_to_str}'"   
+            if dt_from_more_str!='':
+                sql += f" and mt.dt>'{dt_from_more_str}'"
+            if dt_to_less_str!='':
+                sql += f" and mt.dt<'{dt_to_less_str}'"  
+            sql += f" GROUP BY mt.metric_tag_id " 
+            sql += " order by value desc"
+            if limit>0:
+                sql += f" limit 0,{limit}"         
+            sql += ";"    
+            result = db.query(sql)  
+            if type(result) is list:
+                return result
+            else:
+                return res
                     
         return res
 

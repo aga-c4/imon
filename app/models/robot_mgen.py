@@ -10,6 +10,7 @@ from models.metric import Metric
 from models.systimer import SysTimer
 from models.yamapi import YaMAPI
 from models.sysbf import SysBf
+from models.project import Project
 
 class Robot_mgen:
     "Сбор данных с Я.Метрики управление с параметров и из конфига"
@@ -116,7 +117,8 @@ class Robot_mgen:
             settings_project_id = int(self.settings['project_id'])
         else:
             settings_project_id = 0   
-        self.comment(f"granularity={self.settings['granularity']}, project_id:={settings_project_id}")        
+        project = Project(db=self.db, id=settings_project_id)    
+        self.comment(f"project: {project.info['metric_project_name']}, granularity: {self.settings['granularity']}")        
 
         # Запрет дублирования запуска, если зависнет удалите файл!
         proc_file0 = f"{self.proc_path}/{self.alias}_{self.settings['pid']}_{self.settings['granularity']}_0.pid"
@@ -477,7 +479,7 @@ class Robot_mgen:
         # Удалим блокирующий запуск файл
         os.remove(proc_file)
 
-        self.comment(f"Project {settings_project_id} Gran:[{self.settings['granularity']}] Update: {upd_counter_all}; Insert:{insert_counter_all}")
+        self.comment(f"Update: {upd_counter_all}; Insert:{insert_counter_all}")
         return {"success": True, 
                       "telemetry": {
                           "job_execution_sec": run_timer.get_time(), 

@@ -153,8 +153,7 @@ class Robot_newsmaker:
 
         project_id = int(self.settings.get("project_id", 0))
         project = Project(db=self.db, id=project_id)
-
-        
+        self.comment(f"project: {project.info['metric_project_name']}, granularity: {self.settings['granularity']}")     
 
         if project.info["active"]>0:
 
@@ -204,7 +203,7 @@ class Robot_newsmaker:
             or len(settings["metric_ids"]) != len(settings["metric_title"]):
             return {}
         
-        dt_to = settings["dt_to_less"] -timedelta(seconds=1)
+        dt_to = settings["dt_to_less"] - timedelta(seconds=1)
         dt1_str = settings["dt_from"].strftime("%Y-%m-%d")
         dt2_str= dt_to.strftime("%Y-%m-%d")
         if dt1_str==dt2_str:
@@ -212,15 +211,29 @@ class Robot_newsmaker:
         else:
             dt_diapazone_str = dt1_str + ' - ' + dt2_str 
 
-        data_funnel = {}
-        data_funnel["stage"] = settings["metric_title"]
-        data_funnel["number"] = Metric.get_sum(db=self.db, tz_str_db=self.tz_str_db, 
+        mlabels = {}
+        for metric_pos, metric_id in enumerate(settings["metric_ids"]): 
+            mlabels[metric_id] = settings["metric_title"][metric_pos]    
+
+        res = Metric.get_sum_by_metric_ids(db=self.db, tz_str_db=self.tz_str_db, 
                 granularity=settings["granularity"], 
                 dt_from=settings["dt_from"],
                 dt_to_less=settings["dt_to_less"], 
                 metric_ids=settings["metric_ids"],
                 project_id=settings["project_id"],
                 metric_tag_id=settings["metric_tag_id"])
+        
+        values = []
+        labels = []
+        for metric_res in res:
+            metric_id = metric_res['metric_id'] 
+            metric_value = metric_res['value'] 
+            values.append(metric_value)    
+            labels.append(mlabels[metric_id])  
+        
+        data_funnel = {}
+        data_funnel["stage"] = labels
+        data_funnel["number"] = values
 
         df_funnel = pd.DataFrame(data_funnel)
 
@@ -276,7 +289,7 @@ class Robot_newsmaker:
             or len(settings["metric_ids"]) != len(settings["metric_title"]):
             return {}
 
-        dt_to = settings["dt_to_less"] -timedelta(seconds=1)
+        dt_to = settings["dt_to_less"] - timedelta(seconds=1)
         dt1_str = settings["dt_from"].strftime("%Y-%m-%d")
         dt2_str= dt_to.strftime("%Y-%m-%d")
         if dt1_str==dt2_str:
@@ -342,7 +355,7 @@ class Robot_newsmaker:
             or len(settings["metric_ids"]) != len(settings["metric_title"]):
             return {}
 
-        dt_to = settings["dt_to_less"] -timedelta(seconds=1)
+        dt_to = settings["dt_to_less"] - timedelta(seconds=1)
         dt1_str = settings["dt_from"].strftime("%Y-%m-%d")
         dt2_str= dt_to.strftime("%Y-%m-%d")
         if dt1_str==dt2_str:
@@ -396,7 +409,11 @@ class Robot_newsmaker:
             "title": "Пользователи сайта",
             "type": "stack",
             "metric_ids": [201,200], 
-            "metric_title": ["Вернувшиеся", "Новые"]
+            "metric_title": ["Вернувшиеся", "Новые"],
+            "add_other": True,
+            "total_metric_id": 1,
+            "other_title": "Остальное",
+            "other_val_dp": 0 
         }
         """
 
@@ -408,57 +425,116 @@ class Robot_newsmaker:
             or len(settings["metric_ids"]) != len(settings["metric_title"]):
             return {}
 
-        dt_to = settings["dt_to_less"] -timedelta(seconds=1)
+        dt_to = settings["dt_to_less"] - timedelta(seconds=1)
         dt1_str = settings["dt_from"].strftime("%Y-%m-%d")
         dt2_str= dt_to.strftime("%Y-%m-%d")
         if dt1_str==dt2_str:
             dt_diapazone_str = dt1_str
         else:
             dt_diapazone_str = dt1_str + ' - ' + dt2_str 
- 
-        figure_data = []
-        for metric_pos, metric_id in enumerate(settings["metric_ids"]):
-            res = Metric.get_values(db=self.db, tz_str_db=self.tz_str_db, 
-                granularity=settings["granularity"], 
-                dt_from=settings["dt_from"], 
-                dt_to_less=settings["dt_to_less"], 
-                metric_id=metric_id,
-                project_id=settings["project_id"],
-                metric_tag_id=settings["metric_tag_id"])  
-            x = []
-            y = []
-            for dt,value in res.items():
-                x.append(dt)
-                y.append(value)
-            
-            figure_data.append(go.Bar(
-                name = settings["metric_title"][metric_pos],
-                x = x,
-                y = y
-            ))
-        
-        fig = go.Figure(figure_data)
-        
-        fig.update_layout(barmode='stack')
+
+        mlabels = {}
+        for metric_pos, metric_id in enumerate(settings["metric_ids"]): 
+            mlabels[metric_id] = settings["metric_title"][metric_pos]
+
+        total_metric_id = 0
+        if settings["add_other"] == True and int(settings.get("total_metric_id", 0)) > 0 and not settings["total_metric_id"] in settings["metric_ids"]:
+            total_metric_id = settings["total_metric_id"]
+            settings["metric_ids"].append(total_metric_id)
+        res = Metric.get_sum_by_metric_ids(db=self.db, tz_str_db=self.tz_str_db, 
+                granularity = settings["granularity"], 
+                dt_from = settings["dt_from"],
+                dt_to_less = settings["dt_to_less"], 
+                metric_ids = settings["metric_ids"],
+                project_id = settings["project_id"],
+                metric_tag_id = settings["metric_tag_id"],
+                order_by = 'value')
+        sum_vals = 0
+        total_val = 0
+        values = []
+        labels = []
+        for metric_res in res:
+            metric_id = metric_res['metric_id'] 
+            metric_value = metric_res['value'] 
+            if metric_id==total_metric_id:
+                total_val = metric_value
+            else:
+                sum_vals += metric_value
+                values.append(metric_value)    
+                labels.append(mlabels[metric_id])  
+        if total_metric_id>0 and total_val > sum_vals:
+            values.append(round(total_val - sum_vals, settings.get("other_val_dp", 0)))    
+            labels.append(settings.get("other_title", "Other"))  
+
+        fig = px.pie(values=values, 
+                     names=labels, 
+                     width=400, 
+                     height=400)  
         fig.update_layout(autosize=False, height=700, width=1800)
         fig.update_layout(plot_bgcolor='#ffffff')
         fig.update_layout(title_text=f'{settings["title"]} {dt_diapazone_str}')
 
-        stack_object = io.BytesIO()
-        fig.write_image(stack_object)
-        stack_object.name = f'stack_{datetime.now().strftime("%Y%m%d%H%M%S")}.png'
-        stack_object.seek(0)
+        pie_object = io.BytesIO()
+        fig.write_image(pie_object)
+        pie_object.name = f'pie_{datetime.now().strftime("%Y%m%d%H%M%S")}.png'
+        pie_object.seek(0)
 
-        Message.send('', img_buf=stack_object, lvl=self.message_lvl)
+        Message.send('', img_buf=pie_object, lvl=self.message_lvl)
 
-        stack_object.close()
+        pie_object.close()
 
         return {}
                 
     def get_tagspie(self, *, settings:dict):   
-        values = [100, 200, 300]  
-        labels = ["A", "B", "C"]  
-        fig = px.pie(values=values, names=labels, width=400, height=400)  
+        if not "metric_id" in settings \
+            or not type(settings["metric_id"]) is int \
+            or settings["metric_id"] == 0:
+            return {}
+
+        dt_to = settings["dt_to_less"] - timedelta(seconds=1)
+        dt1_str = settings["dt_from"].strftime("%Y-%m-%d")
+        dt2_str= dt_to.strftime("%Y-%m-%d")
+        if dt1_str==dt2_str:
+            dt_diapazone_str = dt1_str
+        else:
+            dt_diapazone_str = dt1_str + ' - ' + dt2_str 
+
+        limit = settings.get("limit", 0)    
+
+        res = Metric.get_sum_by_metric_tags(db=self.db, tz_str_db=self.tz_str_db, 
+                granularity = settings["granularity"], 
+                dt_from = settings["dt_from"],
+                dt_to_less = settings["dt_to_less"], 
+                metric_id = settings["metric_id"],
+                project_id = settings["project_id"], 
+                limit=limit)
+        
+        
+        sum_vals = 0
+        total_val = 0
+        values = []
+        labels = []
+        for metric_res in res: 
+            tag_id = metric_res['tag_id']
+            tag_name = metric_res['tag_name']
+            tag_value = metric_res['value']
+            if tag_id==0:
+                total_val = tag_value
+            else:
+                sum_vals += tag_value
+                values.append(tag_value)    
+                labels.append(tag_name)  
+        if total_val > sum_vals:
+            values.append(round(total_val - sum_vals, settings.get("other_val_dp", 0)))    
+            labels.append(settings.get("other_title", "Other"))  
+
+        fig = px.pie(values=values, 
+                     names=labels, 
+                     width=400, 
+                     height=400)  
+        fig.update_layout(autosize=False, height=700, width=1800)
+        fig.update_layout(plot_bgcolor='#ffffff')
+        fig.update_layout(title_text=f'{settings["title"]} {dt_diapazone_str}')
 
         tagspie_object = io.BytesIO()
         fig.write_image(tagspie_object)

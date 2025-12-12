@@ -9,6 +9,7 @@ from models.metric import Metric
 from models.systimer import SysTimer
 from models.getloadapi import GetLoadAPI
 from models.sysbf import SysBf
+from models.project import Project
 
 class Robot_getload:
     "Сбор данных по нагрузке через API"
@@ -136,7 +137,8 @@ class Robot_getload:
             settings_project_id = int(self.settings['project_id'])
         else:
             settings_project_id = 0  
-        self.comment(f"project_id={settings_project_id}")    
+        project = Project(db=self.db, id=settings_project_id) 
+        self.comment(f"project: {project.info['metric_project_name']}, granularity: {self.settings['granularity']}")        
         
         # Запрет дублирования запуска, если зависнет удалите файл!
         proc_file0 = f"{self.proc_path}/{self.alias}_{self.settings['pid']}_{self.settings['granularity']}_0.pid"
@@ -441,7 +443,7 @@ class Robot_getload:
                                 for metric_tag, metric_tag_data in metric_data.items():
                                     if metric_tag in self.source_tag_exceptions:
                                         continue
-                                    if metric_tag=="all" or metric_tag=="UNKNOWN":
+                                    if metric_tag=="all":
                                         metric_tag = ""   
                                     if metric_tag == "":
                                         metric_tag_id = 0
@@ -481,7 +483,7 @@ class Robot_getload:
                         for metric_tag, metric_tag_data in metric_data.items():
                             if metric_tag in self.source_tag_exceptions:
                                 continue
-                            if metric_tag=="all" or metric_tag=="UNKNOWN":
+                            if metric_tag=="all":
                                 metric_tag = ""   
                             if metric_tag == "":
                                 metric_tag_id = 0

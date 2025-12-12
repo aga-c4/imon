@@ -163,7 +163,7 @@ elif namespace.action == 'mgen':
 
 
 elif namespace.action == 'newsmaker':
-    message_str = "Newsmaker fin, comment: \n"
+    message_str = "Newsmaker fin, comment:"
     for cur_news_alias, news in config["newsmaker"].items():
         if (namespace.news_alias!='' and cur_news_alias==namespace.news_alias) or ( \
                 (namespace.group=='' or news["group"]==namespace.group) \
@@ -176,7 +176,7 @@ elif namespace.action == 'newsmaker':
 
             robot = Robot_newsmaker(settings=news, config=config)
             res = robot.run()
-            message_str = res['comment'] + "\n"
+            message_str += "\n" + res['comment']
             if 'telemetry' in res:
                 message_str += " \n" + f"exec_sec:{res['telemetry']['job_execution_sec']}, maxmem_kb:{res['telemetry']['job_max_mem_kb']}"
     
