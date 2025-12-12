@@ -153,6 +153,9 @@ class Robot_newsmaker:
 
         project_id = int(self.settings.get("project_id", 0))
         project = Project(db=self.db, id=project_id)
+
+        
+
         if project.info["active"]>0:
 
             message_def = {
