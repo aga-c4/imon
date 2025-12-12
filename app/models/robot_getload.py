@@ -32,6 +32,7 @@ class Robot_getload:
     debug = False
     pid = ''
     source_get_api_lag_sec = 1 # Задержка между запросами к API
+    source_tag_exceptions = []
     api = None
     fr_api = False
     tz_str_source = ''
@@ -96,6 +97,7 @@ class Robot_getload:
             self.metrics_pkg_qty = int(config['sources'][self.source_alias].get('metrics_pkg_qty', self.metrics_pkg_qty))
             self.source_get_api_lag_sec = int(config['sources'][self.source_alias].get('source_get_api_lag_sec', self.source_get_api_lag_sec))
             self.tz_str_source = config['sources'][self.source_alias].get('timezone', self.tz_str_source)
+            self.source_tag_exceptions = config['sources'][self.source_alias].get('tags_exceptions', [])
             self.api = GetLoadAPI(token=config['sources'][self.source_alias]['token'], 
                             api_url=config['sources'][self.source_alias]['api_url'], 
                             source=self.settings['source'], tmp_path=self.tmp_path,
@@ -134,6 +136,7 @@ class Robot_getload:
             settings_project_id = int(self.settings['project_id'])
         else:
             settings_project_id = 0  
+        self.comment(f"project_id={settings_project_id}")    
         
         # Запрет дублирования запуска, если зависнет удалите файл!
         proc_file0 = f"{self.proc_path}/{self.alias}_{self.settings['pid']}_{self.settings['granularity']}_0.pid"
@@ -158,12 +161,13 @@ class Robot_getload:
 
             if last_proc_dt_str=='' or SysBf.tzdt_fr_str(last_proc_dt_str, self.tz_str_system) > (datetime_now - timedelta(seconds=self.proc_ttl)):
                 logging.warning("Error: Already running or process file error!")
+                self.comment(f"Project {settings_project_id} Error: Already running or process file error!")  
                 return {"success": False, 
                         "telemetry": {
                             "job_execution_sec": run_timer.get_time(), 
                             "job_max_mem_kb": 0},
                         "count": 0,
-                        "comment": f"Project {settings_project_id} Error: Already running or process file error!"} 
+                        "comment": self.comment_str} 
         
         # Файл устарел или отсутствует, перезапишем
         f = open(proc_file, 'w')
@@ -329,6 +333,8 @@ class Robot_getload:
                                     granularity_settings = self.granularity_list.get(gran, {})    
                                     for upd_metric,metric_data in cur_metric_accum[gran].items():
                                         for metric_tag, metric_tag_vals in metric_data.items():
+                                            if metric_tag in self.source_tag_exceptions:
+                                                continue
                                             if cur_ts_period[gran][0]>=dt_insert_from[gran] and cur_ts_period[gran][0]>db_exist_dt_str[gran]:
                                                 if not upd_metric in upd_metric_list[gran]:
                                                     upd_metric_list[gran][upd_metric] = {}   
@@ -372,6 +378,8 @@ class Robot_getload:
                                             upd_tag =  row[1].strip()
                                             if upd_tag=="UNKNOWN" or upd_tag=="":
                                                 upd_tag="unknown"
+                                            if upd_tag in self.source_tag_exceptions:
+                                                continue       
                                             upd_value = float(row[2])
 
                                             if not upd_tag in exist_tg_mt:
@@ -380,7 +388,7 @@ class Robot_getload:
                                                 exist_tg_mt[upd_tag].append(upd_metric) 
                                             else:
                                                 logging.info(f"{minute_file} Dublicate metrics {upd_metric}:{upd_tag}")
-                                                continue   
+                                                continue
 
                                             # Добавление старших таймфреймов в списки их сохранения
                                             for gran in self.add_gran_list:
@@ -431,6 +439,8 @@ class Robot_getload:
                             granularity_settings = self.granularity_list.get("m1", {})  
                             for upd_metric,metric_data in upd_metric_list["m1"].items():
                                 for metric_tag, metric_tag_data in metric_data.items():
+                                    if metric_tag in self.source_tag_exceptions:
+                                        continue
                                     if metric_tag=="all" or metric_tag=="UNKNOWN":
                                         metric_tag = ""   
                                     if metric_tag == "":
@@ -469,6 +479,8 @@ class Robot_getload:
                     granularity_settings = self.granularity_list.get(gran, {})  
                     for upd_metric,metric_data in upd_metric_list[gran].items():
                         for metric_tag, metric_tag_data in metric_data.items():
+                            if metric_tag in self.source_tag_exceptions:
+                                continue
                             if metric_tag=="all" or metric_tag=="UNKNOWN":
                                 metric_tag = ""   
                             if metric_tag == "":

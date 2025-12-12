@@ -78,6 +78,8 @@ class GetLoadAPI:
                 if os.path.exists(foldername): 
                     shutil.rmtree(foldername)        
                     
+            if not os.path.exists(zip_foldername + '/' + self.source):  
+                os.makedirs(zip_foldername + '/' + self.source)        
             if not os.path.exists(zip_foldername):  
                 os.makedirs(zip_foldername)  
             if not os.path.exists(tmp_foldername):  
