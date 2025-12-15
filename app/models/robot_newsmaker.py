@@ -460,16 +460,24 @@ class Robot_newsmaker:
                 total_val = metric_value
             else:
                 sum_vals += metric_value
-                values.append(metric_value)    
+                values.append(format(metric_value, "g"))    
                 labels.append(mlabels[metric_id])  
         if total_metric_id>0 and total_val > sum_vals:
-            values.append(round(total_val - sum_vals, settings.get("other_val_dp", 0)))    
+            values.append(format(round(total_val - sum_vals, settings.get("val_dp", 0)), "g"))    
             labels.append(settings.get("other_title", "Other"))  
 
+        # Расчет процентов и подготовка списка
+        total = sum(values)
+        details = []
+        for pos, value in enumerate(values):
+            percent = (value / total) * 100
+            details.append(f"{labels[pos]}: {value} ({percent:.1f}%)")    
+
         fig = px.pie(values=values, 
-                     names=labels, 
+                     names=details, 
                      width=400, 
                      height=400)  
+        fig.update_traces(textposition='outside', textinfo='percent')
         fig.update_layout(autosize=False, height=700, width=1800)
         fig.update_layout(plot_bgcolor='#ffffff')
         fig.update_layout(title_text=f'{settings["title"]} {dt_diapazone_str}')
@@ -522,17 +530,25 @@ class Robot_newsmaker:
                 total_val = tag_value
             else:
                 sum_vals += tag_value
-                values.append(tag_value)    
+                values.append(format(tag_value, "g"))    
                 labels.append(tag_name)  
         if total_val > sum_vals:
-            values.append(round(total_val - sum_vals, settings.get("other_val_dp", 0)))    
+            values.append(format(round(total_val - sum_vals, settings.get("val_dp", 0)), "g"))    
             labels.append(settings.get("other_title", "Other"))  
 
+        # Расчет процентов и подготовка списка
+        total = sum(values)
+        details = []
+        for pos, value in enumerate(values):
+            percent = (value / total) * 100
+            details.append(f"{labels[pos]}: {value} ({percent:.1f}%)") 
+
         fig = px.pie(values=values, 
-                     names=labels, 
-                     width=400, 
-                     height=400)  
-        fig.update_layout(autosize=False, height=700, width=1800)
+                     names=details, 
+                     width=1024, 
+                     height=768)
+        fig.update_traces(textposition='outside', textinfo='percent')  
+        fig.update_layout(autosize=False, height=768, width=1024)
         fig.update_layout(plot_bgcolor='#ffffff')
         fig.update_layout(title_text=f'{settings["title"]} {dt_diapazone_str}')
 

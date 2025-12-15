@@ -6,8 +6,7 @@ class Project:
     info = None
     id = None
 
-    def __init__(self, *, db:Mysqldb, id:int):
-        assert id > 0, 'Task.__init__: Tasks id is not set'
+    def __init__(self, *, db:Mysqldb, id:int=0):
         self.db = db
         self.id = int(id)
         self.info = self.get_info()

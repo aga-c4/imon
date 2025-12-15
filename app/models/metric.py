@@ -118,6 +118,9 @@ class Metric:
 
         dt_from_period = SysBf.get_dateframes_by_current_dt(date=dt_from, granularity=granularity)
         
+        print("Metric::add_items_fr_jun_tf")
+        print("cur_ts_period_dt:", cur_ts_period_dt)
+
         # Цикл перебора периодов 
         cur_ts_period_dt = SysBf.get_dateframes_by_current_dt(date=dt_from_period[1] + datetime.timedelta(minutes=1), granularity=granularity)
         cur_dt_from = cur_ts_period_dt[0]
@@ -132,7 +135,7 @@ class Metric:
             tags_dt_funct_list = Metric.get_tags_sum_list(db=db, granularity=prev_granularity, tz_str_db=tz_str_db, metric_type='src',
                                                         dt_from=cur_dt_from, dt_to=cur_dt_to, project_id=project_id)
 
-            # print(tags_dt_funct_list)
+            print("dt=",cur_dt_to," tags_dt_funct_list:",tags_dt_funct_list)
             for mtres in tags_dt_funct_list: 
                 upd_metric = mtres["metric_alias"]   
                 if metrics[upd_metric]["up_dt_funct"] =="avg":
@@ -162,6 +165,8 @@ class Metric:
             cur_ts_period_dt = SysBf.get_dateframes_by_current_dt(date=cur_dt_to + datetime.timedelta(minutes=1), granularity=granularity)
             cur_dt_from = cur_ts_period_dt[0]
             cur_dt_to = cur_ts_period_dt[1]
+
+        print("insert_counter_all: {insert_counter}, upd_counter_all: {upd_counter}")     
         return {'insert_counter_all': insert_counter, 'upd_counter_all': upd_counter}    
     
     @staticmethod
