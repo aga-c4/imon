@@ -460,10 +460,10 @@ class Robot_newsmaker:
                 total_val = metric_value
             else:
                 sum_vals += metric_value
-                values.append(format(metric_value, "g"))    
+                values.append(metric_value)    
                 labels.append(mlabels[metric_id])  
         if total_metric_id>0 and total_val > sum_vals:
-            values.append(format(round(total_val - sum_vals, settings.get("val_dp", 0)), "g"))    
+            values.append(round(total_val - sum_vals, settings.get("val_dp", 0)))    
             labels.append(settings.get("other_title", "Other"))  
 
         # Расчет процентов и подготовка списка
@@ -530,10 +530,10 @@ class Robot_newsmaker:
                 total_val = tag_value
             else:
                 sum_vals += tag_value
-                values.append(format(tag_value, "g"))    
+                values.append(tag_value)    
                 labels.append(tag_name)  
         if total_val > sum_vals:
-            values.append(format(round(total_val - sum_vals, settings.get("val_dp", 0)), "g"))    
+            values.append(round(total_val - sum_vals, settings.get("val_dp", 0)))    
             labels.append(settings.get("other_title", "Other"))  
 
         # Расчет процентов и подготовка списка

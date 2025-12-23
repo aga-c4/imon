@@ -109,6 +109,8 @@ class Metric:
                             first_item_enable:bool=False) -> list:
         """ dt_from - дата начала НЕ включая,  dt_to - дата окончания НЕ включая. Работает только для src метрик!!! пока"""
 
+        print(f"Metric::add_items_fr_jun_tf::{prev_granularity}-->{granularity}")
+
         if datetime_to!='':
             datetime_add_to = SysBf.tzdt_fr_str(datetime_to, tz_str_system)
         else:  
@@ -117,9 +119,6 @@ class Metric:
             dt_to = datetime_add_to   
 
         dt_from_period = SysBf.get_dateframes_by_current_dt(date=dt_from, granularity=granularity)
-        
-        print("Metric::add_items_fr_jun_tf")
-        print("cur_ts_period_dt:", cur_ts_period_dt)
 
         # Цикл перебора периодов 
         cur_ts_period_dt = SysBf.get_dateframes_by_current_dt(date=dt_from_period[1] + datetime.timedelta(minutes=1), granularity=granularity)
@@ -128,14 +127,15 @@ class Metric:
         insert_counter = 0
         upd_counter = 0
         while cur_dt_to<dt_to:
+            # print("cur_ts_period_dt:", cur_ts_period_dt)
             # print("dt_from:", dt_from, " cur_dt_to:", str(cur_dt_to), " < dt_to:", str(dt_to))
             # Получим список тегов и метрик младшего ряда за заданный период   
-            # print("dt_from=", cur_dt_from, "dt_to=", cur_dt_to, "cur_dt_from=", cur_dt_from)
+            print("cur_dt_from=", cur_dt_from, "cur_dt_to=", cur_dt_to, "dt_to=", dt_to)
             # По тегам и метрикам посчитаем функцию объединения и запишем данные в текущий период
             tags_dt_funct_list = Metric.get_tags_sum_list(db=db, granularity=prev_granularity, tz_str_db=tz_str_db, metric_type='src',
                                                         dt_from=cur_dt_from, dt_to=cur_dt_to, project_id=project_id)
 
-            print("dt=",cur_dt_to," tags_dt_funct_list:",tags_dt_funct_list)
+            # print(" tags_dt_funct_list:",tags_dt_funct_list)
             for mtres in tags_dt_funct_list: 
                 upd_metric = mtres["metric_alias"]   
                 if metrics[upd_metric]["up_dt_funct"] =="avg":
@@ -144,7 +144,9 @@ class Metric:
                     else:        
                         value = mtres["value"]/mtres["val_count"]
                 else:
-                    value = mtres["value"]   
+                    value = mtres["value"]      
+                       
+                print(cur_dt_from.strftime("%Y-%m-%dT%H:%M:%S") + f" Metric::add_fr_ym::{mtres["metric_alias"]}::{mtres["tag_id"]}::{value}")       
                 res = Metric.add_fr_ym(db=db,
                             metrics=metrics, # Словарь метрик с их параметрами
                             granularity=granularity, granularity_settings=granularity_settings, 
@@ -152,12 +154,13 @@ class Metric:
                             tz_str_source=tz_str_system, tz_str_system=tz_str_system, tz_str_db=tz_str_db,
                             upd_metric=mtres["metric_alias"], # API алиас изменяемой метрики
                             project_id=project_id,
-                            metric_tag_id=mtres["tag_id"] ,
+                            metric_tag_id=mtres["tag_id"],
                             upd_metric_vals=[value], # Список добавляемых значений метрики
                             upd_metric_time_intervals=[[cur_dt_from.strftime("%Y-%m-%dT%H:%M:%S"), cur_dt_to.strftime("%Y-%m-%dT%H:%M:%S")]], # Список интервалов добавляемых элементов
                             mode=mode, # prod
                             datetime_to=datetime_to,
-                            first_item_enable=first_item_enable)  
+                            first_item_enable=first_item_enable)   
+
                 insert_counter += res['insert_counter_all']       
                 upd_counter += res['upd_counter_all']
 
@@ -166,7 +169,7 @@ class Metric:
             cur_dt_from = cur_ts_period_dt[0]
             cur_dt_to = cur_ts_period_dt[1]
 
-        print("insert_counter_all: {insert_counter}, upd_counter_all: {upd_counter}")     
+        print(f"insert_counter_all: {insert_counter}, upd_counter_all: {upd_counter}")     
         return {'insert_counter_all': insert_counter, 'upd_counter_all': upd_counter}    
     
     @staticmethod
@@ -186,7 +189,7 @@ class Metric:
             sql += f" and mmm.metric_type='{metric_type}'"   
         sql +=  ' group by mt.metric_tag_id;'        
         result = db.query(sql)
-        if result:
+        if result is list and len(result)>0:
             return result  
         else:
             return []

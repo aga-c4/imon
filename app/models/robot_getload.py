@@ -42,7 +42,7 @@ class Robot_getload:
     db_mode = 'prod' # prod - для реальной записи
     all_gran_list = ["m1","h1", "d1", "w1", "mo1"] # От младших к старшим, Важно!
     add_gran_list = ["h1", "d1", "w1", "mo1"] # От младших к старшим, Важно!
-    prev_gran_list = {"h1":"m1", "d1":"h1", "w1":"d1", "mo1":"d1"}
+    prev_gran_list = {"h1":"m1", "d1":"h1", "w1":"d1", "mo1":"w1"}
     project_id = 1
 
     """
@@ -230,7 +230,7 @@ class Robot_getload:
             # Добавление старших таймфреймов в списки их сохранения
             for gran in self.add_gran_list:
                 if db_exist_dt[gran]<cur_ts_period_dt[gran][0]:
-                    # print(f"db_exist_dt[{gran}]:", db_exist_dt[gran])
+                    print(f"db_exist_dt[{gran}]:", db_exist_dt[gran])
                     # Сформируем из нижестоящих рядов недостающие значения до текущего периода
                     max_dt_bk = max_dt
                     granularity_settings = self.granularity_list.get(gran, {})  
