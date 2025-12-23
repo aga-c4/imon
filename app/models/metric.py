@@ -109,7 +109,7 @@ class Metric:
                             first_item_enable:bool=False) -> list:
         """ dt_from - дата начала НЕ включая,  dt_to - дата окончания НЕ включая. Работает только для src метрик!!! пока"""
 
-        print(f"Metric::add_items_fr_jun_tf::{prev_granularity}-->{granularity}")
+        # print(f"Metric::add_items_fr_jun_tf::{prev_granularity}-->{granularity}")
 
         if datetime_to!='':
             datetime_add_to = SysBf.tzdt_fr_str(datetime_to, tz_str_system)
@@ -130,12 +130,11 @@ class Metric:
             # print("cur_ts_period_dt:", cur_ts_period_dt)
             # print("dt_from:", dt_from, " cur_dt_to:", str(cur_dt_to), " < dt_to:", str(dt_to))
             # Получим список тегов и метрик младшего ряда за заданный период   
-            print("cur_dt_from=", cur_dt_from, "cur_dt_to=", cur_dt_to, "dt_to=", dt_to)
+            # print("cur_dt_from=", cur_dt_from, "cur_dt_to=", cur_dt_to, "dt_to=", dt_to)
             # По тегам и метрикам посчитаем функцию объединения и запишем данные в текущий период
             tags_dt_funct_list = Metric.get_tags_sum_list(db=db, granularity=prev_granularity, tz_str_db=tz_str_db, metric_type='src',
                                                         dt_from=cur_dt_from, dt_to=cur_dt_to, project_id=project_id)
 
-            # print(" tags_dt_funct_list:",tags_dt_funct_list)
             for mtres in tags_dt_funct_list: 
                 upd_metric = mtres["metric_alias"]   
                 if metrics[upd_metric]["up_dt_funct"] =="avg":
@@ -146,7 +145,7 @@ class Metric:
                 else:
                     value = mtres["value"]      
                        
-                print(cur_dt_from.strftime("%Y-%m-%dT%H:%M:%S") + f" Metric::add_fr_ym::{mtres["metric_alias"]}::{mtres["tag_id"]}::{value}")       
+                # print(cur_dt_from.strftime("%Y-%m-%dT%H:%M:%S") + f" Metric::add_fr_ym::{mtres["metric_alias"]}::{mtres["tag_id"]}::{value}")       
                 res = Metric.add_fr_ym(db=db,
                             metrics=metrics, # Словарь метрик с их параметрами
                             granularity=granularity, granularity_settings=granularity_settings, 
@@ -168,8 +167,7 @@ class Metric:
             cur_ts_period_dt = SysBf.get_dateframes_by_current_dt(date=cur_dt_to + datetime.timedelta(minutes=1), granularity=granularity)
             cur_dt_from = cur_ts_period_dt[0]
             cur_dt_to = cur_ts_period_dt[1]
-
-        print(f"insert_counter_all: {insert_counter}, upd_counter_all: {upd_counter}")     
+   
         return {'insert_counter_all': insert_counter, 'upd_counter_all': upd_counter}    
     
     @staticmethod
@@ -187,9 +185,9 @@ class Metric:
         sql += f" WHERE mt.metric_project_id={project_id} and mt.dt>='{dt_from_str}' and mt.dt<='{dt_to_str}'"   
         if metric_type!='':
             sql += f" and mmm.metric_type='{metric_type}'"   
-        sql +=  ' group by mt.metric_tag_id;'        
+        sql +=  ' group by mt.metric_tag_id, mt.metric_id;'      
         result = db.query(sql)
-        if result is list and len(result)>0:
+        if type(result) is list and len(result)>0:
             return result  
         else:
             return []
