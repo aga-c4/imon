@@ -261,7 +261,7 @@ class Robot_getload:
                         # print("New cur_ts_period:", cur_ts_period)
 
                 # Запросим список метрики и их сумм по заданной гранулярности, метрикам и тегам
-                tags_sum_list = Metric.get_tags_sum_list(db=db, granularity=gran, tz_str_db=self.tz_str_db, project_id=self.project_id, 
+                tags_sum_list = Metric.get_tags_sum_list(db=db, granularity=self.prev_gran_list[gran], tz_str_db=self.tz_str_db, project_id=self.project_id, 
                                                             dt_from=cur_ts_period_dt[gran][0], dt_to=cur_ts_period_dt[gran][1])
                 for mtres in tags_sum_list:      
                     upd_metric = mtres["metric_alias"]   
