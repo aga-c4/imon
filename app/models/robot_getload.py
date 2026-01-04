@@ -334,22 +334,23 @@ class Robot_getload:
                                     # Запишем данные по прошлому периоду
                                     granularity_settings = self.granularity_list.get(gran, {})    
                                     for upd_metric,metric_data in cur_metric_accum[gran].items():
-                                        for metric_tag, metric_tag_vals in metric_data.items():
-                                            if metric_tag in self.source_tag_exceptions:
-                                                continue
-                                            if cur_ts_period[gran][0]>=dt_insert_from[gran] and cur_ts_period[gran][0]>db_exist_dt_str[gran]:
-                                                if not upd_metric in upd_metric_list[gran]:
-                                                    upd_metric_list[gran][upd_metric] = {}   
-                                                if not metric_tag in upd_metric_list[gran][upd_metric]:
-                                                    upd_metric_list[gran][upd_metric][metric_tag] = {"ts":[],"vals":[]}
-                                                upd_metric_list[gran][upd_metric][metric_tag]["ts"].append(cur_ts_period[gran])
-                                                if metric_tag_vals["cnt"]==0:
-                                                    upd_metric_list[gran][upd_metric][metric_tag]["vals"].append(0)           
-                                                else:        
-                                                    if metrics[upd_metric]["up_dt_funct"]=="avg": # Средняя
-                                                        upd_metric_list[gran][upd_metric][metric_tag]["vals"].append(metric_tag_vals["sum"] / metric_tag_vals["cnt"])           
-                                                    else: # Сумма
-                                                        upd_metric_list[gran][upd_metric][metric_tag]["vals"].append(metric_tag_vals["sum"])      
+                                        if upd_metric in metrics:
+                                            for metric_tag, metric_tag_vals in metric_data.items():
+                                                if metric_tag in self.source_tag_exceptions:
+                                                    continue
+                                                if cur_ts_period[gran][0]>=dt_insert_from[gran] and cur_ts_period[gran][0]>db_exist_dt_str[gran]:
+                                                    if not upd_metric in upd_metric_list[gran]:
+                                                        upd_metric_list[gran][upd_metric] = {}   
+                                                    if not metric_tag in upd_metric_list[gran][upd_metric]:
+                                                        upd_metric_list[gran][upd_metric][metric_tag] = {"ts":[],"vals":[]}
+                                                    upd_metric_list[gran][upd_metric][metric_tag]["ts"].append(cur_ts_period[gran])
+                                                    if metric_tag_vals["cnt"]==0:
+                                                        upd_metric_list[gran][upd_metric][metric_tag]["vals"].append(0)           
+                                                    else:        
+                                                        if metrics[upd_metric]["up_dt_funct"]=="avg": # Средняя
+                                                            upd_metric_list[gran][upd_metric][metric_tag]["vals"].append(metric_tag_vals["sum"] / metric_tag_vals["cnt"])           
+                                                        else: # Сумма
+                                                            upd_metric_list[gran][upd_metric][metric_tag]["vals"].append(metric_tag_vals["sum"])      
 
                                     # Сменился период в заданном таймфрейме
                                     last_ts_period[gran] = cur_ts_period[gran]

@@ -137,6 +137,8 @@ class Metric:
 
             for mtres in tags_dt_funct_list: 
                 upd_metric = mtres["metric_alias"]   
+                # if mtres['']!='src':
+                #     print('Error get_tags_sum_list: ', upd_metric)
                 if metrics[upd_metric]["up_dt_funct"] =="avg":
                     if mtres["val_count"]==0:
                         value = 0
@@ -177,7 +179,7 @@ class Metric:
         dt_from_str = (SysBf.dt_to_tz(dt_from, tz_str_db)).strftime('%Y-%m-%d %H:%M:%S')
         dt_to_str = (SysBf.dt_to_tz(dt_to, tz_str_db)).strftime('%Y-%m-%d %H:%M:%S')
         
-        sql  = f"SELECT mt.metric_id as metric_id, mmm.metric_alias as metric_alias, mmm.metric_api_alias as metric_api_alias,"
+        sql  = f"SELECT mt.metric_id as metric_id, mmm.metric_alias as metric_alias, mmm.metric_api_alias as metric_api_alias, mmm.metric_type as metric_type,"
         sql += f" count(mt.value) as val_count, mt.metric_tag_id as tag_id, tg.tag as tag, SUM(mt.value/POW( 10, mt.dp )) as value"
         sql += f" from {Metric.data_table}{granularity} mt" 
         sql += f" LEFT JOIN {Metric.tags_table} tg on tg.id=mt.metric_tag_id"
