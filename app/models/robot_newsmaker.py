@@ -235,6 +235,8 @@ class Robot_newsmaker:
         data_funnel["stage"] = labels
         data_funnel["number"] = values
 
+        colors = settings.get('colors', ['#dc143c','#ff0000','#ff4500','#FF6347','#ff7F50'])
+
         df_funnel = pd.DataFrame(data_funnel)
 
         fig = go.Figure(go.Funnel(y=df_funnel.number,
@@ -243,7 +245,7 @@ class Robot_newsmaker:
                                     textinfo="value+percent initial",
                                     texttemplate='Всего: %{value:,d} <br> Доля от пред. шага: %{percentPrevious:.1%} <br> Доля от всех: %{percentInitial:.2%}',
                                     orientation='v',
-                                    marker={"color": ['#dc143c','#ff0000','#ff4500','#FF6347','#ff7F50'],
+                                    marker={"color": colors,
                                             "colorscale": 'Hot',
                                             "colorbar": {"bgcolor": None}}
                                     ))
