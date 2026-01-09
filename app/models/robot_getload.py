@@ -477,11 +477,16 @@ class Robot_getload:
                             time.sleep(self.source_get_api_lag_sec - api_timer_sec)
                         logging.info(f'API complite get {dt_file}')
                 
-
+                
+                db_exist_dt_m1 = SysBf.dt_to_tz(Metric.get_last_dt(db=db, granularity="m1", tz_str_db=self.tz_str_db, project_id=self.project_id, source_id=source_id), tz_str=self.tz_str_system)
+                exist_periods = SysBf.get_dateframes_by_current_dt(date=db_exist_dt_m1, tpl="%Y-%m-%dT%H:%M:%S")
                 for gran in self.add_gran_list:
                     granularity_settings = self.granularity_list.get(gran, {})  
                     for upd_metric,metric_data in upd_metric_list[gran].items():
                         for metric_tag, metric_tag_data in metric_data.items():
+                            if metric_tag_data["ts"]<exist_periods[gran][0]:
+                                # Добавляем данные с периодом меньше незаконченного текущего, определенного по последней записанной минуте.
+                                continue
                             if metric_tag in self.source_tag_exceptions:
                                 continue
                             if metric_tag=="all":
