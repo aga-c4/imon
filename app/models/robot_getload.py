@@ -264,18 +264,17 @@ class Robot_getload:
                 tags_sum_list = Metric.get_tags_sum_list(db=db, granularity=self.prev_gran_list[gran], tz_str_db=self.tz_str_db, project_id=self.project_id, 
                                                             dt_from=cur_ts_period_dt[gran][0], dt_to=cur_ts_period_dt[gran][1], metric_type='src')
                 for mtres in tags_sum_list:      
-                    upd_metric = mtres["metric_alias"]   
-                    upd_tag = mtres["tag"] 
+                    upd_metric = mtres["metric_alias"]
+                    if mtres["tag_id"]==0:
+                        upd_tag = "all"   
+                    else:    
+                        upd_tag = mtres["tag"] 
                     if not upd_metric in cur_metric_accum[gran]:
-                        cur_metric_accum[gran][upd_metric] = {}    
-                    if not upd_tag in cur_metric_accum[gran][upd_metric]:
-                        cur_metric_accum[gran][upd_metric][upd_tag] = {'sum':0, 'cnt': 0}      
+                        cur_metric_accum[gran][upd_metric] = {"all": {'sum':0, 'cnt': 0}}   
                     if not "all" in cur_metric_accum[gran][upd_metric]:
                         cur_metric_accum[gran][upd_metric]["all"] = {'sum':0, 'cnt': 0}      
-                    cur_metric_accum[gran][upd_metric][upd_tag]["sum"] = mtres["value"] 
-                    cur_metric_accum[gran][upd_metric]["all"]["sum"] = mtres["value"]   
+                    cur_metric_accum[gran][upd_metric][upd_tag]["sum"] = mtres["value"]  
                     cur_metric_accum[gran][upd_metric][upd_tag]["cnt"] = mtres["val_count"]  
-                    cur_metric_accum[gran][upd_metric]["all"]["cnt"] = mtres["val_count"]   
 
             # Получить список доступных архивов
             file_list = self.api.get_list()
