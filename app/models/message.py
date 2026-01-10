@@ -15,6 +15,8 @@ class Message():
     important_channel = None
     all_channel = None
     news_channel = None
+    sleep_sec1 = 1
+    sleep_sec2 = 2
 
     def __init__(self, *, project_id:int=0):
             
@@ -72,7 +74,7 @@ class Message():
                     msg_status = message.bot.send_message(message.news_channel, message_str, disable_web_page_preview=True,parse_mode='HTML')
                 res += 1
                 if not img_buf is None:
-                    sleep(1)
+                    sleep(Message.sleep_sec2)
                     message.bot.send_photo(message.news_channel, img_buf)
             except:
                 logging.warning("Messages send problems!")
@@ -112,7 +114,7 @@ class Message():
                     msg_status = message.bot.send_message(message.important_channel, message_str, disable_web_page_preview=True, parse_mode='HTML')
                 res += 1
                 if res<3 and not img_buf is None:
-                    sleep(1)
+                    sleep(Message.sleep_sec2)
                     message.bot.send_photo(message.important_channel, img_buf)
             except:
                 logging.warning("Messages send problems!")
@@ -125,7 +127,7 @@ class Message():
                 if lvl!='critical' and lvl!='important':
                     res += 1
                 if res<3 and not img_buf is None:
-                    sleep(1)
+                    sleep(Message.sleep_sec2)
                     message.bot.send_photo(message.all_channel, img_buf)
             except:
                 logging.warning("Messages send problems!")

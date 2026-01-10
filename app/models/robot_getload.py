@@ -481,12 +481,14 @@ class Robot_getload:
                 db_exist_dt_m1 = SysBf.dt_to_tz(Metric.get_last_dt(db=db, granularity="m1", tz_str_db=self.tz_str_db, project_id=self.project_id, source_id=source_id), tz_str=self.tz_str_system)
                 exist_periods = SysBf.get_dateframes_by_current_dt(date=db_exist_dt_m1, tpl="%Y-%m-%dT%H:%M:%S")
                 for gran in self.add_gran_list:
+                    # Добавляем данные с периодом меньше незаконченного текущего, определенного по последней записанной минуте.    
+                    if exist_periods[gran][0]<self.settings['datetime_to']:
+                        datetime_to = exist_periods[gran][0]
+                    else:
+                        datetime_to = self.settings['datetime_to'] 
                     granularity_settings = self.granularity_list.get(gran, {})  
                     for upd_metric,metric_data in upd_metric_list[gran].items():
                         for metric_tag, metric_tag_data in metric_data.items():
-                            if metric_tag_data["ts"][0]>=exist_periods[gran][0]:
-                                # Добавляем данные с периодом меньше незаконченного текущего, определенного по последней записанной минуте.
-                                continue
                             if metric_tag in self.source_tag_exceptions:
                                 continue
                             if metric_tag=="all":
@@ -498,7 +500,7 @@ class Robot_getload:
                             else:
                                 # Тег не зарегистрирован, добавим в массив и базу
                                 metric_tag_id = Metric.add_tag(db=db, project_id=self.project_id, metric_tag=metric_tag)
-                                project_tags_ids[metric_tag] = metric_tag_id       
+                                project_tags_ids[metric_tag] = metric_tag_id          
                             res = Metric.add_fr_ym(db=db,
                                         metrics=metrics, # Словарь метрик с их параметрами
                                         granularity=gran, granularity_settings=granularity_settings, 
@@ -510,7 +512,7 @@ class Robot_getload:
                                         upd_metric_vals=metric_tag_data["vals"], # Список добавляемых значений метрики
                                         upd_metric_time_intervals=metric_tag_data["ts"], # Список интервалов добавляемых элементов
                                         mode=self.db_mode, # prod
-                                        datetime_to=self.settings['datetime_to'], first_item_enable=True)  
+                                        datetime_to=datetime_to, first_item_enable=True)  
                             insert_counter_all += res['insert_counter_all'] 
                             insert_counter[gran] += res['insert_counter_all'] 
         except Exception as err:

@@ -143,6 +143,10 @@ config = {
 
     # Пример настройки новостей
     "newsmaker": {
+        "default": {
+            "start_lag_sec": 60
+        },
+        
         "imon_digest_d1": {
             "active": True,
             "title": "===[ ⏰ Good morning DIGEST ]===",
