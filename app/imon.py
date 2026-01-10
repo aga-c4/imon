@@ -165,11 +165,16 @@ elif namespace.action == 'mgen':
 elif namespace.action == 'newsmaker':
     message_str = "Newsmaker fin, comment:"
     for cur_news_alias, news in config["newsmaker"].items():
+        if cur_news_alias=="default":
+            continue
         if (namespace.news_alias!='' and cur_news_alias==namespace.news_alias) or ( \
                 (namespace.group=='' or news["group"]==namespace.group) \
                 and (namespace.project_id==0 or news["project_id"]==namespace.project_id) \
                 and (news["granularity"]==namespace.granularity) \
             ):
+
+            if "default" in config["newsmaker"] and type(config["newsmaker"]["default"]) is dict:
+                news = {**config["newsmaker"]["default"], **news}
 
             if namespace.message_lvl!='':
                 news["message_lvl"] = namespace.message_lvl   
