@@ -273,8 +273,7 @@ class Robot_getload:
                         cur_metric_accum[gran][upd_metric] = {"all": {'sum':0, 'cnt': 0}}   
                     if not "all" in cur_metric_accum[gran][upd_metric]:
                         cur_metric_accum[gran][upd_metric]["all"] = {'sum':0, 'cnt': 0}      
-                    cur_metric_accum[gran][upd_metric][upd_tag]["sum"] = mtres["value"]  
-                    cur_metric_accum[gran][upd_metric][upd_tag]["cnt"] = mtres["val_count"]  
+                    cur_metric_accum[gran][upd_metric][upd_tag]={"sum": mtres["value"], "cnt": mtres["val_count"]}  
 
             # Получить список доступных архивов
             file_list = self.api.get_list()
