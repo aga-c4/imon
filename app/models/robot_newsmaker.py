@@ -165,13 +165,13 @@ class Robot_newsmaker:
                 "project_id": project_id,
                 "metric_tag_id": 0 
             }
-            def_mess_settings = {}
+            def_mess_settings = message_def
             if "default" in self.settings['messages'] and type(self.settings['messages']["default"]) is dict:
-                def_mess_settings = self.settings['messages']["default"]
+                def_mess_settings = {**message_def, **self.settings['messages']["default"]}
             for message_alias, message in self.settings['messages'].items():
                 if message_alias=="default":
                     continue
-                settings={**def_mess_settings, **message_def, **message}
+                settings={**def_mess_settings, **message}
                 sleep(settings["start_lag_sec"])
                 dt_diapazone = self.get_date_diapazone(granularity=settings["granularity"], 
                                                     dt_to=settings["dt_to"], 
