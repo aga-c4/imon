@@ -137,8 +137,6 @@ class Metric:
 
             for mtres in tags_dt_funct_list: 
                 upd_metric = mtres["metric_alias"]   
-                # if mtres['']!='src':
-                #     print('Error get_tags_sum_list: ', upd_metric)
                 if metrics[upd_metric]["up_dt_funct"] =="avg":
                     if mtres["val_count"]==0:
                         value = 0
