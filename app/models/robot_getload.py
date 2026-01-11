@@ -245,21 +245,15 @@ class Robot_getload:
                     insert_counter[gran] += res['insert_counter_all']
                     upd_counter_all += res['upd_counter_all']
                     upd_counter[gran] += res['upd_counter_all']
-                    # if res['insert_counter_all']>0:
-                    #     print(gran, "Add ", res['insert_counter_all'], "items")
-                    db_exist_dt_gran = SysBf.dt_to_tz(Metric.get_last_dt(db=db, granularity=gran, tz_str_db=self.tz_str_db, project_id=self.project_id, source_id=source_id), tz_str=self.tz_str_system)
+                    
+                    # Обновим дату последней записи в рамках gran
+                    db_exist_dt_gran = SysBf.dt_to_tz(Metric.get_last_dt(db=db, granularity=gran, tz_str_db=self.tz_str_db, 
+                                                                         project_id=self.project_id, source_id=source_id), 
+                                                                         tz_str=self.tz_str_system)
                     if db_exist_dt[gran]<db_exist_dt_gran:
                         db_exist_dt[gran] = db_exist_dt_gran
-                        # print(f"New db_exist_dt[{gran}]=", db_exist_dt[gran])
-                        if db_exist_dt[gran]>max_dt:
-                            max_dt = db_exist_dt[gran] 
-                            # print(f"New max_dt=", db_exist_dt[gran])
-
-                    if max_dt_bk != max_dt:
-                        cur_ts_period = SysBf.get_dateframes_by_current_dt(date=max_dt, tpl="%Y-%m-%dT%H:%M:%S")
-                        cur_ts_period_dt = SysBf.get_dateframes_by_current_dt(date=max_dt)
-                        # print("New cur_ts_period:", cur_ts_period)
-
+                        
+                # Сформируем счетчики сумм метрик незаконченного текущего таймфрейма для gran
                 # Запросим список метрики и их сумм по заданной гранулярности, метрикам и тегам
                 tags_sum_list = Metric.get_tags_sum_list(db=db, granularity=self.prev_gran_list[gran], tz_str_db=self.tz_str_db, project_id=self.project_id, 
                                                             dt_from=cur_ts_period_dt[gran][0], dt_to=cur_ts_period_dt[gran][1], metric_type='src')
@@ -274,6 +268,7 @@ class Robot_getload:
                     if not "all" in cur_metric_accum[gran][upd_metric]:
                         cur_metric_accum[gran][upd_metric]["all"] = {'sum':0, 'cnt': 0}      
                     cur_metric_accum[gran][upd_metric][upd_tag]={"sum": mtres["value"], "cnt": mtres["val_count"]}  
+
 
             # Получить список доступных архивов
             file_list = self.api.get_list()
@@ -311,7 +306,9 @@ class Robot_getload:
                         dt_cur_hour_day_str = dt_cur_hour.strftime("%Y-%m-%d")+"T00:00:00"
 
                         # Пройтись по минутам, открыть файлы, записать данные в базу данных с тегами, записать суммарные данные без тега  
-                        if minute_file_list!=False and type(minute_file_list["flist"]) is list:    
+                        if minute_file_list!=False and type(minute_file_list["flist"]) is list:
+
+                            # Добавление в список апдейта данных старших периодов    
                             for gran in self.add_gran_list:
                                 # рассчитаем края периода по текущим данным
                                 item_ts_period = ["",""]
@@ -357,7 +354,7 @@ class Robot_getload:
                                     cur_metric_accum[gran] = {} 
 
 
-                            # При изменении таймфреймов проведем необохдимые действия по сохранению и т.п.
+                            # При изменении таймфреймов проведем необхoдимые действия по сохранению и т.п.
                             upd_metric_list["m1"] = {}
                             for minute_file in minute_file_list["flist"]:
                                 # try:
